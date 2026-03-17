@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/analytics.js"></script>
+
+  <!-- 수정 1: 제목 -->
+  <title>글 제목 여기 입력 - 경제적 자유를 위한 도전</title>
+  <meta name="description" content="글 설명 여기 입력 (80~120자 권장)">
+  <meta name="keywords" content="키워드1, 키워드2, 키워드3">
+  <meta name="robots" content="index, follow">
+
+  <!-- 수정 2: Canonical URL (파일명과 동일하게) -->
+  <link rel="canonical" href="https://bloginfo360.com/posts/파일명">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="글 제목 여기 입력">
+  <meta property="og:description" content="글 설명 여기 입력">
+  <meta property="og:locale" content="ko_KR">
+
+  <!-- 수정 3: 발행일 -->
+  <meta property="article:published_time" content="2026-03-17T00:00:00+09:00">
+  <meta property="article:section" content="경제">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="글 제목 여기 입력">
+  <meta name="twitter:description" content="글 설명 여기 입력">
+
+  <!-- Article Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "글 제목 여기 입력",
+    "description": "글 설명 여기 입력",
+    "datePublished": "2026-03-17",
+    "dateModified": "2026-03-17",
+    "author": { "@type": "Person", "name": "경제적 자유를 위한 도전" },
+    "publisher": { "@type": "Organization", "name": "경제적 자유를 위한 도전" }
+  }
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50:"#f0fdf4", 100:"#dcfce7", 600:"#16a34a", 700:"#15803d" },
+            gold:  { 400:"#fbbf24", 500:"#f59e0b" },
+            ink:   { 900:"#0f172a", 700:"#1e293b", 500:"#475569", 300:"#94a3b8", 100:"#f1f5f9" }
+          },
+          fontFamily: { sans: ["Noto Sans KR", "sans-serif"] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: "Noto Sans KR", sans-serif; }
+    .prose h2 { font-size: 1.35rem; font-weight: 700; margin: 2.2rem 0 0.8rem; color: #0f172a; border-left: 4px solid #16a34a; padding-left: 12px; }
+    .prose h3 { font-size: 1.1rem; font-weight: 700; margin: 1.6rem 0 0.5rem; color: #1e293b; }
+    .prose p  { line-height: 1.9; margin-bottom: 1.1rem; color: #475569; font-size: 0.97rem; }
+    .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #475569; font-size: 0.97rem; }
+    .prose ul li { margin-bottom: 0.4rem; line-height: 1.7; }
+    .prose strong { color: #0f172a; font-weight: 700; }
+    .prose blockquote { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 1.5rem 0; color: #1e293b; font-size: 0.95rem; line-height: 1.8; }
+    .prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    .prose table th { background: #f1f5f9; font-weight: 700; padding: 10px 14px; text-align: left; color: #1e293b; }
+    .prose table td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #475569; }
+    .prose table tr:hover td { background: #f8fafc; }
+    .prose hr { border: none; border-top: 1px solid #e2e8f0; margin: 2rem 0; }
+    .btn-share { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; border: 1.5px solid #e2e8f0; background: #fff; color: #475569; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.1s; text-decoration: none; }
+    .btn-share:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .btn-share:focus { outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,0.2); }
+    .btn-share:active { transform: scale(0.97); }
+    .toc-link { display: block; padding: 4px 0; color: #475569; font-size: 0.85rem; text-decoration: none; transition: color 0.15s; }
+    .toc-link:hover { color: #16a34a; }
+  </style>
+</head>
+<body class="bg-white text-ink-900">
+
+  <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="../index.html" class="text-xl font-black text-brand-600 leading-tight">경제적 자유를<br class="sm:hidden"> 위한 도전</a>
+      <nav class="hidden sm:flex items-center gap-6 text-sm font-medium text-ink-500">
+        <a href="../index.html" class="hover:text-brand-600 transition-colors">홈</a>
+        <a href="../index.html#category" class="hover:text-brand-600 transition-colors">카테고리</a>
+        <a href="../index.html#newsletter" class="hover:text-brand-600 transition-colors">뉴스레터</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-10">
+    <div class="flex flex-col lg:flex-row gap-10">
+
+      <article class="flex-1 min-w-0">
+
+        <!-- 수정 4: 카테고리 (경제=gold/yellow, 주식=brand/green, 제품리뷰=sky/blue, 기타=purple) -->
+        <div class="flex flex-wrap gap-2 items-center mb-4">
+          <span class="text-xs font-bold text-gold-500 bg-yellow-50 px-2.5 py-0.5 rounded-full">경제</span>
+          <!-- 수정 5: 날짜 -->
+          <span class="text-xs text-ink-300">2026.03.17</span>
+          <span class="text-xs text-ink-300">· 읽는 시간 약 5분</span>
+        </div>
+
+        <!-- 수정 6: H1 제목 -->
+        <h1 class="text-2xl sm:text-3xl font-black text-ink-900 leading-tight mb-3">
+          글 제목 여기 입력
+        </h1>
+        <p class="text-ink-500 text-sm mb-8 leading-relaxed">
+          글 설명 여기 입력
+        </p>
+
+        <!-- 수정 7: 썸네일 이모지 & 배경색 -->
+        <div class="w-full h-52 sm:h-72 bg-gradient-to-br from-sky-100 to-blue-50 rounded-2xl flex items-center justify-center text-7xl mb-10">
+          📝
+        </div>
+
+        <!-- 수정 8: 본문 내용 -->
+        <div class="prose">
+
+          <p>첫 번째 문단을 여기에 작성하세요.</p>
+
+          <h2 id="section1">첫 번째 소제목</h2>
+          <p>내용을 여기에 작성하세요.</p>
+
+          <h2 id="section2">두 번째 소제목</h2>
+          <p>내용을 여기에 작성하세요.</p>
+
+          <h2 id="section3">세 번째 소제목</h2>
+          <p>내용을 여기에 작성하세요.</p>
+
+        </div>
+
+        <!-- 수정 9: 태그 -->
+        <div class="mt-8 flex flex-wrap gap-2">
+          <span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#태그1</span>
+          <span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#태그2</span>
+        </div>
+
+        <div class="mt-10 pt-8 border-t border-ink-100 flex flex-wrap gap-3">
+          <button class="btn-share" onclick="copyLink()">🔗 링크 복사</button>
+          <a class="btn-share" href="https://twitter.com/intent/tweet?text=글제목&url=" target="_blank" rel="noopener">🐦 X(트위터) 공유</a>
+          <a class="btn-share" href="https://www.facebook.com/sharer/sharer.php?u=" target="_blank" rel="noopener">📘 페이스북 공유</a>
+        </div>
+        <p id="copyMsg" class="text-xs text-brand-600 mt-2 hidden">링크가 복사되었습니다!</p>
+
+        <!-- 수정 10: 이전/다음 글 -->
+        <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <a href="#" class="block p-4 rounded-xl border border-ink-100 hover:border-brand-600 hover:bg-brand-50 transition-colors group">
+            <span class="text-xs text-ink-300 group-hover:text-brand-600 transition-colors">이전 글</span>
+            <p class="mt-1 text-sm font-semibold text-ink-700 group-hover:text-brand-700 line-clamp-1">이전 글 제목</p>
+          </a>
+          <a href="#" class="block p-4 rounded-xl border border-ink-100 hover:border-brand-600 hover:bg-brand-50 transition-colors group text-right">
+            <span class="text-xs text-ink-300 group-hover:text-brand-600 transition-colors">다음 글</span>
+            <p class="mt-1 text-sm font-semibold text-ink-700 group-hover:text-brand-700 line-clamp-1">다음 글 제목</p>
+          </a>
+        </div>
+
+      </article>
+
+      <aside class="w-full lg:w-64 shrink-0">
+        <div class="sticky top-20 space-y-6">
+
+          <!-- 수정 11: 목차 -->
+          <div class="bg-ink-100 rounded-2xl p-5">
+            <p class="text-xs font-bold text-ink-500 uppercase mb-3 tracking-wide">목차</p>
+            <nav class="space-y-1">
+              <a href="#section1" class="toc-link">1. 첫 번째 소제목</a>
+              <a href="#section2" class="toc-link">2. 두 번째 소제목</a>
+              <a href="#section3" class="toc-link">3. 세 번째 소제목</a>
+            </nav>
+          </div>
+
+          <div class="bg-white border border-ink-100 rounded-2xl p-5">
+            <p class="text-xs font-bold text-ink-500 uppercase mb-3 tracking-wide">관련 글</p>
+            <ul class="space-y-3">
+              <li>
+                <a href="april-airline-fuel-surcharge-2026.html" class="text-sm text-ink-700 hover:text-brand-600 transition-colors font-medium line-clamp-2">4월 국제선 유류할증료 3배 폭등 총정리</a>
+                <span class="text-xs text-ink-300 block mt-0.5">2026.03.17</span>
+              </li>
+              <li>
+                <a href="sample.html" class="text-sm text-ink-700 hover:text-brand-600 transition-colors font-medium line-clamp-2">2024년 배당주 TOP 10 완벽 정리</a>
+                <span class="text-xs text-ink-300 block mt-0.5">2025.01.15</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-brand-600 rounded-2xl p-5 text-white">
+            <p class="font-bold text-sm mb-1">새 글 알림 받기</p>
+            <p class="text-brand-200 text-xs mb-3">이메일로 바로 받아보세요</p>
+            <a href="../index.html#newsletter" class="block text-center bg-white text-brand-600 text-xs font-bold py-2 rounded-lg hover:bg-brand-50 transition-colors">구독하기</a>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="border-t border-ink-100 bg-white mt-16">
+    <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
+      <span class="font-bold text-ink-500">경제적 자유를 위한 도전</span>
+      <span>2026. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href);
+      const msg = document.getElementById("copyMsg");
+      msg.classList.remove("hidden");
+      setTimeout(() => msg.classList.add("hidden"), 2000);
+    }
+  </script>
+</body>
+</html>
