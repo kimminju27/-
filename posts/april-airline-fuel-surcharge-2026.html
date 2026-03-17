@@ -124,6 +124,20 @@
     /* 발권 꿀팁 박스 */
     .tip-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 20px 24px; margin: 1.5rem 0; }
     .tip-box p { margin-bottom: 0.5rem; }
+
+    /* 카드뉴스 슬라이더 */
+    .card-news-wrap { position: relative; margin: 2rem 0; }
+    .card-news-slider { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 4px 4px 16px; scrollbar-width: none; }
+    .card-news-slider::-webkit-scrollbar { display: none; }
+    .card-news-item { flex: 0 0 260px; scroll-snap-align: start; border-radius: 16px; padding: 24px 20px; min-height: 320px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+    .card-news-num { font-size: 3.5rem; font-weight: 900; opacity: 0.12; position: absolute; top: 10px; right: 14px; line-height: 1; }
+    .card-news-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; display: inline-block; margin-bottom: 12px; }
+    .card-news-title { font-size: 1.15rem; font-weight: 900; line-height: 1.35; margin-bottom: 12px; }
+    .card-news-body { font-size: 0.85rem; line-height: 1.7; flex: 1; }
+    .card-news-stat { font-size: 2rem; font-weight: 900; margin-top: 14px; }
+    .card-nav { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+    .card-dot { width: 8px; height: 8px; border-radius: 99px; background: #e2e8f0; transition: all 0.2s; cursor: pointer; }
+    .card-dot.active { width: 24px; background: #16a34a; }
   </style>
 </head>
 <body class="bg-white text-ink-900">
@@ -164,9 +178,123 @@
           2026년 4월 국제선 유류할증료가 역대 최대 폭으로 인상됐습니다. 호르무즈 해협 위기로 항공권 가격이 얼마나 올랐는지, 3월 31일 발권 꿀팁까지 총정리합니다.
         </p>
 
-        <!-- 썸네일 -->
-        <div class="w-full h-52 sm:h-72 bg-gradient-to-br from-sky-100 to-blue-50 rounded-2xl flex items-center justify-center text-7xl mb-10">
-          ✈️
+        <!-- 히어로 썸네일 -->
+        <div class="w-full rounded-2xl overflow-hidden mb-10" style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 55%,#0f3460 100%); min-height:280px; position:relative;">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:2rem 2.5rem;">
+            <span style="background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);" class="text-xs font-bold px-3 py-1 rounded-full inline-block w-fit mb-4">✈️ 경제 · 2026.03.17</span>
+            <h2 class="text-white font-black leading-tight mb-3" style="font-size:clamp(1.3rem,4vw,2rem);">4월 국제선 유류할증료<br>역대 최대 폭등</h2>
+            <div class="flex flex-wrap gap-4 mt-2">
+              <div>
+                <p class="text-white/50 text-xs">일본노선 인상률</p>
+                <p style="color:#f87171;" class="font-black text-3xl">+200%</p>
+              </div>
+              <div>
+                <p class="text-white/50 text-xs">뉴욕노선 편도</p>
+                <p style="color:#fbbf24;" class="font-black text-3xl">25만원</p>
+              </div>
+              <div>
+                <p class="text-white/50 text-xs">단계 상승폭</p>
+                <p style="color:#34d399;" class="font-black text-3xl">+12단계</p>
+              </div>
+            </div>
+            <p class="text-white/40 text-xs mt-4">3월 31일 전 발권하면 3월 요금 그대로 적용 →</p>
+          </div>
+          <div style="position:absolute;right:-20px;bottom:-20px;font-size:10rem;opacity:0.04;line-height:1;">✈️</div>
+        </div>
+
+        <!-- 카드뉴스 -->
+        <div class="card-news-wrap">
+          <p class="text-xs font-bold text-ink-500 uppercase tracking-wide mb-3">📰 카드뉴스로 보기</p>
+          <div class="card-news-slider" id="cardSlider">
+
+            <!-- Card 1 -->
+            <div class="card-news-item" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);color:white;">
+              <span class="card-news-num">01</span>
+              <div>
+                <span class="card-news-badge" style="background:rgba(251,191,36,0.2);color:#fbbf24;">사건 배경</span>
+                <p class="card-news-title">호르무즈 해협이 막혔다</p>
+                <p class="card-news-body" style="color:rgba(255,255,255,0.7);">2026년 2월, 미국·이스라엘의 이란 공격으로 이란이 호르무즈 해협을 봉쇄 위협. 전 세계 원유 해상 운송의 20%가 통과하는 길목이 흔들렸습니다.</p>
+              </div>
+              <p class="card-news-stat" style="color:#f87171;">🚨 유가 패닉</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card-news-item" style="background:linear-gradient(135deg,#7f1d1d,#991b1b);color:white;">
+              <span class="card-news-num">02</span>
+              <div>
+                <span class="card-news-badge" style="background:rgba(255,255,255,0.15);color:white;">유가 급등</span>
+                <p class="card-news-title">브렌트유 하루 9% 폭등</p>
+                <p class="card-news-body" style="color:rgba(255,255,255,0.7);">3월 12일 브렌트유 배럴당 100달러 돌파. 싱가포르 항공유(MOPS)는 86달러에서 225달러까지 치솟았습니다. 1983년 이래 역대 최대 주간 상승폭.</p>
+              </div>
+              <p class="card-news-stat" style="color:#fca5a5;">$225 최고가</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card-news-item" style="background:linear-gradient(135deg,#1e293b,#334155);color:white;">
+              <span class="card-news-num">03</span>
+              <div>
+                <span class="card-news-badge" style="background:rgba(251,191,36,0.2);color:#fbbf24;">단계 폭등</span>
+                <p class="card-news-title">12단계 한 번에 올랐다</p>
+                <p class="card-news-body" style="color:rgba(255,255,255,0.7);">3월 6단계 → 4월 18단계. 한 달 사이 12단계 상승은 2016년 현행 33단계 체계 도입 이래 단 한 번도 없었던 기록입니다.</p>
+              </div>
+              <p class="card-news-stat" style="color:#34d399;">역대 최대</p>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card-news-item" style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:white;">
+              <span class="card-news-num">04</span>
+              <div>
+                <span class="card-news-badge" style="background:rgba(255,255,255,0.15);color:white;">아시아나항공</span>
+                <p class="card-news-title">일본 3배, 뉴욕은 25만원</p>
+                <p class="card-news-body" style="color:rgba(255,255,255,0.7);">인천→후쿠오카 편도 14,600원 → 43,900원(+200%). 인천→뉴욕 편도 78,600원 → 251,900원(+220%). 왕복이면 유류할증료만 50만원 초과.</p>
+              </div>
+              <p class="card-news-stat" style="color:#93c5fd;">+220%</p>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="card-news-item" style="background:linear-gradient(135deg,#14532d,#166534);color:white;">
+              <span class="card-news-num">05</span>
+              <div>
+                <span class="card-news-badge" style="background:rgba(52,211,153,0.2);color:#34d399;">이스타항공</span>
+                <p class="card-news-title">동남아 딱 3배, 9만원 육박</p>
+                <p class="card-news-body" style="color:rgba(255,255,255,0.7);">방콕·치앙마이·나트랑 편도 $20 → $60(+200%). 일본 단거리도 $9 → $29(+222%). 가족 4인 동남아 여행 시 유류할증료만 70만원 이상.</p>
+              </div>
+              <p class="card-news-stat" style="color:#6ee7b7;">약 90,000원</p>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="card-news-item" style="background:linear-gradient(135deg,#312e81,#4338ca);color:white;">
+              <span class="card-news-num">06</span>
+              <div>
+                <span class="card-news-badge" style="background:rgba(255,255,255,0.15);color:white;">꿀팁</span>
+                <p class="card-news-title">3월 31일 전 발권하면 구 요금 적용</p>
+                <p class="card-news-body" style="color:rgba(255,255,255,0.7);">유류할증료는 출발일이 아닌 발권일 기준. 4~5월 출발 항공권을 3월 31일 전에 끊으면 3월(낮은) 요금 그대로. 발권 후 추가 징수 없음.</p>
+              </div>
+              <p class="card-news-stat" style="color:#a5b4fc;">D-14 ⏰</p>
+            </div>
+
+            <!-- Card 7 -->
+            <div class="card-news-item" style="background:linear-gradient(135deg,#78350f,#b45309);color:white;">
+              <span class="card-news-num">07</span>
+              <div>
+                <span class="card-news-badge" style="background:rgba(255,255,255,0.15);color:white;">5월 전망</span>
+                <p class="card-news-title">5월은 4월보다 더 오를 수 있다</p>
+                <p class="card-news-body" style="color:rgba(255,255,255,0.7);">4월 산정 기간엔 이란 사태 이전 유가도 포함됐지만, 5월은 현재 고유가가 온전히 반영. 맥쿼리는 브렌트유 150달러 초과 가능성 제시.</p>
+              </div>
+              <p class="card-news-stat" style="color:#fcd34d;">지금이 마지막 기회</p>
+            </div>
+
+          </div>
+          <!-- 닷 인디케이터 -->
+          <div class="card-nav" id="cardNav">
+            <div class="card-dot active" onclick="scrollToCard(0)"></div>
+            <div class="card-dot" onclick="scrollToCard(1)"></div>
+            <div class="card-dot" onclick="scrollToCard(2)"></div>
+            <div class="card-dot" onclick="scrollToCard(3)"></div>
+            <div class="card-dot" onclick="scrollToCard(4)"></div>
+            <div class="card-dot" onclick="scrollToCard(5)"></div>
+            <div class="card-dot" onclick="scrollToCard(6)"></div>
+          </div>
         </div>
 
         <!-- 본문 -->
@@ -418,6 +546,21 @@
   </footer>
 
   <script>
+    // 카드뉴스 슬라이더
+    function scrollToCard(idx) {
+      const slider = document.getElementById('cardSlider');
+      const card = slider.children[idx];
+      slider.scrollTo({ left: card.offsetLeft - 4, behavior: 'smooth' });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const slider = document.getElementById('cardSlider');
+      const dots = document.querySelectorAll('.card-dot');
+      slider.addEventListener('scroll', function() {
+        const idx = Math.round(slider.scrollLeft / 272);
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      });
+    });
+
     function copyLink() {
       navigator.clipboard.writeText(window.location.href);
       const msg = document.getElementById('copyMsg');
