@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:pink-zeta-50.vercel.app)"
+      "WebFetch(domain:pink-zeta-50.vercel.app)",
+      "Bash(cat:*)"
     ]
   }
 }
