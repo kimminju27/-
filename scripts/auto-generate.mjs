@@ -911,11 +911,17 @@ async function main() {
     for (const line of links) {
       // │(U+2502 박스문자), ｜(U+FF5C 전각), | (U+007C 일반) 모두 허용
       const parts = line.replace(/[│｜]/g, '|').split('|');
-      const affiliateUrl = parts[0]?.trim();          // 제휴 링크 (버튼용)
+      const affiliateUrl = parts[0]?.trim();
       const platform = (parts[1]?.trim() || 'coupang').toLowerCase();
-      const scrapeUrl = parts[2]?.trim() || null;     // 스크래핑 URL (선택)
-      const manualName = parts[3]?.trim() || '';      // 수동 제품명 (스크래핑 불가 시)
-      const manualDesc = parts[4]?.trim() || '';      // 수동 제품 설명 (선택)
+      const field3 = parts[2]?.trim() || '';
+      const field4 = parts[3]?.trim() || '';
+      const field5 = parts[4]?.trim() || '';
+
+      // 3번째 필드가 URL이 아니면 제품명으로 자동 처리
+      const isUrl = field3.startsWith('http://') || field3.startsWith('https://');
+      const scrapeUrl = isUrl ? field3 : null;
+      const manualName = isUrl ? field4 : field3;   // URL 아니면 바로 제품명
+      const manualDesc = isUrl ? field5 : field4;   // 설명도 한 칸씩 당겨짐
 
       if (!affiliateUrl) continue;
 
