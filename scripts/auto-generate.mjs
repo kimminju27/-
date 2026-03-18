@@ -59,11 +59,16 @@ function repairJson(str) {
   return result;
 }
 
-// 중국어/일본어 한자 제거 (한국어 한자는 유지)
+// 외국어 문자 제거: 중국 한자 + 일본 히라가나/가타카나 (한국어 한글은 유지)
 function removeForeignChars(text) {
   if (typeof text !== 'string') return text;
-  // CJK Unified Ideographs (중국어) 제거, 한국어(가-힣)는 유지
-  return text.replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF\u{20000}-\u{2A6DF}]/gu, '');
+  return text
+    // 일본어 히라가나 (あいうえお...)
+    .replace(/[\u3041-\u309F]/g, '')
+    // 일본어 가타카나 (アイウエオ...)
+    .replace(/[\u30A0-\u30FF]/g, '')
+    // 중국어 한자 (CJK Unified Ideographs)
+    .replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g, '');
 }
 
 function sanitizeReviewData(data) {
@@ -291,7 +296,8 @@ async function fetchProductFromNaverAPI(query) {
     const title = item.title.replace(/<[^>]+>/g, '').trim();
     const price = parseInt(item.lprice || '0', 10);
     const priceStr = price > 0 ? price.toLocaleString('ko-KR') + '원' : '';
-    const images = json.items.slice(0, 5).map(i => i.image).filter(Boolean);
+    // 중복 URL 제거 후 최대 5장
+    const images = [...new Set(json.items.slice(0, 10).map(i => i.image).filter(Boolean))].slice(0, 5);
 
     console.log(`   └ [네이버 API] ✅ 제품명: ${title}`);
     console.log(`   └ [네이버 API] ✅ 가격: ${priceStr}`);
@@ -440,10 +446,12 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
 
   const systemMsg = `당신은 대한민국 최고의 제품 리뷰 블로거입니다.
 규칙:
-1. 순수 한국어만 사용. 中文(중국 한자), 日本語, English 단어 절대 금지.
-2. "们" "經" "験" 같은 한자 절대 금지.
-3. "알아보겠습니다" "살펴보겠습니다" 금지.
-4. 반드시 valid JSON으로만 응답.`;
+1. 순수 한국어만 사용. 중국어(한자), 일본어(히라가나/가타카나), 영어 단어 절대 금지.
+2. "あり" "なし" "ある" "ない" 같은 일본어 절대 금지. 대신 "있음" "없음" 사용.
+3. "们" "經" "験" 같은 중국 한자 절대 금지.
+4. "알아보겠습니다" "살펴보겠습니다" 금지.
+5. 비교표의 ○/× 대신 반드시 "있음"/"없음" 또는 구체적 한국어 값 사용.
+6. 반드시 valid JSON으로만 응답.`;
 
   const productDesc = info.bodyText?.substring(0, 1500) || info.description || '';
 
