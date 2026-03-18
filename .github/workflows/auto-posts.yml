@@ -55,14 +55,52 @@ jobs:
         id: cats
         run: |
           HOUR=$(date -u +%H)
+          # 요일(0=일,1=월,...,6=토)로 주간 로테이션
+          DOW=$(date -u +%u)
           if [ "$HOUR" = "22" ]; then
-            echo "CATS=경제,부동산" >> $GITHUB_OUTPUT
+            # 오전 7시 — 요일별 다른 조합
+            case $DOW in
+              1) echo "CATS=경제,부동산_청약" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=부동산,복지_청년" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=경제_소비,주식" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=부동산_재개발,세금" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=경제_고용,복지정책" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=주식_ETF,부동산_전세" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=금융,경제" >> $GITHUB_OUTPUT ;;
+            esac
           elif [ "$HOUR" = "04" ]; then
-            echo "CATS=주식,경제" >> $GITHUB_OUTPUT
+            # 오후 1시 — 요일별 다른 조합
+            case $DOW in
+              1) echo "CATS=주식,복지_출산" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=주식_해외,경제_소비" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=복지정책,부동산" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=주식_ETF,경제_고용" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=금융,부동산_청약" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=세금,복지_노인" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=경제,주식" >> $GITHUB_OUTPUT ;;
+            esac
           elif [ "$HOUR" = "08" ]; then
-            echo "CATS=주식,복지정책" >> $GITHUB_OUTPUT
+            # 오후 5시 — 요일별 다른 조합
+            case $DOW in
+              1) echo "CATS=복지_청년,주식_해외" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=부동산_전세,금융" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=세금,주식" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=복지_출산,경제" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=부동산,주식_ETF" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=경제_소비,복지_노인" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=주식,복지정책" >> $GITHUB_OUTPUT ;;
+            esac
           else
-            echo "CATS=복지정책,부동산" >> $GITHUB_OUTPUT
+            # 오후 7시 — 요일별 다른 조합
+            case $DOW in
+              1) echo "CATS=복지정책,부동산_재개발" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=경제_고용,주식_해외" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=금융,복지_청년" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=부동산_전세,경제_소비" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=세금,주식" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=복지_노인,부동산" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=복지정책,부동산" >> $GITHUB_OUTPUT ;;
+            esac
           fi
 
       - name: 글 자동 생성
@@ -81,4 +119,4 @@ jobs:
           commit_message: "auto: 새 글 자동 생성 🤖"
           commit_user_name: "Auto Post Bot"
           commit_user_email: "bot@bloginfo360.com"
-          file_pattern: "posts/*.html index.html sitemap.xml"
+          file_pattern: "posts/*.html index.html sitemap.xml topics-history.json"

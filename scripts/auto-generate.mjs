@@ -4,7 +4,7 @@
  * - product_review 모드: 제품 URL → Gemini API → 리뷰 HTML 생성
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -94,17 +94,99 @@ const CATEGORIES_TO_RUN = (process.env.CATEGORIES || '경제,주식').split(',')
 const PRODUCT_LINKS_RAW = process.env.PRODUCT_LINKS || '';
 
 // ─────────────────────────────────────────
-// 1. 뉴스 RSS 가져오기 (Google News, 무료)
+// 1. 주제 풀 (Topic Pool) — 구체적 주제 60개
+//    매 실행마다 안 쓴 주제를 골라 완전히 다른 글 생성
 // ─────────────────────────────────────────
-const NEWS_QUERIES = {
-  '경제': '한국 경제 금리 물가 환율',
-  '부동산': '부동산 아파트 전세 청약 집값',
-  '주식': '주식 코스피 코스닥 ETF 투자',
-  '복지정책': '정부 복지 지원금 청년혜택 정책',
-};
+const TOPIC_POOL = [
+  // 경제
+  { id: 'eco-001', category: '경제', label: '기준금리 동결 대출이자 영향', query: '한국은행 기준금리 동결 대출이자 가계부채' },
+  { id: 'eco-002', category: '경제', label: '원달러 환율 급등 대응법', query: '원달러 환율 급등 외환시장 수입물가 대응' },
+  { id: 'eco-003', category: '경제', label: '소비자물가 상승 장바구니', query: '소비자물가지수 식품 외식비 장바구니 생활비' },
+  { id: 'eco-004', category: '경제', label: '무역수지 반도체 수출', query: '무역수지 반도체 수출 흑자 대미무역' },
+  { id: 'eco-005', category: '경제', label: '청년 실업률 취업난', query: '청년 실업률 취업난 구직 일자리 고용' },
+  { id: 'eco-006', category: '경제', label: '미국 관세 한국 경제 영향', query: '미국 관세 한국 수출 경제 영향 대응' },
+  { id: 'eco-007', category: '경제', label: '최저임금 인상 자영업 영향', query: '최저임금 인상 자영업자 인건비 영향' },
+  { id: 'eco-008', category: '경제', label: '국내총생산 GDP 성장률', query: '한국 GDP 경제성장률 전망 IMF 전망' },
+  // 부동산
+  { id: 'real-001', category: '부동산', label: '서울 아파트 집값 전망', query: '서울 아파트 매매가 집값 전망 거래량' },
+  { id: 'real-002', category: '부동산', label: '전세사기 피해 구제 방법', query: '전세사기 피해자 구제 보증금 반환 방법' },
+  { id: 'real-003', category: '부동산', label: '청약 당첨 전략 가점 계산', query: '청약 분양 당첨 가점 청약통장 전략' },
+  { id: 'real-004', category: '부동산', label: '재개발 재건축 투자 수익', query: '재개발 재건축 조합원 분담금 수익 투자' },
+  { id: 'real-005', category: '부동산', label: '1인가구 원룸 오피스텔 월세', query: '원룸 오피스텔 1인가구 월세 임대차' },
+  { id: 'real-006', category: '부동산', label: '3기 신도시 GTX 분양', query: '3기 신도시 GTX 분양 청약 입주 일정' },
+  { id: 'real-007', category: '부동산', label: '빌라 연립 매수 리스크', query: '빌라 연립주택 매수 전세 리스크 주의사항' },
+  { id: 'real-008', category: '부동산', label: '신혼부부 주택 구입 지원', query: '신혼부부 주택구입 대출 지원 혜택 정책' },
+  { id: 'real-009', category: '부동산', label: '수도권 전세가율 위험 지역', query: '전세가율 수도권 위험 지역 깡통전세 주의' },
+  { id: 'real-010', category: '부동산', label: '임대차 3법 계약갱신 청구권', query: '임대차 계약갱신청구권 전월세 상한제 임차인' },
+  // 주식
+  { id: 'stock-001', category: '주식', label: '코스피 외국인 매수 전망', query: '코스피 외국인 매수 주가 전망 증시' },
+  { id: 'stock-002', category: '주식', label: '미국 나스닥 S&P500 투자법', query: '미국주식 나스닥 S&P500 투자 방법 초보' },
+  { id: 'stock-003', category: '주식', label: '배당주 월배당 투자 전략', query: '배당주 월배당 배당금 배당투자 장기투자' },
+  { id: 'stock-004', category: '주식', label: '삼성전자 SK하이닉스 반도체주', query: '삼성전자 SK하이닉스 반도체 주가 실적' },
+  { id: 'stock-005', category: '주식', label: 'ETF 종류별 수익률 비교', query: 'ETF 종류 수익률 비교 추천 인덱스' },
+  { id: 'stock-006', category: '주식', label: '공매도 재개 개인투자자 대응', query: '공매도 재개 개인투자자 대응 주식시장' },
+  { id: 'stock-007', category: '주식', label: '2차전지 배터리주 전망', query: '2차전지 배터리 LG에너지솔루션 주가 전망' },
+  { id: 'stock-008', category: '주식', label: 'AI 인공지능 관련주', query: 'AI 인공지능 관련주 수혜주 투자 테마' },
+  { id: 'stock-009', category: '주식', label: '주식 세금 양도소득세 절세', query: '주식 양도소득세 절세 금융투자소득세' },
+  { id: 'stock-010', category: '주식', label: '연금저축 IRP 세액공제', query: '연금저축 IRP 세액공제 노후 절세 투자' },
+  // 복지정책
+  { id: 'wel-001', category: '복지정책', label: '청년도약계좌 가입 조건 혜택', query: '청년도약계좌 가입조건 신청방법 혜택 금리' },
+  { id: 'wel-002', category: '복지정책', label: '기초연금 수급 자격 금액', query: '기초연금 노인 수급자격 금액 신청방법' },
+  { id: 'wel-003', category: '복지정책', label: '출산 지원금 바우처 총정리', query: '출산 지원금 임신 바우처 산모 혜택 총정리' },
+  { id: 'wel-004', category: '복지정책', label: '청년월세 한시 특별지원', query: '청년 월세 지원 한시 특별지원 신청 조건' },
+  { id: 'wel-005', category: '복지정책', label: '에너지 바우처 난방비 지원', query: '에너지 바우처 난방비 지원 취약계층 신청' },
+  { id: 'wel-006', category: '복지정책', label: '국민연금 개혁 수령 나이', query: '국민연금 개혁 보험료율 수급연령 노후' },
+  { id: 'wel-007', category: '복지정책', label: '건강보험료 환급 신청법', query: '건강보험료 환급 본인부담금 상한액 신청' },
+  { id: 'wel-008', category: '복지정책', label: '장애인 활동지원 급여 확대', query: '장애인 활동지원 급여 서비스 확대 신청' },
+  { id: 'wel-009', category: '복지정책', label: '아동수당 지원 대상 확대', query: '아동수당 지원 대상 금액 신청 방법' },
+  { id: 'wel-010', category: '복지정책', label: '실업급여 조건 수급 기간', query: '실업급여 수급조건 신청 기간 금액 방법' },
+  // 세금
+  { id: 'tax-001', category: '세금', label: '연말정산 환급 최대로 받는 법', query: '연말정산 환급 공제 13월의 월급 방법' },
+  { id: 'tax-002', category: '세금', label: '종합소득세 프리랜서 신고', query: '종합소득세 프리랜서 사업소득 신고 절세' },
+  { id: 'tax-003', category: '세금', label: '증여세 가족 간 절세 한도', query: '증여세 상속세 가족간 절세 한도 방법' },
+  { id: 'tax-004', category: '세금', label: '부동산 양도소득세 절세', query: '부동산 양도소득세 절세 1주택 비과세' },
+  { id: 'tax-005', category: '세금', label: '근로소득세 과세표준 변경', query: '근로소득세 과세표준 세율 변경 2026' },
+  // 금융
+  { id: 'fin-001', category: '금융', label: '고금리 예금 적금 특판 비교', query: '예금 적금 특판 고금리 은행 금리비교' },
+  { id: 'fin-002', category: '금융', label: 'ISA 계좌 절세 투자 활용법', query: 'ISA 계좌 절세 비과세 투자 활용 방법' },
+  { id: 'fin-003', category: '금융', label: '주택담보대출 금리 대환대출', query: '주택담보대출 금리 대환대출 은행 비교' },
+  { id: 'fin-004', category: '금융', label: '신용점수 올리는 방법', query: '신용점수 신용등급 올리기 관리 방법' },
+  { id: 'fin-005', category: '금융', label: '청년 우대형 청약통장', query: '청년 우대형 청약통장 금리 가입 조건' },
+  { id: 'fin-006', category: '금융', label: '소액 투자 재테크 시작법', query: '소액 투자 재테크 시작 초보 방법 추천' },
+];
 
-async function fetchNewsRSS(category) {
-  const q = encodeURIComponent(NEWS_QUERIES[category] || category);
+// 사용한 주제 추적 (topics-history.json)
+const TOPICS_HISTORY_PATH = path.join(ROOT, 'topics-history.json');
+
+function getUsedTopicIds() {
+  if (!existsSync(TOPICS_HISTORY_PATH)) return [];
+  try { return JSON.parse(readFileSync(TOPICS_HISTORY_PATH, 'utf-8')); } catch { return []; }
+}
+
+function markTopicUsed(id) {
+  let used = getUsedTopicIds();
+  if (!used.includes(id)) used.push(id);
+  // 80% 이상 소진 시 전체 리셋
+  if (used.length >= Math.floor(TOPIC_POOL.length * 0.8)) {
+    console.log('📋 주제 풀 80% 소진 → 히스토리 리셋');
+    used = [];
+  }
+  writeFileSync(TOPICS_HISTORY_PATH, JSON.stringify(used, null, 2), 'utf-8');
+}
+
+// 카테고리에서 아직 안 쓴 주제 랜덤 선택
+function pickUnusedTopic(category) {
+  const used = getUsedTopicIds();
+  // 카테고리 매칭: '부동산', '부동산_전세' 둘 다 → category '부동산' 매칭
+  const base = category.split('_')[0];
+  const pool = TOPIC_POOL.filter(t => t.category === base || t.category === category);
+  const available = pool.filter(t => !used.includes(t.id));
+  const candidates = available.length > 0 ? available : pool; // 소진 시 전체에서 선택
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+async function fetchNewsRSS(query) {
+  const q = encodeURIComponent(query);
   const url = `https://news.google.com/rss/search?q=${q}&hl=ko&gl=KR&ceid=KR:ko`;
 
   try {
@@ -124,7 +206,7 @@ async function fetchNewsRSS(category) {
     }
     return items;
   } catch (e) {
-    console.warn(`RSS 가져오기 실패 (${category}):`, e.message);
+    console.warn(`RSS 가져오기 실패 (${query}):`, e.message);
     return [];
   }
 }
@@ -133,21 +215,24 @@ async function fetchNewsRSS(category) {
 // 2. 뉴스 기사 생성
 // ─────────────────────────────────────────
 async function generateNewsArticle(category) {
-  console.log(`\n📰 뉴스 기사 생성 중: [${category}]`);
+  // 주제 풀에서 아직 안 쓴 구체적 주제 선택
+  const topic = pickUnusedTopic(category);
+  console.log(`\n📰 뉴스 기사 생성 중: [${topic.category}] ${topic.label}`);
 
-  const newsItems = await fetchNewsRSS(category);
+  const newsItems = await fetchNewsRSS(topic.query);
   const newsContext = newsItems.length > 0
     ? newsItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
-    : `${category} 관련 최신 동향`;
+    : `${topic.label} 관련 최신 동향`;
 
   const today = getKSTDate();
 
   const prompt = `You are a professional Korean economic blogger with 10 years of experience. Write a detailed, data-rich blog post in KOREAN ONLY.
 
 Date: ${today}
-Category: ${category}
+Category: ${topic.category}
+Topic (MUST write about THIS specific subject): ${topic.label}
 
-Latest news to reference:
+Latest news headlines to reference (use these as factual context):
 ${newsContext}
 
 STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
@@ -251,11 +336,15 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
 
   let data = JSON.parse(jsonMatch[0]);
   data = sanitizeReviewData(data); // 뉴스에도 외국어 제거 적용
-  data.category = category;
+  data.category = topic.category;
   data.date = today;
 
-  if (!data.slug) data.slug = `${category}-${today}`;
-  data.slug = sanitizeSlug(data.slug) + '-' + today;
+  if (!data.slug) data.slug = `${topic.id}-${today}`;
+  data.slug = sanitizeSlug(data.slug) + '-' + getKSTDateTime();
+
+  // 사용한 주제 기록
+  markTopicUsed(topic.id);
+  console.log(`   ✅ 주제 사용 완료: [${topic.id}] ${topic.label}`);
 
   return data;
 }
@@ -1025,6 +1114,36 @@ function getKSTDate() {
   const now = new Date();
   const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   return kst.toISOString().split('T')[0];
+}
+
+function getKSTDateTime() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const date = kst.toISOString().split('T')[0];
+  const hour = String(kst.getUTCHours()).padStart(2, '0');
+  const min = String(kst.getUTCMinutes()).padStart(2, '0');
+  return `${date}-${hour}${min}`;
+}
+
+// 기존 포스트 제목 수집 (중복 주제 방지용) - 최근 30개
+function getExistingPostTitles() {
+  try {
+    const postsDir = path.join(ROOT, 'posts');
+    if (!existsSync(postsDir)) return [];
+    const files = readdirSync(postsDir)
+      .filter(f => f.endsWith('.html') && f !== '_template.html')
+      .sort()
+      .slice(-30); // 최근 30개만
+    const titles = [];
+    for (const file of files) {
+      try {
+        const content = readFileSync(path.join(postsDir, file), 'utf-8');
+        const m = content.match(/<title>([^<]+)<\/title>/);
+        if (m) titles.push(m[1].replace(/\s*\|.*$/, '').trim());
+      } catch { /* skip */ }
+    }
+    return titles;
+  } catch { return []; }
 }
 
 function sanitizeSlug(slug) {
