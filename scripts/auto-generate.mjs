@@ -12,6 +12,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
+const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
 
 async function callGroq(prompt, { maxTokens = 4000, jsonMode = false } = {}) {
   const body = {
@@ -209,6 +211,45 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
 // ─────────────────────────────────────────
 // 3. 제품 리뷰 생성
 // ─────────────────────────────────────────
+
+// 네이버 쇼핑 API로 제품 정보 자동 수집
+async function fetchProductFromNaverAPI(query) {
+  if (!NAVER_CLIENT_ID || !NAVER_CLIENT_SECRET) return null;
+
+  try {
+    const url = `https://openapi.naver.com/v1/search/shop.json?query=${encodeURIComponent(query)}&display=3&sort=sim`;
+    const res = await fetch(url, {
+      headers: {
+        'X-Naver-Client-Id': NAVER_CLIENT_ID,
+        'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const item = json.items?.[0];
+    if (!item) return null;
+
+    const title = item.title.replace(/<[^>]+>/g, '').trim();
+    const price = parseInt(item.lprice || '0', 10);
+    const priceStr = price > 0 ? price.toLocaleString('ko-KR') + '원' : '';
+    const image = item.image;
+
+    // 추가 이미지: 검색 결과 최대 3개에서 이미지 수집
+    const images = json.items?.slice(0, 3).map(i => i.image).filter(Boolean) || [];
+
+    console.log(`   └ [네이버 API] 제품명: ${title}`);
+    console.log(`   └ [네이버 API] 가격: ${priceStr}`);
+    console.log(`   └ [네이버 API] 이미지: ${images.length}장`);
+
+    return { title, price: priceStr, image, images, description: item.title, bodyText: '' };
+  } catch (e) {
+    console.warn('   └ 네이버 API 오류:', e.message);
+    return null;
+  }
+}
+
 // 에러 페이지 감지 키워드
 const ERROR_PAGE_KEYWORDS = ['시스템오류', '에러페이지', '오류가 발생', 'error page', '서비스 점검', '페이지를 찾을 수 없', '존재하지 않는 페이지', '접근이 제한'];
 
@@ -295,20 +336,41 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
   const today = getKSTDate();
   let info = null;
 
-  if (manualName) {
-    console.log(`   └ 수동 입력 모드: ${manualName}`);
-    info = { title: manualName, description: '', image: manualImages[0] || '', images: manualImages, url: productUrl, bodyText: '' };
-  } else {
-    if (scrapeUrl) console.log(`   └ 스크래핑 URL: ${scrapeUrl}`);
-    info = await fetchProductInfo(scrapeUrl || productUrl);
-    // 수동 이미지가 있으면 스크래핑 이미지 앞에 붙이기
-    if (manualImages.length > 0) {
-      info.images = [...manualImages, ...(info?.images || [])];
-      info.image = manualImages[0];
+  const productName = manualName || '';
+
+  // 1순위: 네이버 쇼핑 API (API 키 있을 때)
+  if (productName && NAVER_CLIENT_ID) {
+    console.log(`   └ 네이버 쇼핑 API로 정보 수집 중...`);
+    const apiInfo = await fetchProductFromNaverAPI(productName);
+    if (apiInfo) {
+      info = apiInfo;
+      // 수동 이미지가 있으면 API 이미지 앞에 추가
+      if (manualImages.length > 0) {
+        info.images = [...manualImages, ...info.images];
+        info.image = manualImages[0];
+      }
+      // 수동 가격이 있으면 우선 사용
+      if (manualPrice) info.price = manualPrice;
     }
   }
 
-  if (!info || (!info.title && !info.bodyText?.length)) {
+  // 2순위: 수동 입력 (API 키 없거나 API 실패 시)
+  if (!info && productName) {
+    console.log(`   └ 수동 입력 모드`);
+    info = { title: productName, price: manualPrice, description: '', image: manualImages[0] || '', images: manualImages, bodyText: '' };
+  }
+
+  // 3순위: 직접 스크래핑
+  if (!info) {
+    if (scrapeUrl) console.log(`   └ 스크래핑 URL: ${scrapeUrl}`);
+    info = await fetchProductInfo(scrapeUrl || productUrl);
+    if (info) {
+      if (manualImages.length > 0) { info.images = [...manualImages, ...info.images]; info.image = manualImages[0]; }
+      if (manualPrice) info.price = manualPrice;
+    }
+  }
+
+  if (!info || !info.title) {
     throw new Error(
       `제품 정보를 가져올 수 없습니다.\n` +
       `형식: ${productUrl}|${platform}|제품명|가격|이미지URL1,이미지URL2`
@@ -319,7 +381,8 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
     ? '이 포스팅은 쿠팡 파트너스 활동의 일환으로 이에 따른 일정액의 수수료를 제공받습니다.'
     : '본 포스팅은 네이버 쇼핑커넥트의 일환으로 판매시 수수료를 지급받을 수 있습니다.';
 
-  const priceNote = manualPrice ? `\n제품 실제 가격: ${manualPrice} (반드시 이 가격을 사용할 것)` : '';
+  const finalPrice = manualPrice || info.price || '';
+  const priceNote = finalPrice ? `\n제품 실제 가격: ${finalPrice} (반드시 이 가격을 사용할 것, 다른 가격 절대 금지)` : '';
 
   const prompt = `You are a top Korean affiliate marketing blogger. Your reviews make readers WANT to buy immediately. Write in KOREAN ONLY.
 
@@ -355,7 +418,7 @@ Respond ONLY with valid JSON:
   "description": "구매 욕구 자극 메타 설명 (90-120자)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "slug": "product-name-review",
-  "price": "${manualPrice || '네이버 최저가 확인'}",
+  "price": "${finalPrice || '네이버 최저가 확인'}",
   "intro": "<p>공감되는 상황으로 시작 (이 제품이 필요했던 이유). 2-3문장.</p><p>이 리뷰에서 확인할 3가지 핵심 포인트.</p>",
   "pros": ["✨ 장점1 — 수치 포함", "💡 장점2", "🎯 장점3", "🏆 장점4", "🔥 장점5", "💰 장점6"],
   "cons": ["굳이 꼽자면 — 사소한 점1", "아주 미세하게 아쉬운 점2"],

@@ -64,6 +64,8 @@ jobs:
       - name: 글 자동 생성
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
           GENERATION_MODE: ${{ github.event.inputs.mode || 'news' }}
           CATEGORIES: ${{ github.event.inputs.categories || steps.cats.outputs.CATS }}
           PRODUCT_LINKS: ${{ github.event.inputs.product_links || '' }}
