@@ -39,6 +39,26 @@ async function callGroq(prompt, { maxTokens = 4000, jsonMode = false, systemMsg 
   return data.choices?.[0]?.message?.content || '';
 }
 
+// JSON 문자열 내 제어문자 이스케이프 (AI가 줄바꿈을 그대로 넣을 때 대응)
+function repairJson(str) {
+  let inString = false;
+  let escaped = false;
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (escaped) { escaped = false; result += ch; continue; }
+    if (ch === '\\') { escaped = true; result += ch; continue; }
+    if (ch === '"') { inString = !inString; result += ch; continue; }
+    if (inString) {
+      if (ch === '\n') { result += '\\n'; continue; }
+      if (ch === '\r') { result += '\\r'; continue; }
+      if (ch === '\t') { result += '\\t'; continue; }
+    }
+    result += ch;
+  }
+  return result;
+}
+
 // 중국어/일본어 한자 제거 (한국어 한자는 유지)
 function removeForeignChars(text) {
   if (typeof text !== 'string') return text;
@@ -491,14 +511,20 @@ ${finalPrice ? `가격: ${finalPrice}` : ''}
   const text = await callGroq(prompt, { maxTokens: 7000, jsonMode: false, systemMsg });
 
   // JSON 추출 (코드블록 포함 대응)
-  const jsonMatch = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').match(/\{[\s\S]*\}/);
+  const rawJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  const jsonMatch = rawJson.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON 파싱 실패 — 응답:\n' + text.substring(0, 400));
 
   let data;
   try {
     data = JSON.parse(jsonMatch[0]);
-  } catch (e) {
-    throw new Error('JSON 파싱 오류: ' + e.message + '\n응답:\n' + text.substring(0, 400));
+  } catch {
+    // 제어문자 수정 후 재시도
+    try {
+      data = JSON.parse(repairJson(jsonMatch[0]));
+    } catch (e2) {
+      throw new Error('JSON 파싱 오류: ' + e2.message + '\n응답:\n' + text.substring(0, 400));
+    }
   }
 
   // 중국어/외국 한자 제거
