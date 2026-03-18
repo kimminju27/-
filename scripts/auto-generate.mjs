@@ -210,28 +210,53 @@ async function fetchProductInfo(url) {
   try {
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
       },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(15000),
       redirect: 'follow',
     });
+
+    const finalUrl = res.url; // 리다이렉트 후 실제 URL
     const html = await res.text();
 
     const getOg = (prop) =>
       html.match(new RegExp(`<meta[^>]+property="og:${prop}"[^>]+content="([^"]+)"`))?.[1] ||
       html.match(new RegExp(`<meta[^>]+content="([^"]+)"[^>]+property="og:${prop}"`))?.[1] || '';
 
-    return {
-      title: getOg('title'),
-      image: getOg('image'),
-      description: getOg('description'),
-      url,
-    };
+    const getMeta = (name) =>
+      html.match(new RegExp(`<meta[^>]+name="${name}"[^>]+content="([^"]+)"`))?.[1] ||
+      html.match(new RegExp(`<meta[^>]+content="([^"]+)"[^>]+name="${name}"`))?.[1] || '';
+
+    const htmlTitle = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() || '';
+
+    // 본문 텍스트 추출 (스크립트/스타일 제거 후)
+    const bodyText = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&[a-z]+;/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 3000);
+
+    const title = getOg('title') || htmlTitle;
+    const description = getOg('description') || getMeta('description');
+    const image = getOg('image');
+
+    console.log(`   └ 제품명: ${title || '(없음)'}`);
+    console.log(`   └ 설명: ${description?.substring(0, 60) || '(없음)'}...`);
+    console.log(`   └ 이미지: ${image ? '있음' : '없음'}`);
+    console.log(`   └ 본문 텍스트: ${bodyText.length}자`);
+
+    return { title, image, description, url: finalUrl || url, bodyText };
   } catch (e) {
     console.warn('제품 페이지 가져오기 실패:', e.message);
-    return { title: '', image: '', description: '', url };
+    return { title: '', image: '', description: '', url, bodyText: '' };
   }
 }
 
@@ -241,46 +266,56 @@ async function generateProductReview(productUrl, platform = 'coupang') {
   const info = await fetchProductInfo(productUrl);
   const today = getKSTDate();
 
+  // 제품 정보가 전혀 없으면 중단
+  const hasInfo = info.title || info.description || info.bodyText?.length > 100;
+  if (!hasInfo) {
+    throw new Error(`제품 정보를 가져올 수 없습니다. URL을 직접 열어서 제품명과 설명을 수동으로 입력해주세요: ${productUrl}`);
+  }
+
   const disclaimer = platform === 'coupang'
     ? '이 포스팅은 쿠팡 파트너스 활동의 일환으로 이에 따른 일정액의 수수료를 제공받습니다.'
     : '본 포스팅은 네이버 쇼핑커넥트의 일환으로 판매시 수수료를 지급받을 수 있습니다.';
 
-  const prompt = `당신은 제품 리뷰 전문 블로거입니다. 아래 제품에 대한 상세한 구매 가이드 겸 리뷰 글을 작성해주세요.
+  const prompt = `You are a Korean product review blogger. Write a detailed, honest product review in KOREAN ONLY.
 
-제품 URL: ${productUrl}
-제품명: ${info.title || '제품 정보 미확인'}
-제품 설명: ${info.description || ''}
-플랫폼: ${platform === 'coupang' ? '쿠팡' : '네이버'}
+Product URL: ${productUrl}
+Product Name: ${info.title || 'Unknown'}
+Product Description: ${info.description || ''}
+Page Content (raw text from product page): ${info.bodyText?.substring(0, 2000) || ''}
+Platform: ${platform === 'coupang' ? '쿠팡' : '네이버'}
 
-다음 JSON 형식으로만 응답하세요 (코드블록 없이 순수 JSON):
+STRICT RULES — VIOLATIONS MAKE THE REVIEW USELESS:
+1. Write ONLY in Korean (한국어만). ZERO Japanese, Chinese, English, Hindi, Arabic, or any other script in the content.
+2. Use ONLY information from the page content above — do NOT make up specs if you have no data.
+3. If a spec is unknown, write "확인 필요" — NEVER write generic placeholders like "미확인".
+4. The review must feel like a real person actually used the product.
+5. Include at least 3 specific numbers (price, dimensions, weight, rating counts, etc.) extracted from the page.
+6. NEVER start sentences with "알아보겠습니다", "살펴보겠습니다" — start with actual content.
+
+Respond with ONLY valid JSON (no code blocks):
 {
-  "title": "제품명 포함 SEO 리뷰 제목 (50-70자)",
-  "productName": "제품명",
-  "description": "메타 설명 (80-120자)",
+  "title": "실제 제품명 포함 SEO 제목 (50-70자)",
+  "productName": "실제 제품명",
+  "description": "구체적 메타 설명 (80-120자)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
-  "slug": "product-review-영문-슬러그",
-  "intro": "<p>도입부 첫 문단</p><p>도입부 두 번째 문단</p>",
-  "pros": ["장점1", "장점2", "장점3", "장점4", "장점5"],
-  "cons": ["단점1", "단점2", "단점3"],
+  "slug": "product-name-review-english-only",
+  "intro": "<p>첫 문장: 왜 이 제품을 선택했는지 구체적 이유.</p><p>이 리뷰에서 다룰 핵심 내용 3가지.</p>",
+  "pros": ["구체적 장점1 (수치 포함)", "장점2", "장점3", "장점4", "장점5"],
+  "cons": ["구체적 단점1", "단점2", "단점3"],
   "specs": [
-    {"label": "스펙 항목", "value": "값"}
+    {"label": "스펙명", "value": "실제 값 (모르면 확인 필요)"}
   ],
   "sections": [
-    {
-      "heading": "섹션 제목",
-      "content": "<p>내용...</p>"
-    }
+    {"heading": "디자인 & 외관", "content": "<p>200자 이상 구체적 내용</p>"},
+    {"heading": "실제 사용 후기", "content": "<p>200자 이상 구체적 내용</p>"},
+    {"heading": "가격 대비 가치", "content": "<p>200자 이상 구체적 내용</p>"},
+    {"heading": "이런 분께 추천 / 비추천", "content": "<p>200자 이상 구체적 내용</p>"}
   ],
   "rating": 4.2,
-  "summary": ["추천 포인트1", "추천 포인트2", "추천 포인트3"],
-  "targetUser": "이런 분께 추천합니다: ...",
-  "readMinutes": 4
-}
-
-규칙:
-- 실제 제품 특성에 맞는 구체적인 내용
-- sections는 3-4개
-- 솔직한 장단점 분석`;
+  "summary": ["추천 포인트1 (구체적)", "추천 포인트2", "추천 포인트3"],
+  "targetUser": "이런 분께 추천합니다: (구체적 상황 묘사)",
+  "readMinutes": 5
+}`;
 
   const text = await callGemini(prompt);
   const jsonMatch = text.match(/\{[\s\S]*\}/);
