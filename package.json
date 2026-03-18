@@ -1,0 +1,11 @@
+{
+  "name": "bloginfo360-auto-posts",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/auto-generate.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}

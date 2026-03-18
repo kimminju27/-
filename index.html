@@ -169,15 +169,18 @@
     <div class="flex flex-wrap gap-2">
       <button class="cat-btn active" onclick="filterCategory('전체', this)">전체</button>
       <button class="cat-btn" onclick="filterCategory('경제', this)">💰 경제</button>
+      <button class="cat-btn" onclick="filterCategory('부동산', this)">🏠 부동산</button>
       <button class="cat-btn" onclick="filterCategory('주식', this)">📈 주식</button>
+      <button class="cat-btn" onclick="filterCategory('복지정책', this)">🏛️ 복지정책</button>
       <button class="cat-btn" onclick="filterCategory('제품리뷰', this)">📦 제품리뷰</button>
-      <button class="cat-btn" onclick="filterCategory('기타', this)">📝 기타</button>
     </div>
   </section>
 
   <!-- 포스트 목록 -->
   <main class="max-w-5xl mx-auto px-4 py-6">
     <div id="postGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- POSTS_START -->
 
       <!-- 유류할증료 글 -->
       <article class="post-item post-card rounded-2xl border border-ink-100 overflow-hidden bg-white shadow-card cursor-pointer"

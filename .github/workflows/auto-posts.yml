@@ -1,0 +1,80 @@
+name: 자동 글 생성
+
+on:
+  schedule:
+    # KST 기준 (UTC+9)
+    # 오전 7시 = UTC 22:00 (전날)
+    - cron: '0 22 * * *'
+    # 오후 1시 = UTC 04:00
+    - cron: '0 4 * * *'
+    # 오후 7시 = UTC 10:00
+    - cron: '0 10 * * *'
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '생성 모드'
+        required: true
+        default: 'news'
+        type: choice
+        options:
+          - news
+          - product_review
+      categories:
+        description: '뉴스 카테고리 (쉼표 구분) — news 모드용: 경제,주식,부동산,복지정책'
+        required: false
+        default: '경제,주식'
+      product_links:
+        description: |
+          제품 링크 목록 — product_review 모드용
+          한 줄에 하나씩 입력: URL|플랫폼
+          예) https://coupang.com/xxx|coupang
+              https://naver.com/xxx|naver
+        required: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 카테고리 결정 (스케줄 자동 배분)
+        id: cats
+        run: |
+          HOUR=$(date -u +%H)
+          if [ "$HOUR" = "22" ]; then
+            echo "CATS=경제,부동산" >> $GITHUB_OUTPUT
+          elif [ "$HOUR" = "04" ]; then
+            echo "CATS=주식,경제" >> $GITHUB_OUTPUT
+          else
+            echo "CATS=복지정책,부동산" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 글 자동 생성
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GENERATION_MODE: ${{ github.event.inputs.mode || 'news' }}
+          CATEGORIES: ${{ github.event.inputs.categories || steps.cats.outputs.CATS }}
+          PRODUCT_LINKS: ${{ github.event.inputs.product_links || '' }}
+        run: node scripts/auto-generate.mjs
+
+      - name: 변경사항 커밋 & 푸시
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "auto: 새 글 자동 생성 🤖"
+          commit_user_name: "Auto Post Bot"
+          commit_user_email: "bot@bloginfo360.com"
+          file_pattern: "posts/*.html index.html sitemap.xml"
