@@ -483,19 +483,19 @@ ${finalPrice ? `가격: ${finalPrice}` : ''}
   "sections": [
     {
       "heading": "🎨 디자인 & 첫인상 — 박스 열었을 때 느낌",
-      "content": "여기에 400자 이상의 실제 리뷰 내용 작성. 제품을 처음 받았을 때 포장, 외관, 재질, 색상에 대한 생생한 묘사. 비슷한 제품과 비교. <ul> 또는 <blockquote> 포함."
+      "content": "[설명형 문체로 작성. 400자 이상. <p>본문</p><ul><li><strong>포인트:</strong> 설명</li></ul><blockquote>핵심 한 줄</blockquote> 구조로 작성할 것]"
     },
     {
       "heading": "✅ 실제 사용 후기 — 써보니 이랬습니다",
-      "content": "여기에 400자 이상의 실제 사용 경험담. 언제 어떻게 사용했는지. 구매 전 고민했던 부분이 해결됐는지. 비포/애프터. <ul> 포함."
+      "content": "[경험담 문체로 작성. 400자 이상. <p>본문</p><p><strong>가장 좋았던 점:</strong> 내용</p><ul><li>경험1</li></ul> 구조로 작성할 것]"
     },
     {
       "heading": "💰 이 가격에 이게 맞아? — 가격 대비 가치",
-      "content": "여기에 400자 이상의 가격 정당화 내용. 다른 유사 제품과 가격·품질 비교. 왜 이 제품이 더 나은지. <table> 비교표 포함."
+      "content": "[분석형 문체로 작성. 400자 이상. <p>본문</p><table><thead><tr><th>항목</th><th>이 제품</th><th>일반 제품</th></tr></thead><tbody>...</tbody></table> 비교표 필수 포함]"
     },
     {
       "heading": "🙋 이런 분이라면 무조건 사세요",
-      "content": "여기에 400자 이상의 구체적 추천 대상 묘사. 이 제품이 딱 맞는 상황/사람. 구매 결정을 유도하는 마무리. <ul> + <blockquote> 포함."
+      "content": "[대화형 문체로 작성. 400자 이상. <p>본문</p><ul><li>추천 상황1</li></ul><blockquote>구매 결정 유도 마무리 한 줄</blockquote> 구조로 작성할 것]"
     }
   ],
   "rating": 4.6,
@@ -714,26 +714,45 @@ function buildNewsHTML(data) {
 // ─────────────────────────────────────────
 function buildProductReviewHTML(data) {
   const prosHTML = (data.pros || []).map(p => `<li>${escHtml(p)}</li>`).join('\n');
-  const consHTML = (data.cons || []).map(c => `<li class="text-ink-300">${escHtml(c)}</li>`).join('\n');
+  const consHTML = (data.cons || []).map(c => `<li>${escHtml(c)}</li>`).join('\n');
   const specsHTML = (data.specs || []).map(s =>
     `<tr><td><strong>${escHtml(s.label)}</strong></td><td>${escHtml(s.value)}</td></tr>`
   ).join('\n');
   const summaryHTML = (data.summary || []).map(s => `<li>${escHtml(s)}</li>`).join('\n');
 
-  // 섹션 사이사이 이미지 삽입
-  const allImages = data.productImages?.length > 0 ? data.productImages : (data.productImage ? [data.productImage] : []);
-  const sections = data.sections || [];
-  const sectionsHTML = sections.map((s, i) => {
-    const img = allImages[i + 1]; // 0번은 상단에 이미 사용
-    const imgTag = img
-      ? `<img src="${escAttr(img)}" alt="${escAttr(data.productName || '제품')}" class="w-full rounded-2xl my-6 object-contain max-h-80 bg-gray-50" loading="lazy">`
-      : '';
-    return `<div class="prose">\n  <h2>${escHtml(s.heading)}</h2>\n  ${s.content || ''}\n  ${imgTag}\n</div>`;
-  }).join('\n\n');
+  // 중복 제거 + 최대 5장
+  const rawImages = data.productImages?.length > 0 ? data.productImages : (data.productImage ? [data.productImage] : []);
+  const uniqueImages = [...new Set(rawImages)].slice(0, 5);
 
-  const imageHTML = allImages[0]
-    ? `<img src="${escAttr(allImages[0])}" alt="${escAttr(data.productName || '제품 이미지')}" class="w-full rounded-2xl mb-8 object-contain max-h-96 bg-gray-50" loading="lazy">`
-    : `<div class="w-full rounded-2xl mb-8 bg-ink-100 flex items-center justify-center" style="height:240px;"><span class="text-6xl">📦</span></div>`;
+  // 이미지 태그 생성 헬퍼
+  const imgTag = (src, alt) => src
+    ? `<div class="my-8 rounded-2xl overflow-hidden bg-gray-50 border border-ink-100">
+        <img src="${escAttr(src)}" alt="${escAttr(alt || data.productName || '제품')}" class="w-full object-contain max-h-80" loading="lazy">
+       </div>`
+    : '';
+
+  // 섹션 + 이미지를 교차 배치 (이미지는 섹션 사이, 섹션 내부 아님)
+  const sections = data.sections || [];
+  let sectionsHTML = '';
+  sections.forEach((s, i) => {
+    sectionsHTML += `
+<div class="review-section">
+  <div class="prose">
+    <h2>${escHtml(s.heading)}</h2>
+    ${s.content || ''}
+  </div>
+</div>`;
+    // 섹션 다음에 이미지 삽입 (첫 번째 이미지는 상단에 사용하므로 index+1)
+    if (uniqueImages[i + 1]) {
+      sectionsHTML += imgTag(uniqueImages[i + 1], `${data.productName} 사진 ${i + 2}`);
+    }
+  });
+
+  const heroImageHTML = uniqueImages[0]
+    ? `<div class="rounded-2xl overflow-hidden bg-gray-50 border border-ink-100 mb-8">
+        <img src="${escAttr(uniqueImages[0])}" alt="${escAttr(data.productName || '제품')}" class="w-full object-contain max-h-96" loading="lazy">
+       </div>`
+    : `<div class="w-full rounded-2xl mb-8 bg-ink-100 flex items-center justify-center" style="height:200px;"><span class="text-6xl">📦</span></div>`;
 
   const stars = '⭐'.repeat(Math.round(Math.min(5, Math.max(1, data.rating || 4))));
   const btnLabel = data.platform === 'coupang' ? '쿠팡에서 보기' : '네이버에서 보기';
@@ -769,83 +788,91 @@ function buildProductReviewHTML(data) {
   </script>
   ${commonHead()}
   <style>
-    .btn-affiliate { display:inline-flex; align-items:center; gap:8px; padding:14px 28px; border-radius:12px; font-size:1rem; font-weight:700; background:#16a34a; color:white; text-decoration:none; transition:background 0.15s, transform 0.1s; }
+    .btn-affiliate { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:16px 32px; border-radius:14px; font-size:1.05rem; font-weight:800; background:#16a34a; color:white; text-decoration:none; transition:background 0.15s, transform 0.1s; width:100%; max-width:360px; }
     .btn-affiliate:hover { background:#15803d; transform:scale(1.02); }
     .btn-affiliate:active { transform:scale(0.98); }
+    .review-section { margin-bottom:2.5rem; }
+    .review-section .prose h2 { font-size:1.25rem; }
+    .callout { background:#f0fdf4; border-left:4px solid #16a34a; border-radius:0 12px 12px 0; padding:16px 20px; margin:1.5rem 0; }
+    .callout p { margin:0; color:#1e293b; font-size:0.95rem; line-height:1.8; }
+    .highlight-box { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1px solid #bbf7d0; border-radius:14px; padding:20px 24px; margin:2rem 0; }
   </style>
 </head>
 <body class="bg-white text-ink-900">
   ${header()}
   <main class="max-w-3xl mx-auto px-4 py-10">
-    <!-- 제휴 마케팅 고지 (필수) -->
-    <div class="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-8 text-sm text-amber-800">
+
+    <!-- 제휴 마케팅 고지 -->
+    <div class="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 mb-6 text-xs text-amber-700">
       ⚠️ ${escHtml(data.disclaimer)}
     </div>
 
-    <div class="flex flex-wrap gap-2 items-center mb-4">
+    <!-- 카테고리 + 날짜 -->
+    <div class="flex flex-wrap gap-2 items-center mb-3">
       <span class="text-xs font-bold text-gold-500 bg-yellow-50 px-2.5 py-0.5 rounded-full">📦 제품리뷰</span>
-      <span class="text-xs text-ink-300">${data.date}</span>
-      <span class="text-xs text-ink-300">· 읽는 시간 약 ${data.readMinutes || 4}분</span>
+      <span class="text-xs text-ink-300">${data.date} · 읽는 시간 약 ${data.readMinutes || 5}분</span>
     </div>
 
+    <!-- 제목 -->
     <h1 class="text-2xl sm:text-3xl font-black text-ink-900 leading-tight mb-3">${escHtml(data.title)}</h1>
     <p class="text-ink-500 text-sm mb-6 leading-relaxed">${escHtml(data.description)}</p>
 
     <!-- 평점 + 가격 -->
-    <div class="flex items-center justify-between gap-3 mb-8 p-4 bg-ink-100/40 rounded-xl flex-wrap">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">${stars}</span>
+    <div class="flex items-center justify-between gap-3 mb-6 p-4 bg-ink-100/40 rounded-2xl flex-wrap">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">${stars}</span>
         <span class="font-black text-2xl text-ink-900">${data.rating}</span>
-        <span class="text-sm text-ink-500">/ 5.0</span>
+        <span class="text-sm text-ink-400">/ 5.0</span>
       </div>
-      ${data.price ? `<div class="text-right"><p class="text-xs text-ink-300">현재 가격</p><p class="font-black text-xl text-brand-600">${escHtml(data.price)}</p></div>` : ''}
+      ${data.price ? `<div class="text-right"><p class="text-xs text-ink-300 mb-0.5">현재 최저가</p><p class="font-black text-2xl text-brand-600">${escHtml(data.price)}</p></div>` : ''}
     </div>
 
-    <!-- 제품 이미지 -->
-    ${imageHTML}
+    <!-- 메인 이미지 -->
+    ${heroImageHTML}
 
-    <!-- 구매 버튼 상단 -->
-    <div class="text-center mb-10">
-      <a href="${escAttr(data.affiliateUrl)}" target="_blank" rel="noopener sponsored" class="btn-affiliate">🛒 ${btnLabel}</a>
+    <!-- 구매 버튼 (상단) -->
+    <div class="flex justify-center mb-10">
+      <a href="${escAttr(data.affiliateUrl)}" target="_blank" rel="noopener sponsored" class="btn-affiliate">🛒 ${btnLabel} →</a>
     </div>
 
     <!-- 도입부 -->
     <div class="prose mb-8">${data.intro || ''}</div>
 
-    <!-- 장점 (크게) -->
-    <div class="bg-green-50 border border-green-100 rounded-xl p-6 mb-4">
+    <!-- 장점 -->
+    <div class="bg-green-50 border border-green-100 rounded-2xl p-6 mb-3">
       <h3 class="font-bold text-green-700 mb-4 text-base">👍 이런 점이 좋았어요</h3>
       <ul class="space-y-2.5 text-sm text-ink-700">${prosHTML}</ul>
     </div>
 
-    <!-- 아쉬운 점 (작게, 눈에 안 띄게) -->
+    <!-- 아쉬운 점 (접힘) -->
     <details class="mb-8">
-      <summary class="text-xs text-ink-300 cursor-pointer select-none hover:text-ink-400 transition-colors">🤔 굳이 꼽자면 아쉬운 점</summary>
-      <div class="mt-2 pl-3 border-l border-ink-100">
-        <ul class="space-y-1.5 text-xs text-ink-300">${consHTML}</ul>
+      <summary class="text-xs text-ink-300 cursor-pointer select-none py-1">🤔 굳이 꼽자면 아쉬운 점</summary>
+      <div class="mt-2 pl-3 border-l-2 border-ink-100">
+        <ul class="space-y-1 text-xs text-ink-300">${consHTML}</ul>
       </div>
     </details>
 
     ${specsHTML ? `<div class="prose mb-8"><h2>📋 제품 스펙</h2><table><tbody>${specsHTML}</tbody></table></div>` : ''}
 
+    <!-- 본문 섹션 + 이미지 교차 -->
     ${sectionsHTML}
 
     <!-- 핵심 요약 -->
-    <div class="mt-10 bg-brand-50 border border-brand-100 rounded-2xl p-6">
-      <h3 class="font-bold text-brand-700 mb-3 text-base">📌 이런 분께 추천해요</h3>
-      <p class="text-sm text-ink-700 mb-3">${escHtml(data.targetUser || '')}</p>
+    <div class="mt-10 highlight-box">
+      <h3 class="font-bold text-green-700 mb-3 text-base">📌 이런 분께 강력 추천해요</h3>
+      <p class="text-sm text-ink-700 mb-4 leading-relaxed">${escHtml(data.targetUser || '')}</p>
       <ul class="space-y-2 text-sm text-ink-700">${summaryHTML}</ul>
     </div>
 
-    <!-- 구매 버튼 하단 -->
-    <div class="text-center mt-10">
-      <a href="${escAttr(data.affiliateUrl)}" target="_blank" rel="noopener sponsored" class="btn-affiliate">🛒 ${btnLabel2}</a>
-      <p class="text-xs text-ink-300 mt-3">${escHtml(data.disclaimer)}</p>
+    <!-- 구매 버튼 (하단) -->
+    <div class="flex flex-col items-center gap-3 mt-10">
+      <a href="${escAttr(data.affiliateUrl)}" target="_blank" rel="noopener sponsored" class="btn-affiliate">🛒 ${btnLabel2} →</a>
+      <p class="text-xs text-ink-300 text-center">${escHtml(data.disclaimer)}</p>
     </div>
 
-    <!-- 공유 버튼 -->
-    <div class="mt-8 flex flex-wrap gap-3">
-      <button class="btn-share" onclick="navigator.clipboard.writeText(location.href).then(()=>alert('링크 복사 완료!'))">🔗 링크 복사</button>
+    <!-- 공유 -->
+    <div class="mt-8 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
+      <button class="btn-share" onclick="navigator.clipboard.writeText(location.href).then(()=>alert('✅ 링크 복사 완료!'))">🔗 링크 복사</button>
     </div>
 
     ${disqus(data.slug)}
