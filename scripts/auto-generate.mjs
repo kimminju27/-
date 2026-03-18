@@ -260,10 +260,11 @@ async function fetchProductInfo(url) {
   }
 }
 
-async function generateProductReview(productUrl, platform = 'coupang') {
+async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl = null) {
   console.log(`\n📦 제품 리뷰 생성 중: ${productUrl}`);
+  if (scrapeUrl) console.log(`   └ 스크래핑 URL: ${scrapeUrl}`);
 
-  const info = await fetchProductInfo(productUrl);
+  const info = await fetchProductInfo(scrapeUrl || productUrl);
   const today = getKSTDate();
 
   // 제품 정보가 전혀 없으면 중단
@@ -885,13 +886,14 @@ async function main() {
 
     for (const line of links) {
       const parts = line.split('|');
-      const url = parts[0]?.trim();
+      const affiliateUrl = parts[0]?.trim();          // 제휴 링크 (버튼용)
       const platform = (parts[1]?.trim() || 'coupang').toLowerCase();
+      const scrapeUrl = parts[2]?.trim() || null;     // 스크래핑 URL (선택)
 
-      if (!url) continue;
+      if (!affiliateUrl) continue;
 
       try {
-        const data = await generateProductReview(url, platform);
+        const data = await generateProductReview(affiliateUrl, platform, scrapeUrl);
         const html = buildProductReviewHTML(data);
         savePost(data, html);
         updateIndexHTML(data);
