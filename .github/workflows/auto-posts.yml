@@ -2,15 +2,13 @@ name: 자동 글 생성
 
 on:
   schedule:
-    # KST 기준 (UTC+9)
-    # 오전 7시 = UTC 22:00 (전날)
-    - cron: '0 22 * * *'
-    # 오후 1시 = UTC 04:00
+    # KST 기준 (UTC+9) — 모두 UTC 자정(KST 09:00) 이후 실행
+    # 오전 10시 KST = UTC 01:00
+    - cron: '0 1 * * *'
+    # 오후 1시 KST = UTC 04:00
     - cron: '0 4 * * *'
-    # 오후 7시 = UTC 10:00
+    # 오후 7시 KST = UTC 10:00
     - cron: '0 10 * * *'
-    # 오늘(3/18)만 오후 5시 = UTC 08:00
-    - cron: '0 8 18 3 *'
 
   workflow_dispatch:
     inputs:
@@ -57,8 +55,8 @@ jobs:
           HOUR=$(date -u +%H)
           # 요일(0=일,1=월,...,6=토)로 주간 로테이션
           DOW=$(date -u +%u)
-          if [ "$HOUR" = "22" ]; then
-            # 오전 7시 — 요일별 다른 조합
+          if [ "$HOUR" = "01" ]; then
+            # 오전 10시 — 요일별 다른 조합
             case $DOW in
               1) echo "CATS=경제,부동산_청약" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=부동산,복지_청년" >> $GITHUB_OUTPUT ;;
