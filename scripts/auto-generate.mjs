@@ -86,35 +86,44 @@ async function generateNewsArticle(category) {
 
   const today = getKSTDate();
 
-  const prompt = `당신은 한국 경제 블로그 전문 작가입니다. 아래 최신 뉴스를 바탕으로 "${category}" 카테고리의 SEO 최적화 블로그 글을 작성해주세요.
+  const prompt = `당신은 10년 경력의 한국 경제 전문 블로거입니다. 독자들이 실제로 돈이 되는 정보를 얻어가는 글을 씁니다.
 
 오늘 날짜: ${today}
+카테고리: ${category}
 
-최신 뉴스:
+참고할 최신 뉴스:
 ${newsContext}
+
+[핵심 작성 원칙 — 반드시 지켜야 합니다]
+1. "모색해보겠습니다", "알아보겠습니다" 같은 빈말 절대 금지 → 바로 본론 작성
+2. 모든 섹션에 구체적 수치 포함 필수 (%, 원, 달러, 날짜 등)
+3. "독자가 오늘 당장 할 수 있는 것"을 반드시 1개 이상 포함
+4. 뉴스 요약이 아닌 "왜 내 돈에 영향이 있는가"를 설명
+5. 각 section의 content는 최소 200자 이상, 구체적 사례/수치 포함
+6. 서론에서 핵심 숫자 1개를 바로 꺼냄 (예: "지난달 대비 0.5%p 올랐습니다")
 
 다음 JSON 형식으로만 응답하세요 (코드블록 없이 순수 JSON):
 {
-  "title": "SEO 최적화된 글 제목 (45-65자, 핵심 키워드 포함)",
-  "description": "메타 설명 (80-120자, 핵심 내용 요약)",
+  "title": "SEO 최적화된 글 제목 (45-65자, 구체적 수치나 팩트 포함)",
+  "description": "메타 설명 (80-120자, 독자가 얻을 것 명시)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "slug": "영문-url-슬러그-짧게",
   "heroGradient": "linear-gradient(135deg, #0f172a, #1e3a5f)",
   "heroEmoji": "💰",
-  "heroTag": "경제 · ${today}",
+  "heroTag": "${category} · ${today}",
   "heroStats": [
-    {"label": "핵심 수치 레이블", "value": "수치", "color": "#f87171"},
-    {"label": "레이블2", "value": "수치2", "color": "#fbbf24"}
+    {"label": "핵심 수치 레이블", "value": "구체적 숫자", "color": "#f87171"},
+    {"label": "레이블2", "value": "구체적 숫자2", "color": "#fbbf24"}
   ],
-  "heroSubtext": "한 줄 요약 문구",
-  "intro": "<p>도입부 첫 문단</p><p>도입부 두 번째 문단 (독자 공감 유도)</p>",
+  "heroSubtext": "독자가 이 글을 읽어야 하는 이유 한 줄",
+  "intro": "<p>첫 문장에 핵심 수치 포함. 독자가 공감할 상황 묘사 (3-4문장)</p><p>이 글에서 다룰 내용을 명확히 안내 (2-3문장)</p>",
   "cards": [
     {
       "num": "01",
-      "badge": "배지 텍스트",
-      "title": "카드 제목",
-      "body": "카드 본문 (2-3문장, 구체적 수치 포함)",
-      "stat": "임팩트 수치/문구",
+      "badge": "핵심 키워드",
+      "title": "임팩트 있는 카드 제목",
+      "body": "구체적 수치와 사실 중심 설명. 독자 생활에 미치는 영향 포함. (3-4문장)",
+      "stat": "핵심 수치 (예: +3.2%, 2만원↑)",
       "statColor": "#f87171",
       "bg": "linear-gradient(135deg, #0f172a, #1e3a5f)"
     }
@@ -122,20 +131,20 @@ ${newsContext}
   "sections": [
     {
       "id": "section1",
-      "heading": "섹션 제목 (이모지 포함)",
-      "content": "<p>본문 내용...</p><p>추가 내용...</p>"
+      "heading": "이모지 + 구체적 섹션 제목",
+      "content": "<p>최소 200자 이상. 구체적 수치, 날짜, 사례 포함. 독자가 바로 활용 가능한 정보.</p><p>추가 설명 또는 표, 리스트 등 활용.</p>"
     }
   ],
-  "summary": ["핵심 요약 포인트1", "핵심 요약 포인트2", "핵심 요약 포인트3"],
-  "readMinutes": 5
+  "summary": ["오늘 바로 실천할 것: 구체적 행동", "핵심 팩트 요약", "앞으로 주목할 것"],
+  "readMinutes": 6
 }
 
 규칙:
-- cards는 3-5개 (각각 관련 section 직전에 배치됨)
-- sections는 4-6개
-- content는 HTML 가능 (p, ul, li, strong, blockquote, table 등)
-- 실제 수치, 구체적 정보, 독자에게 유용한 내용 위주
-- 구어체, 친근한 톤으로 작성`;
+- cards는 4-5개, 각각 구체적 수치 포함 필수
+- sections는 5-6개, 각 content 최소 200자
+- 마지막 section은 반드시 "지금 당장 해야 할 것" 또는 "실전 체크리스트"
+- HTML 태그 적극 활용 (table, blockquote, ul/li, strong)
+- 절대 금지: "~해보겠습니다", "~살펴보겠습니다", "~알아보겠습니다"`;
 
   const text = await callGemini(prompt);
   const jsonMatch = text.match(/\{[\s\S]*\}/);
