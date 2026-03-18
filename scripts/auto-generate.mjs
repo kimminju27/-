@@ -329,7 +329,7 @@ function buildNewsHTML(data) {
           <span class="card-inline-num">${card.num || String(i + 1).padStart(2, '0')}</span>
           <span class="card-inline-badge" style="background:rgba(251,191,36,0.2);color:#fbbf24;">${escHtml(card.badge || '')}</span>
           <p class="card-inline-title">${escHtml(card.title || '')}</p>
-          <p class="card-inline-body">${escHtml(card.body || '')}</p>
+          <p class="card-inline-body">${card.body || ''}</p>
           <p class="card-inline-stat" style="color:${card.statColor || '#34d399'};">${escHtml(card.stat || '')}</p>
         </div>`;
     }
@@ -352,6 +352,10 @@ function buildNewsHTML(data) {
   const tocHTML = sections.map((s, i) =>
     `<a href="#${s.id || `section${i + 1}`}" class="toc-link">${escHtml(s.heading?.replace(/^[^\w가-힣]+/, '') || '')}</a>`
   ).join('\n            ');
+
+  const hashtagsHTML = (data.keywords || []).map(k =>
+    `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#${escHtml(k.replace(/\s+/g, ''))}</span>`
+  ).join('\n          ');
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -425,10 +429,16 @@ function buildNewsHTML(data) {
           </ul>
         </div>
 
+        <!-- 해시태그 -->
+        <div class="mt-8 flex flex-wrap gap-2">
+          ${hashtagsHTML}
+        </div>
+
         <!-- 공유 버튼 -->
-        <div class="mt-8 flex flex-wrap gap-3">
-          <button class="btn-share" onclick="navigator.clipboard.writeText(location.href).then(()=>alert('링크 복사 완료!'))">🔗 링크 복사</button>
-          <a class="btn-share" href="https://twitter.com/intent/tweet?url=https://bloginfo360.com/posts/${data.slug}&text=${encodeURIComponent(data.title)}" target="_blank" rel="noopener">🐦 트위터 공유</a>
+        <div class="mt-4 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
+          <button class="btn-share" onclick="navigator.clipboard.writeText(location.href).then(()=>alert('✅ 링크가 복사되었습니다!'))">🔗 링크 복사</button>
+          <a class="btn-share" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(data.title)}&url=https://bloginfo360.com/posts/${data.slug}" target="_blank" rel="noopener">🐦 X(트위터) 공유</a>
+          <a class="btn-share" href="https://www.facebook.com/sharer/sharer.php?u=https://bloginfo360.com/posts/${data.slug}" target="_blank" rel="noopener">📘 페이스북 공유</a>
         </div>
 
         ${disqus(data.slug)}
