@@ -9,6 +9,8 @@ on:
     - cron: '0 4 * * *'
     # 오후 7시 = UTC 10:00
     - cron: '0 10 * * *'
+    # 오늘(3/18)만 오후 5시 = UTC 08:00
+    - cron: '0 8 18 3 *'
 
   workflow_dispatch:
     inputs:
@@ -57,6 +59,8 @@ jobs:
             echo "CATS=경제,부동산" >> $GITHUB_OUTPUT
           elif [ "$HOUR" = "04" ]; then
             echo "CATS=주식,경제" >> $GITHUB_OUTPUT
+          elif [ "$HOUR" = "08" ]; then
+            echo "CATS=주식,복지정책" >> $GITHUB_OUTPUT
           else
             echo "CATS=복지정책,부동산" >> $GITHUB_OUTPUT
           fi
