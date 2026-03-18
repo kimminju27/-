@@ -68,7 +68,9 @@ function removeForeignChars(text) {
     // 일본어 가타카나 (アイウエオ...)
     .replace(/[\u30A0-\u30FF]/g, '')
     // 중국어 한자 (CJK Unified Ideographs)
-    .replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g, '');
+    .replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g, '')
+    // 영어 단어가 한글 문장 중간에 삽입된 경우 제거 (앞뒤가 한글/공백인 영단어)
+    .replace(/(?<=[가-힣\s])[A-Za-z]{2,}(?=[가-힣\s])/g, '');
 }
 
 function sanitizeReviewData(data) {
@@ -447,12 +449,13 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
 
   const systemMsg = `당신은 대한민국 최고의 제품 리뷰 블로거입니다.
 규칙:
-1. 순수 한국어만 사용. 중국어(한자), 일본어(히라가나/가타카나), 영어 단어 절대 금지.
-2. "あり" "なし" "ある" "ない" 같은 일본어 절대 금지. 대신 "있음" "없음" 사용.
-3. "们" "經" "験" 같은 중국 한자 절대 금지.
-4. "알아보겠습니다" "살펴보겠습니다" 금지.
-5. 비교표의 ○/× 대신 반드시 "있음"/"없음" 또는 구체적 한국어 값 사용.
-6. 반드시 valid JSON으로만 응답.`;
+1. 순수 한국어만 사용. 중국어(한자), 일본어(히라가나/가타카나) 절대 금지.
+2. 영어 단어를 한국어 문장 중간에 절대 삽입 금지. "Introduced", "Review", "Best" 같은 영단어를 문장 안에 쓰지 말 것. 반드시 "소개하겠습니다", "리뷰", "최고" 등 한국어로 대체.
+3. "あり" "なし" "ある" "ない" 같은 일본어 절대 금지. 대신 "있음" "없음" 사용.
+4. "们" "經" "験" 같은 중국 한자 절대 금지.
+5. "알아보겠습니다" "살펴보겠습니다" 금지.
+6. 비교표의 ○/× 대신 반드시 "있음"/"없음" 또는 구체적 한국어 값 사용.
+7. 반드시 valid JSON으로만 응답.`;
 
   const productDesc = info.bodyText?.substring(0, 1500) || info.description || '';
 
