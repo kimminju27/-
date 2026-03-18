@@ -15,10 +15,14 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
 
-async function callGroq(prompt, { maxTokens = 4000, jsonMode = false } = {}) {
+async function callGroq(prompt, { maxTokens = 4000, jsonMode = false, systemMsg = '' } = {}) {
+  const messages = [];
+  if (systemMsg) messages.push({ role: 'system', content: systemMsg });
+  messages.push({ role: 'user', content: prompt });
+
   const body = {
     model: 'llama-3.3-70b-versatile',
-    messages: [{ role: 'user', content: prompt }],
+    messages,
     max_tokens: maxTokens,
     temperature: 0.7,
   };
@@ -33,6 +37,26 @@ async function callGroq(prompt, { maxTokens = 4000, jsonMode = false } = {}) {
   if (!res.ok) throw new Error(`Groq API 오류: ${res.status} ${await res.text()}`);
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';
+}
+
+// 중국어/일본어 한자 제거 (한국어 한자는 유지)
+function removeForeignChars(text) {
+  if (typeof text !== 'string') return text;
+  // CJK Unified Ideographs (중국어) 제거, 한국어(가-힣)는 유지
+  return text.replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF\u{20000}-\u{2A6DF}]/gu, '');
+}
+
+function sanitizeReviewData(data) {
+  if (!data || typeof data !== 'object') return data;
+  const sanitize = (v) => {
+    if (typeof v === 'string') return removeForeignChars(v);
+    if (Array.isArray(v)) return v.map(sanitize);
+    if (typeof v === 'object' && v !== null) {
+      return Object.fromEntries(Object.entries(v).map(([k, val]) => [k, sanitize(val)]));
+    }
+    return v;
+  };
+  return sanitize(data);
 }
 
 // 하위 호환용 alias
@@ -382,72 +406,56 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
     : '본 포스팅은 네이버 쇼핑커넥트의 일환으로 판매시 수수료를 지급받을 수 있습니다.';
 
   const finalPrice = manualPrice || info.price || '';
-  const priceNote = finalPrice ? `\n제품 실제 가격: ${finalPrice} (반드시 이 가격을 사용할 것, 다른 가격 절대 금지)` : '';
 
-  const prompt = `You are a top Korean affiliate marketing blogger. Your reviews make readers WANT to buy immediately. Write in KOREAN ONLY.
+  const systemMsg = `당신은 한국어 제품 리뷰 전문 블로거입니다.
+반드시 지켜야 할 규칙:
+- 모든 출력은 완전한 한국어로만 작성 (한자, 일본어, 영어 단어 절대 금지)
+- "们", "經", "験" 같은 중국 한자 절대 사용 금지
+- "알아보겠습니다", "살펴보겠습니다" 같은 형식적 표현 금지
+- 반드시 valid JSON만 출력`;
 
-Product Name: ${info.title}
-Platform: ${platform === 'coupang' ? '쿠팡' : '네이버'}${priceNote}
-Page Content: ${info.bodyText?.substring(0, 2500) || info.description || ''}
+  const prompt = `제품명: ${info.title}
+플랫폼: ${platform === 'coupang' ? '쿠팡' : '네이버'}
+${finalPrice ? `실제 가격: ${finalPrice} (이 가격만 사용, 다른 가격 절대 금지)` : ''}
+제품 정보: ${info.bodyText?.substring(0, 2000) || info.description || '제품명 기반으로 작성'}
 
-=== RULES (violations = useless review) ===
-1. Korean ONLY. No English/Japanese/Chinese in content.
-2. ${manualPrice ? `Price MUST be "${manualPrice}" — never use a different price.` : 'Extract price from page content only. If unknown, write "네이버 최저가 확인"'}
-3. Sections must each be 350+ Korean characters. Short sections are REJECTED.
-4. Write like a friend who genuinely loves this product and is enthusiastically recommending it.
-5. NEVER: "알아보겠습니다", "살펴보겠습니다", "확인해보겠습니다"
+[작성 지침]
+- 제목: 클릭을 유발하는 감성 훅 포함. 예) "써봤는데 이건 진심이에요", "이 가격에 이게 된다고?", "솔직 후기"
+- intro: 독자가 공감할 상황으로 시작. 2문단.
+- pros: 장점 6개, 각각 이모지+구체적 수치 포함
+- cons: 최대 2개, "굳이 꼽자면" 식의 아주 사소한 내용만
+- sections[0] 내용: 제품의 디자인·첫인상을 생생하게 묘사. 비슷한 제품과 비교. 400자 이상의 한국어 문장으로 작성.
+- sections[1] 내용: 실제 사용 경험담. 구매 전후 변화. 구체적인 일상 장면 포함. 400자 이상.
+- sections[2] 내용: 가격 정당화. 경쟁 제품 대비 이 제품이 왜 더 나은지. 비교표 포함. 400자 이상.
+- sections[3] 내용: 이 제품이 딱 맞는 구체적인 사람/상황 묘사. 구매 결정 유도. 400자 이상.
+- summary: 핵심 포인트 3줄 요약
 
-=== TITLE: CLICK-BAIT (CRITICAL) ===
-- Hook patterns: "써봤는데 이건 진심입니다", "솔직히 이 가격에 이게 맞아?", "구매 후 후회 없는 이유", "이거 사길 잘했다"
-- Must include product name + strong emotional hook
-- 50-65자
+아래 JSON 구조를 채워서 반환하세요 (JSON만, 다른 텍스트 금지):
 
-=== CONS: MINIMIZE (CRITICAL) ===
-- Maximum 2 items, trivially minor only
-- Prefix: "굳이 꼽자면" or "아주 미세하게"
-- Must NOT discourage purchase
-
-=== SECTIONS: MUST BE SUBSTANTIAL ===
-Each section needs: specific details, personal anecdotes, comparison to alternatives, concrete numbers.
-Structure each section with <p> tags + at least one <ul> or <blockquote> for variety.
-
-Respond ONLY with valid JSON:
 {
-  "title": "클릭 유도 제목 (50-65자) — 제품명 + 훅",
-  "productName": "정확한 제품명",
-  "description": "구매 욕구 자극 메타 설명 (90-120자)",
-  "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
-  "slug": "product-name-review",
+  "title": "",
+  "productName": "",
+  "description": "",
+  "keywords": ["", "", "", "", ""],
+  "slug": "",
   "price": "${finalPrice || '네이버 최저가 확인'}",
-  "intro": "<p>공감되는 상황으로 시작 (이 제품이 필요했던 이유). 2-3문장.</p><p>이 리뷰에서 확인할 3가지 핵심 포인트.</p>",
-  "pros": ["✨ 장점1 — 수치 포함", "💡 장점2", "🎯 장점3", "🏆 장점4", "🔥 장점5", "💰 장점6"],
-  "cons": ["굳이 꼽자면 — 사소한 점1", "아주 미세하게 아쉬운 점2"],
-  "specs": [{"label": "스펙", "value": "값"}],
+  "intro": "",
+  "pros": ["", "", "", "", "", ""],
+  "cons": ["", ""],
+  "specs": [{"label": "", "value": ""}],
   "sections": [
-    {
-      "heading": "🎨 첫 번째 섹션 제목 — 구매 욕구 자극",
-      "content": "<p>350자 이상 본문. 구체적 묘사, 비교, 수치.</p><ul><li><strong>포인트1:</strong> 설명</li><li><strong>포인트2:</strong> 설명</li></ul><blockquote>핵심 한 줄 인사이트</blockquote>"
-    },
-    {
-      "heading": "✅ 실제 사용 후기 — 써보니 이랬습니다",
-      "content": "<p>350자 이상. 일상 속 사용 경험담. 비포/애프터.</p><ul><li>구체적 경험1</li><li>구체적 경험2</li><li>구체적 경험3</li></ul>"
-    },
-    {
-      "heading": "💰 이 가격에 이게 맞아? — 가격 대비 가치",
-      "content": "<p>350자 이상. 가격 정당화. 비슷한 제품과 비교.</p><table><thead><tr><th>비교 항목</th><th>이 제품</th><th>일반 제품</th></tr></thead><tbody><tr><td>가격</td><td>가치있음</td><td>비슷하거나 더 비쌈</td></tr></tbody></table>"
-    },
-    {
-      "heading": "🙋 이런 분께 강력 추천드립니다",
-      "content": "<p>350자 이상. 구체적 추천 대상 묘사. 구매 결정 유도.</p><ul><li>추천 상황1</li><li>추천 상황2</li><li>추천 상황3</li></ul><blockquote>지금 바로 구매해도 후회 없는 이유 한 줄</blockquote>"
-    }
+    {"heading": "🎨 디자인 & 첫인상", "content": ""},
+    {"heading": "✅ 실제 사용 후기", "content": ""},
+    {"heading": "💰 가격 대비 가치", "content": ""},
+    {"heading": "🙋 이런 분께 추천해요", "content": ""}
   ],
   "rating": 4.6,
-  "summary": ["🏆 최고 장점: 구체적", "💡 이런 분께 강추: 구체적", "🎁 의외의 장점: 구체적"],
-  "targetUser": "이런 분이라면 지금 바로 사도 후회 없어요: 구체적 상황",
+  "summary": ["", "", ""],
+  "targetUser": "",
   "readMinutes": 6
 }`;
 
-  const text = await callGroq(prompt, { maxTokens: 6000, jsonMode: true });
+  const text = await callGroq(prompt, { maxTokens: 6000, jsonMode: true, systemMsg });
   let data;
   try {
     data = JSON.parse(text);
@@ -456,6 +464,9 @@ Respond ONLY with valid JSON:
     if (!jsonMatch) throw new Error('JSON 파싱 실패 — Groq 응답:\n' + text.substring(0, 300));
     data = JSON.parse(jsonMatch[0]);
   }
+
+  // 중국어/외국 한자 제거
+  data = sanitizeReviewData(data);
 
   data.category = '제품리뷰';
   data.date = today;
