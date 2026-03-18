@@ -206,6 +206,14 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
 // ─────────────────────────────────────────
 // 3. 제품 리뷰 생성
 // ─────────────────────────────────────────
+// 에러 페이지 감지 키워드
+const ERROR_PAGE_KEYWORDS = ['시스템오류', '에러페이지', '오류가 발생', 'error page', '서비스 점검', '페이지를 찾을 수 없', '존재하지 않는 페이지', '접근이 제한'];
+
+function isErrorPage(title, bodyText) {
+  const combined = (title + ' ' + bodyText).toLowerCase();
+  return ERROR_PAGE_KEYWORDS.some(kw => combined.includes(kw.toLowerCase()));
+}
+
 async function fetchProductInfo(url) {
   try {
     const res = await fetch(url, {
@@ -221,7 +229,7 @@ async function fetchProductInfo(url) {
       redirect: 'follow',
     });
 
-    const finalUrl = res.url; // 리다이렉트 후 실제 URL
+    const finalUrl = res.url;
     const html = await res.text();
 
     const getOg = (prop) =>
@@ -234,7 +242,6 @@ async function fetchProductInfo(url) {
 
     const htmlTitle = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() || '';
 
-    // 본문 텍스트 추출 (스크립트/스타일 제거 후)
     const bodyText = html
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/<style[\s\S]*?<\/style>/gi, '')
@@ -248,6 +255,12 @@ async function fetchProductInfo(url) {
     const description = getOg('description') || getMeta('description');
     const image = getOg('image');
 
+    // 에러 페이지 감지
+    if (isErrorPage(title, bodyText)) {
+      console.warn(`   └ ⚠️ 에러 페이지 감지됨 (제목: "${title}") — 스크래핑 실패로 처리`);
+      return null;
+    }
+
     console.log(`   └ 제품명: ${title || '(없음)'}`);
     console.log(`   └ 설명: ${description?.substring(0, 60) || '(없음)'}...`);
     console.log(`   └ 이미지: ${image ? '있음' : '없음'}`);
@@ -256,21 +269,32 @@ async function fetchProductInfo(url) {
     return { title, image, description, url: finalUrl || url, bodyText };
   } catch (e) {
     console.warn('제품 페이지 가져오기 실패:', e.message);
-    return { title: '', image: '', description: '', url, bodyText: '' };
+    return null;
   }
 }
 
-async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl = null) {
+async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl = null, manualName = '', manualDesc = '') {
   console.log(`\n📦 제품 리뷰 생성 중: ${productUrl}`);
-  if (scrapeUrl) console.log(`   └ 스크래핑 URL: ${scrapeUrl}`);
 
-  const info = await fetchProductInfo(scrapeUrl || productUrl);
   const today = getKSTDate();
+  let info = null;
+
+  // 수동 입력이 있으면 스크래핑 건너뜀
+  if (manualName) {
+    console.log(`   └ 수동 입력 모드: ${manualName}`);
+    info = { title: manualName, description: manualDesc, image: '', url: productUrl, bodyText: manualDesc };
+  } else {
+    if (scrapeUrl) console.log(`   └ 스크래핑 URL: ${scrapeUrl}`);
+    info = await fetchProductInfo(scrapeUrl || productUrl);
+  }
 
   // 제품 정보가 전혀 없으면 중단
-  const hasInfo = info.title || info.description || info.bodyText?.length > 100;
-  if (!hasInfo) {
-    throw new Error(`제품 정보를 가져올 수 없습니다. URL을 직접 열어서 제품명과 설명을 수동으로 입력해주세요: ${productUrl}`);
+  if (!info || (!info.title && !info.description && (!info.bodyText || info.bodyText.length < 100))) {
+    throw new Error(
+      `제품 정보를 가져올 수 없습니다.\n` +
+      `해결 방법: product_links 입력 시 제품명을 직접 입력해주세요.\n` +
+      `형식: ${productUrl}|${platform}||제품명|제품설명`
+    );
   }
 
   const disclaimer = platform === 'coupang'
@@ -889,11 +913,13 @@ async function main() {
       const affiliateUrl = parts[0]?.trim();          // 제휴 링크 (버튼용)
       const platform = (parts[1]?.trim() || 'coupang').toLowerCase();
       const scrapeUrl = parts[2]?.trim() || null;     // 스크래핑 URL (선택)
+      const manualName = parts[3]?.trim() || '';      // 수동 제품명 (스크래핑 불가 시)
+      const manualDesc = parts[4]?.trim() || '';      // 수동 제품 설명 (선택)
 
       if (!affiliateUrl) continue;
 
       try {
-        const data = await generateProductReview(affiliateUrl, platform, scrapeUrl);
+        const data = await generateProductReview(affiliateUrl, platform, scrapeUrl, manualName, manualDesc);
         const html = buildProductReviewHTML(data);
         savePost(data, html);
         updateIndexHTML(data);
@@ -901,7 +927,7 @@ async function main() {
         console.log(`\n✅ [제품리뷰] 완료: ${data.title}`);
         await sleep(3000);
       } catch (e) {
-        console.error(`\n❌ [제품리뷰] 실패 (${url}):`, e.message);
+        console.error(`\n❌ [제품리뷰] 실패 (${affiliateUrl}):`, e.message);
       }
     }
   }
