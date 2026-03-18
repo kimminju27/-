@@ -149,7 +149,7 @@ Latest news to reference:
 ${newsContext}
 
 STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
-1. Write ONLY in Korean (한국어만 사용). ZERO Japanese, Chinese, or English words in the content.
+1. Write ONLY in Korean (한국어만 사용). ZERO Japanese, Chinese, or English words in the content. ABSOLUTELY NO hiragana (あいうえお), katakana (アイウエオ), kanji (比べて経験など), or Chinese characters. If you need to express "compared to", use "대비" or "에 비해". Use "있음/없음" instead of ○/×.
 2. NEVER use phrases like "알아보겠습니다", "살펴보겠습니다", "모색해보겠습니다", "분석해보겠습니다" — start with the actual content immediately.
 3. Every section MUST contain at least 3 specific numbers/percentages/dates/amounts (예: 3.5%, 1,380원, 2026년 4월).
 4. Include at least one HTML table with real comparison data.
@@ -247,7 +247,8 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
-  const data = JSON.parse(jsonMatch[0]);
+  let data = JSON.parse(jsonMatch[0]);
+  data = sanitizeReviewData(data); // 뉴스에도 외국어 제거 적용
   data.category = category;
   data.date = today;
 
@@ -464,7 +465,7 @@ ${finalPrice ? `가격: ${finalPrice}` : ''}
 ===아래 JSON을 완성하세요. 각 섹션 content는 반드시 실제 리뷰 내용 (400자 이상 한국어)으로 채우세요.===
 
 {
-  "title": "클릭을 부르는 제목. 제품명 + 감성 훅. 예: '써봤는데 이건 진심이에요' / '솔직히 이 가격에 이게 돼?'. 50-65자.",
+  "title": "제품별 SEO 최적화 제목 (50-65자). 매번 다른 패턴 사용. 예시 패턴: '[제품명] 한 달 써본 솔직 후기 — 이 가격에 이게 맞아?', '[제품명] 직접 써봤습니다 — 장단점 완전 정리', '[제품명] 구매 전 꼭 읽어보세요 — 실사용 리뷰', '이 제품 살까 말까? [제품명] 실물 비교 분석', '[제품명] 최저가 구매 완료 — 한 달 사용 결과', '솔직히 말할게요 [제품명] 리뷰 — 좋은 점·나쁜 점 전부'. 절대로 '써봤는데 이건 진심이에요'로 시작하지 말 것.",
   "productName": "${info.title}",
   "description": "90-120자 메타 설명. 구매 욕구 자극.",
   "keywords": ["관련키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
@@ -878,8 +879,13 @@ function buildProductReviewHTML(data) {
       <p class="text-xs text-ink-300 text-center">${escHtml(data.disclaimer)}</p>
     </div>
 
+    <!-- 해시태그 -->
+    <div class="mt-8 flex flex-wrap gap-2">
+      ${(data.keywords || []).map(k => `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#${escHtml(k.replace(/\s+/g, ''))}</span>`).join('\n      ')}
+    </div>
+
     <!-- 공유 -->
-    <div class="mt-8 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
+    <div class="mt-4 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
       <button class="btn-share" onclick="navigator.clipboard.writeText(location.href).then(()=>alert('✅ 링크 복사 완료!'))">🔗 링크 복사</button>
     </div>
 
@@ -905,6 +911,29 @@ function buildPostCard(data) {
   const cfg = CAT_CONFIG[data.category] || CAT_CONFIG['경제'];
   const dateStr = data.date.replace(/-/g, '.');
   const shortDesc = (data.description || '').substring(0, 80) + '...';
+  const isReview = data.category === '제품리뷰';
+
+  // 뉴스: heroStats 첫 번째 지표 표시 / 제품리뷰: 가격 + 평점 표시
+  let coverInner = '';
+  if (isReview) {
+    const stars = data.rating ? '★'.repeat(Math.round(data.rating)) + ' ' + data.rating : '';
+    coverInner = `
+            <div>
+              <p class="text-white/60 text-xs mb-1">직접 사용 리뷰</p>
+              ${stars ? `<p style="color:#fbbf24;" class="font-black text-lg leading-tight">${escHtml(stars)}</p>` : ''}
+              ${data.price ? `<p style="color:#34d399;" class="font-black text-2xl leading-tight">${escHtml(data.price)}</p>` : ''}
+              <p class="text-white font-bold text-sm leading-snug mt-1 line-clamp-2">${escHtml(data.productName || data.title)}</p>
+            </div>`;
+  } else {
+    const stat = (data.heroStats || [])[0];
+    const subtext = data.heroSubtext || '';
+    coverInner = `
+            <div>
+              ${stat ? `<p class="text-white/60 text-xs mb-0.5">${escHtml(stat.label)}</p>
+              <p style="color:${stat.color || '#f87171'};" class="font-black text-3xl leading-tight">${escHtml(stat.value)}</p>` : `<p class="text-white font-black text-base leading-tight line-clamp-2">${escHtml(data.title)}</p>`}
+              ${subtext ? `<p class="text-white/50 text-xs mt-1 line-clamp-1">${escHtml(subtext)}</p>` : ''}
+            </div>`;
+  }
 
   return `
       <!-- AUTO: ${data.title} -->
@@ -917,9 +946,7 @@ function buildPostCard(data) {
               <span style="background:${cfg.tagBg};color:${cfg.tagColor};" class="text-xs font-bold px-2 py-0.5 rounded-full border border-white/10">${cfg.emoji} ${escHtml(data.category)}</span>
               <span class="text-xs text-white/40">${dateStr}</span>
             </div>
-            <div>
-              <p class="text-white font-black text-base leading-tight line-clamp-2">${escHtml(data.title)}</p>
-            </div>
+            ${coverInner}
           </div>
           <div class="absolute -right-3 -top-3 text-8xl opacity-5">${cfg.emoji}</div>
         </div>
