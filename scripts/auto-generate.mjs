@@ -238,10 +238,13 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
 
 // 네이버 쇼핑 API로 제품 정보 자동 수집
 async function fetchProductFromNaverAPI(query) {
-  if (!NAVER_CLIENT_ID || !NAVER_CLIENT_SECRET) return null;
+  if (!NAVER_CLIENT_ID || !NAVER_CLIENT_SECRET) {
+    console.log('   └ [네이버 API] 키 없음 → 수동 모드');
+    return null;
+  }
 
   try {
-    const url = `https://openapi.naver.com/v1/search/shop.json?query=${encodeURIComponent(query)}&display=3&sort=sim`;
+    const url = `https://openapi.naver.com/v1/search/shop.json?query=${encodeURIComponent(query)}&display=5&sort=sim`;
     const res = await fetch(url, {
       headers: {
         'X-Naver-Client-Id': NAVER_CLIENT_ID,
@@ -249,27 +252,35 @@ async function fetchProductFromNaverAPI(query) {
       },
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) return null;
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn(`   └ [네이버 API] HTTP ${res.status}: ${errText.substring(0, 100)}`);
+      return null;
+    }
 
     const json = await res.json();
+    console.log(`   └ [네이버 API] 검색 결과: ${json.total}건`);
+
     const item = json.items?.[0];
-    if (!item) return null;
+    if (!item) {
+      console.warn('   └ [네이버 API] 검색 결과 없음');
+      return null;
+    }
 
     const title = item.title.replace(/<[^>]+>/g, '').trim();
     const price = parseInt(item.lprice || '0', 10);
     const priceStr = price > 0 ? price.toLocaleString('ko-KR') + '원' : '';
-    const image = item.image;
+    const images = json.items.slice(0, 5).map(i => i.image).filter(Boolean);
 
-    // 추가 이미지: 검색 결과 최대 3개에서 이미지 수집
-    const images = json.items?.slice(0, 3).map(i => i.image).filter(Boolean) || [];
+    console.log(`   └ [네이버 API] ✅ 제품명: ${title}`);
+    console.log(`   └ [네이버 API] ✅ 가격: ${priceStr}`);
+    console.log(`   └ [네이버 API] ✅ 이미지: ${images.length}장`);
+    if (images[0]) console.log(`   └ [네이버 API] 첫 이미지: ${images[0]}`);
 
-    console.log(`   └ [네이버 API] 제품명: ${title}`);
-    console.log(`   └ [네이버 API] 가격: ${priceStr}`);
-    console.log(`   └ [네이버 API] 이미지: ${images.length}장`);
-
-    return { title, price: priceStr, image, images, description: item.title, bodyText: '' };
+    return { title, price: priceStr, image: images[0] || '', images, description: title, bodyText: '' };
   } catch (e) {
-    console.warn('   └ 네이버 API 오류:', e.message);
+    console.warn('   └ [네이버 API] 오류:', e.message);
     return null;
   }
 }
@@ -407,62 +418,87 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
 
   const finalPrice = manualPrice || info.price || '';
 
-  const systemMsg = `당신은 한국어 제품 리뷰 전문 블로거입니다.
-반드시 지켜야 할 규칙:
-- 모든 출력은 완전한 한국어로만 작성 (한자, 일본어, 영어 단어 절대 금지)
-- "们", "經", "験" 같은 중국 한자 절대 사용 금지
-- "알아보겠습니다", "살펴보겠습니다" 같은 형식적 표현 금지
-- 반드시 valid JSON만 출력`;
+  const systemMsg = `당신은 대한민국 최고의 제품 리뷰 블로거입니다.
+규칙:
+1. 순수 한국어만 사용. 中文(중국 한자), 日本語, English 단어 절대 금지.
+2. "们" "經" "験" 같은 한자 절대 금지.
+3. "알아보겠습니다" "살펴보겠습니다" 금지.
+4. 반드시 valid JSON으로만 응답.`;
 
-  const prompt = `제품명: ${info.title}
-플랫폼: ${platform === 'coupang' ? '쿠팡' : '네이버'}
-${finalPrice ? `실제 가격: ${finalPrice} (이 가격만 사용, 다른 가격 절대 금지)` : ''}
-제품 정보: ${info.bodyText?.substring(0, 2000) || info.description || '제품명 기반으로 작성'}
+  const productDesc = info.bodyText?.substring(0, 1500) || info.description || '';
 
-[작성 지침]
-- 제목: 클릭을 유발하는 감성 훅 포함. 예) "써봤는데 이건 진심이에요", "이 가격에 이게 된다고?", "솔직 후기"
-- intro: 독자가 공감할 상황으로 시작. 2문단.
-- pros: 장점 6개, 각각 이모지+구체적 수치 포함
-- cons: 최대 2개, "굳이 꼽자면" 식의 아주 사소한 내용만
-- sections[0] 내용: 제품의 디자인·첫인상을 생생하게 묘사. 비슷한 제품과 비교. 400자 이상의 한국어 문장으로 작성.
-- sections[1] 내용: 실제 사용 경험담. 구매 전후 변화. 구체적인 일상 장면 포함. 400자 이상.
-- sections[2] 내용: 가격 정당화. 경쟁 제품 대비 이 제품이 왜 더 나은지. 비교표 포함. 400자 이상.
-- sections[3] 내용: 이 제품이 딱 맞는 구체적인 사람/상황 묘사. 구매 결정 유도. 400자 이상.
-- summary: 핵심 포인트 3줄 요약
+  const prompt = `다음 제품의 구매 유도 리뷰를 작성하고 JSON으로 반환하세요.
 
-아래 JSON 구조를 채워서 반환하세요 (JSON만, 다른 텍스트 금지):
+제품명: ${info.title}
+${finalPrice ? `가격: ${finalPrice}` : ''}
+제품 설명: ${productDesc || '없음 (제품명 기반으로 창의적으로 작성)'}
+
+===아래 JSON을 완성하세요. 각 섹션 content는 반드시 실제 리뷰 내용 (400자 이상 한국어)으로 채우세요.===
 
 {
-  "title": "",
-  "productName": "",
-  "description": "",
-  "keywords": ["", "", "", "", ""],
-  "slug": "",
+  "title": "클릭을 부르는 제목. 제품명 + 감성 훅. 예: '써봤는데 이건 진심이에요' / '솔직히 이 가격에 이게 돼?'. 50-65자.",
+  "productName": "${info.title}",
+  "description": "90-120자 메타 설명. 구매 욕구 자극.",
+  "keywords": ["관련키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+  "slug": "영문-슬러그-review",
   "price": "${finalPrice || '네이버 최저가 확인'}",
-  "intro": "",
-  "pros": ["", "", "", "", "", ""],
-  "cons": ["", ""],
-  "specs": [{"label": "", "value": ""}],
+  "intro": "2문단 HTML. 독자가 공감할 상황으로 시작. 이 제품을 찾게 된 배경. 이 리뷰에서 다룰 핵심 3가지.",
+  "pros": [
+    "✨ 구체적 장점 1 (수치 포함)",
+    "💡 구체적 장점 2",
+    "🎯 구체적 장점 3",
+    "🏆 구체적 장점 4",
+    "🔥 구체적 장점 5",
+    "💰 구체적 장점 6"
+  ],
+  "cons": [
+    "굳이 꼽자면 — 아주 사소한 점 1",
+    "미세하게 아쉬운 점 2"
+  ],
+  "specs": [
+    {"label": "스펙항목1", "value": "값"},
+    {"label": "스펙항목2", "value": "값"},
+    {"label": "스펙항목3", "value": "값"}
+  ],
   "sections": [
-    {"heading": "🎨 디자인 & 첫인상", "content": ""},
-    {"heading": "✅ 실제 사용 후기", "content": ""},
-    {"heading": "💰 가격 대비 가치", "content": ""},
-    {"heading": "🙋 이런 분께 추천해요", "content": ""}
+    {
+      "heading": "🎨 디자인 & 첫인상 — 박스 열었을 때 느낌",
+      "content": "여기에 400자 이상의 실제 리뷰 내용 작성. 제품을 처음 받았을 때 포장, 외관, 재질, 색상에 대한 생생한 묘사. 비슷한 제품과 비교. <ul> 또는 <blockquote> 포함."
+    },
+    {
+      "heading": "✅ 실제 사용 후기 — 써보니 이랬습니다",
+      "content": "여기에 400자 이상의 실제 사용 경험담. 언제 어떻게 사용했는지. 구매 전 고민했던 부분이 해결됐는지. 비포/애프터. <ul> 포함."
+    },
+    {
+      "heading": "💰 이 가격에 이게 맞아? — 가격 대비 가치",
+      "content": "여기에 400자 이상의 가격 정당화 내용. 다른 유사 제품과 가격·품질 비교. 왜 이 제품이 더 나은지. <table> 비교표 포함."
+    },
+    {
+      "heading": "🙋 이런 분이라면 무조건 사세요",
+      "content": "여기에 400자 이상의 구체적 추천 대상 묘사. 이 제품이 딱 맞는 상황/사람. 구매 결정을 유도하는 마무리. <ul> + <blockquote> 포함."
+    }
   ],
   "rating": 4.6,
-  "summary": ["", "", ""],
-  "targetUser": "",
+  "summary": [
+    "🏆 핵심 장점: 구체적으로",
+    "💡 이런 분께 강추: 구체적 상황",
+    "🎁 의외의 장점: 예상 못한 좋은 점"
+  ],
+  "targetUser": "이 제품이 딱 맞는 구체적인 사람 묘사",
   "readMinutes": 6
 }`;
 
-  const text = await callGroq(prompt, { maxTokens: 6000, jsonMode: true, systemMsg });
+  const text = await callGroq(prompt, { maxTokens: 7000, jsonMode: false, systemMsg });
+
+  // JSON 추출 (코드블록 포함 대응)
+  const jsonMatch = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('JSON 파싱 실패 — 응답:\n' + text.substring(0, 400));
+
   let data;
   try {
-    data = JSON.parse(text);
-  } catch {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('JSON 파싱 실패 — Groq 응답:\n' + text.substring(0, 300));
     data = JSON.parse(jsonMatch[0]);
+  } catch (e) {
+    throw new Error('JSON 파싱 오류: ' + e.message + '\n응답:\n' + text.substring(0, 400));
   }
 
   // 중국어/외국 한자 제거
