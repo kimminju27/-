@@ -909,7 +909,8 @@ async function main() {
     console.log(`   제품 링크 수: ${links.length}`);
 
     for (const line of links) {
-      const parts = line.split('|');
+      // │(U+2502 박스문자), ｜(U+FF5C 전각), | (U+007C 일반) 모두 허용
+      const parts = line.replace(/[│｜]/g, '|').split('|');
       const affiliateUrl = parts[0]?.trim();          // 제휴 링크 (버튼용)
       const platform = (parts[1]?.trim() || 'coupang').toLowerCase();
       const scrapeUrl = parts[2]?.trim() || null;     // 스크래핑 URL (선택)
