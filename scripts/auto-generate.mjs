@@ -13,25 +13,28 @@ const ROOT = path.join(__dirname, '..');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
-async function callGemini(prompt) {
+async function callGroq(prompt, { maxTokens = 4000, jsonMode = false } = {}) {
+  const body = {
+    model: 'llama-3.3-70b-versatile',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: maxTokens,
+    temperature: 0.7,
+  };
+  if (jsonMode) body.response_format = { type: 'json_object' };
+
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 4000,
-      temperature: 0.7,
-    }),
-    signal: AbortSignal.timeout(60000),
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(90000),
   });
   if (!res.ok) throw new Error(`Groq API 오류: ${res.status} ${await res.text()}`);
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';
 }
+
+// 하위 호환용 alias
+const callGemini = (prompt) => callGroq(prompt);
 
 const MODE = process.env.GENERATION_MODE || 'news';
 const CATEGORIES_TO_RUN = (process.env.CATEGORIES || '경제,주식').split(',').map(s => s.trim()).filter(Boolean);
@@ -286,27 +289,29 @@ async function fetchProductInfo(url) {
   }
 }
 
-async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl = null, manualName = '', manualDesc = '') {
+async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl = null, manualName = '', manualPrice = '', manualImages = []) {
   console.log(`\n📦 제품 리뷰 생성 중: ${productUrl}`);
 
   const today = getKSTDate();
   let info = null;
 
-  // 수동 입력이 있으면 스크래핑 건너뜀
   if (manualName) {
     console.log(`   └ 수동 입력 모드: ${manualName}`);
-    info = { title: manualName, description: manualDesc, image: '', images: [], url: productUrl, bodyText: manualDesc };
+    info = { title: manualName, description: '', image: manualImages[0] || '', images: manualImages, url: productUrl, bodyText: '' };
   } else {
     if (scrapeUrl) console.log(`   └ 스크래핑 URL: ${scrapeUrl}`);
     info = await fetchProductInfo(scrapeUrl || productUrl);
+    // 수동 이미지가 있으면 스크래핑 이미지 앞에 붙이기
+    if (manualImages.length > 0) {
+      info.images = [...manualImages, ...(info?.images || [])];
+      info.image = manualImages[0];
+    }
   }
 
-  // 제품 정보가 전혀 없으면 중단
-  if (!info || (!info.title && !info.description && (!info.bodyText || info.bodyText.length < 100))) {
+  if (!info || (!info.title && !info.bodyText?.length)) {
     throw new Error(
       `제품 정보를 가져올 수 없습니다.\n` +
-      `해결 방법: product_links 입력 시 제품명을 직접 입력해주세요.\n` +
-      `형식: ${productUrl}|${platform}||제품명|제품설명`
+      `형식: ${productUrl}|${platform}|제품명|가격|이미지URL1,이미지URL2`
     );
   }
 
@@ -314,62 +319,81 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
     ? '이 포스팅은 쿠팡 파트너스 활동의 일환으로 이에 따른 일정액의 수수료를 제공받습니다.'
     : '본 포스팅은 네이버 쇼핑커넥트의 일환으로 판매시 수수료를 지급받을 수 있습니다.';
 
-  const prompt = `You are a Korean affiliate marketing blogger writing a product review to SELL the product. Write in KOREAN ONLY.
+  const priceNote = manualPrice ? `\n제품 실제 가격: ${manualPrice} (반드시 이 가격을 사용할 것)` : '';
 
-Product URL: ${productUrl}
-Product Name: ${info.title || 'Unknown'}
-Product Description: ${info.description || ''}
-Page Content: ${info.bodyText?.substring(0, 2000) || ''}
-Platform: ${platform === 'coupang' ? '쿠팡' : '네이버'}
+  const prompt = `You are a top Korean affiliate marketing blogger. Your reviews make readers WANT to buy immediately. Write in KOREAN ONLY.
 
-STRICT RULES:
-1. Write ONLY in Korean (한국어만). ZERO other scripts.
-2. Use ONLY information from the page content — do NOT fabricate specs.
-3. If a spec is unknown, write "확인 필요".
-4. Write like a real person who loves this product and wants others to buy it.
-5. Include at least 3 specific numbers (price, specs, etc.) from the page.
-6. NEVER start with "알아보겠습니다", "살펴보겠습니다".
+Product Name: ${info.title}
+Platform: ${platform === 'coupang' ? '쿠팡' : '네이버'}${priceNote}
+Page Content: ${info.bodyText?.substring(0, 2500) || info.description || ''}
 
-TITLE RULES (CRITICAL):
-- Use click-bait hooks: "써봤는데 진짜였습니다", "구매 전 반드시 읽으세요", "이거 때문에 삽니다", "솔직히 말하면", "후회 없는 선택"
-- Include product name + benefit + emotional hook
-- Example: "LG 냉장고 써봤는데 진짜 다르더라고요 — 구매 전 꼭 읽어보세요"
+=== RULES (violations = useless review) ===
+1. Korean ONLY. No English/Japanese/Chinese in content.
+2. ${manualPrice ? `Price MUST be "${manualPrice}" — never use a different price.` : 'Extract price from page content only. If unknown, write "네이버 최저가 확인"'}
+3. Sections must each be 350+ Korean characters. Short sections are REJECTED.
+4. Write like a friend who genuinely loves this product and is enthusiastically recommending it.
+5. NEVER: "알아보겠습니다", "살펴보겠습니다", "확인해보겠습니다"
 
-CONS RULES (CRITICAL):
-- Write ONLY 1-2 minor, trivial cons
-- Frame them gently: "굳이 꼽자면", "미세하게 아쉬운 점은" — NOT big negatives
-- NEVER write cons that would discourage purchase
+=== TITLE: CLICK-BAIT (CRITICAL) ===
+- Hook patterns: "써봤는데 이건 진심입니다", "솔직히 이 가격에 이게 맞아?", "구매 후 후회 없는 이유", "이거 사길 잘했다"
+- Must include product name + strong emotional hook
+- 50-65자
 
-Respond with ONLY valid JSON (no code blocks):
+=== CONS: MINIMIZE (CRITICAL) ===
+- Maximum 2 items, trivially minor only
+- Prefix: "굳이 꼽자면" or "아주 미세하게"
+- Must NOT discourage purchase
+
+=== SECTIONS: MUST BE SUBSTANTIAL ===
+Each section needs: specific details, personal anecdotes, comparison to alternatives, concrete numbers.
+Structure each section with <p> tags + at least one <ul> or <blockquote> for variety.
+
+Respond ONLY with valid JSON:
 {
-  "title": "클릭 유도 제목 — 제품명 + 감성 훅 (50-70자)",
-  "productName": "실제 제품명",
-  "description": "구매 욕구를 자극하는 메타 설명 (80-120자)",
+  "title": "클릭 유도 제목 (50-65자) — 제품명 + 훅",
+  "productName": "정확한 제품명",
+  "description": "구매 욕구 자극 메타 설명 (90-120자)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
-  "slug": "product-name-review-english-only",
-  "intro": "<p>첫 문장: 이 제품을 접하게 된 상황 — 공감 가는 이야기로 시작.</p><p>이 리뷰에서 다룰 핵심 내용 (구매를 설레게 만드는 포인트 3가지).</p>",
-  "pros": ["✨ 장점1 — 구체적 수치 포함", "장점2", "장점3", "장점4", "장점5", "장점6"],
-  "cons": ["굳이 꼽자면 — 사소한 아쉬움1", "미세하게 아쉬운 점 — 아쉬움2"],
-  "specs": [
-    {"label": "스펙명", "value": "실제 값 (모르면 확인 필요)"}
-  ],
+  "slug": "product-name-review",
+  "price": "${manualPrice || '네이버 최저가 확인'}",
+  "intro": "<p>공감되는 상황으로 시작 (이 제품이 필요했던 이유). 2-3문장.</p><p>이 리뷰에서 확인할 3가지 핵심 포인트.</p>",
+  "pros": ["✨ 장점1 — 수치 포함", "💡 장점2", "🎯 장점3", "🏆 장점4", "🔥 장점5", "💰 장점6"],
+  "cons": ["굳이 꼽자면 — 사소한 점1", "아주 미세하게 아쉬운 점2"],
+  "specs": [{"label": "스펙", "value": "값"}],
   "sections": [
-    {"heading": "🎨 디자인 & 첫인상 — 이게 왜 좋은가", "content": "<p>200자 이상, 구매 욕구 자극</p>"},
-    {"heading": "✅ 실제 써보니 이랬습니다", "content": "<p>200자 이상, 구체적 경험담</p>"},
-    {"heading": "💰 이 가격에 이게 된다고?", "content": "<p>200자 이상, 가격 대비 가치 강조</p>"},
-    {"heading": "🙋 이런 분이라면 무조건 사세요", "content": "<p>200자 이상, 구체적 추천 대상</p>"}
+    {
+      "heading": "🎨 첫 번째 섹션 제목 — 구매 욕구 자극",
+      "content": "<p>350자 이상 본문. 구체적 묘사, 비교, 수치.</p><ul><li><strong>포인트1:</strong> 설명</li><li><strong>포인트2:</strong> 설명</li></ul><blockquote>핵심 한 줄 인사이트</blockquote>"
+    },
+    {
+      "heading": "✅ 실제 사용 후기 — 써보니 이랬습니다",
+      "content": "<p>350자 이상. 일상 속 사용 경험담. 비포/애프터.</p><ul><li>구체적 경험1</li><li>구체적 경험2</li><li>구체적 경험3</li></ul>"
+    },
+    {
+      "heading": "💰 이 가격에 이게 맞아? — 가격 대비 가치",
+      "content": "<p>350자 이상. 가격 정당화. 비슷한 제품과 비교.</p><table><thead><tr><th>비교 항목</th><th>이 제품</th><th>일반 제품</th></tr></thead><tbody><tr><td>가격</td><td>가치있음</td><td>비슷하거나 더 비쌈</td></tr></tbody></table>"
+    },
+    {
+      "heading": "🙋 이런 분께 강력 추천드립니다",
+      "content": "<p>350자 이상. 구체적 추천 대상 묘사. 구매 결정 유도.</p><ul><li>추천 상황1</li><li>추천 상황2</li><li>추천 상황3</li></ul><blockquote>지금 바로 구매해도 후회 없는 이유 한 줄</blockquote>"
+    }
   ],
-  "rating": 4.5,
-  "summary": ["🏆 최고의 장점: 구체적", "💡 이런 분께 강추: 구체적 상황", "🎁 숨겨진 장점: 의외의 좋은 점"],
-  "targetUser": "이런 분이라면 지금 바로 사도 후회 없어요: (구체적 상황 묘사)",
-  "readMinutes": 5
+  "rating": 4.6,
+  "summary": ["🏆 최고 장점: 구체적", "💡 이런 분께 강추: 구체적", "🎁 의외의 장점: 구체적"],
+  "targetUser": "이런 분이라면 지금 바로 사도 후회 없어요: 구체적 상황",
+  "readMinutes": 6
 }`;
 
-  const text = await callGemini(prompt);
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
+  const text = await callGroq(prompt, { maxTokens: 6000, jsonMode: true });
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('JSON 파싱 실패 — Groq 응답:\n' + text.substring(0, 300));
+    data = JSON.parse(jsonMatch[0]);
+  }
 
-  const data = JSON.parse(jsonMatch[0]);
   data.category = '제품리뷰';
   data.date = today;
   data.platform = platform;
@@ -631,11 +655,14 @@ function buildProductReviewHTML(data) {
     <h1 class="text-2xl sm:text-3xl font-black text-ink-900 leading-tight mb-3">${escHtml(data.title)}</h1>
     <p class="text-ink-500 text-sm mb-6 leading-relaxed">${escHtml(data.description)}</p>
 
-    <!-- 평점 -->
-    <div class="flex items-center gap-3 mb-8 p-4 bg-ink-100/40 rounded-xl">
-      <span class="text-2xl">${stars}</span>
-      <span class="font-black text-2xl text-ink-900">${data.rating}</span>
-      <span class="text-sm text-ink-500">/ 5.0</span>
+    <!-- 평점 + 가격 -->
+    <div class="flex items-center justify-between gap-3 mb-8 p-4 bg-ink-100/40 rounded-xl flex-wrap">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">${stars}</span>
+        <span class="font-black text-2xl text-ink-900">${data.rating}</span>
+        <span class="text-sm text-ink-500">/ 5.0</span>
+      </div>
+      ${data.price ? `<div class="text-right"><p class="text-xs text-ink-300">현재 가격</p><p class="font-black text-xl text-brand-600">${escHtml(data.price)}</p></div>` : ''}
     </div>
 
     <!-- 제품 이미지 -->
@@ -948,19 +975,20 @@ async function main() {
       const affiliateUrl = parts[0]?.trim();
       const platform = (parts[1]?.trim() || 'coupang').toLowerCase();
       const field3 = parts[2]?.trim() || '';
-      const field4 = parts[3]?.trim() || '';
-      const field5 = parts[4]?.trim() || '';
+      const field4 = parts[3]?.trim() || '';   // 가격 (예: 4,869,000원)
+      const field5 = parts[4]?.trim() || '';   // 이미지 URLs (쉼표 구분)
 
       // 3번째 필드가 URL이 아니면 제품명으로 자동 처리
       const isUrl = field3.startsWith('http://') || field3.startsWith('https://');
       const scrapeUrl = isUrl ? field3 : null;
-      const manualName = isUrl ? field4 : field3;   // URL 아니면 바로 제품명
-      const manualDesc = isUrl ? field5 : field4;   // 설명도 한 칸씩 당겨짐
+      const manualName = isUrl ? '' : field3;
+      const manualPrice = field4;
+      const manualImages = field5 ? field5.split(',').map(u => u.trim()).filter(Boolean) : [];
 
       if (!affiliateUrl) continue;
 
       try {
-        const data = await generateProductReview(affiliateUrl, platform, scrapeUrl, manualName, manualDesc);
+        const data = await generateProductReview(affiliateUrl, platform, scrapeUrl, manualName, manualPrice, manualImages);
         const html = buildProductReviewHTML(data);
         savePost(data, html);
         updateIndexHTML(data);
