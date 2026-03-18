@@ -185,6 +185,35 @@ function pickUnusedTopic(category) {
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
+// 구글 뉴스 상위 트렌딩 뉴스 수집 (실시간)
+async function fetchTrendingNews(category) {
+  // 1) 카테고리 키워드로 뉴스 검색
+  const base = category.split('_')[0];
+  const queries = {
+    '경제': '한국 경제',
+    '부동산': '부동산',
+    '주식': '주식 증시',
+    '복지정책': '복지 정책 지원',
+    '세금': '세금 절세',
+    '금융': '금융 재테크',
+  };
+  const q = encodeURIComponent(queries[base] || base);
+  const url = `https://news.google.com/rss/search?q=${q}&hl=ko&gl=KR&ceid=KR:ko`;
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(12000) });
+    const xml = await res.text();
+    const items = [];
+    for (const m of [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 10)) {
+      const t = m[1];
+      const title = (t.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || t.match(/<title>(.*?)<\/title>/))?.[1]?.trim() || '';
+      const desc = (t.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) || t.match(/<description>(.*?)<\/description>/))?.[1]
+        ?.replace(/<[^>]*>/g, '').trim().substring(0, 200) || '';
+      if (title.length > 5) items.push({ title, desc });
+    }
+    return items;
+  } catch { return []; }
+}
+
 async function fetchNewsRSS(query) {
   const q = encodeURIComponent(query);
   const url = `https://news.google.com/rss/search?q=${q}&hl=ko&gl=KR&ceid=KR:ko`;
@@ -215,24 +244,73 @@ async function fetchNewsRSS(query) {
 // 2. 뉴스 기사 생성
 // ─────────────────────────────────────────
 async function generateNewsArticle(category) {
-  // 주제 풀에서 아직 안 쓴 구체적 주제 선택
-  const topic = pickUnusedTopic(category);
-  console.log(`\n📰 뉴스 기사 생성 중: [${topic.category}] ${topic.label}`);
-
-  const newsItems = await fetchNewsRSS(topic.query);
-  const newsContext = newsItems.length > 0
-    ? newsItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
-    : `${topic.label} 관련 최신 동향`;
-
   const today = getKSTDate();
+  const base = category.split('_')[0];
+
+  // 1단계: 실시간 트렌딩 뉴스 수집
+  console.log(`\n📡 실시간 뉴스 탐색 중: [${base}]`);
+  const trendingItems = await fetchTrendingNews(category);
+  const trendingContext = trendingItems.length > 0
+    ? trendingItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
+    : '';
+
+  // 2단계: 이미 다룬 주제 목록 (중복 방지)
+  const usedTitles = getExistingPostTitles();
+  const avoidList = usedTitles.length > 0
+    ? `\nALREADY PUBLISHED (MUST NOT repeat):\n${usedTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
+    : '';
+
+  // 3단계: AI가 오늘의 핫이슈에서 주제 선정 + 상세 RSS 추가 수집
+  const topicPickPrompt = `You are a Korean news editor. From today's trending news below, pick the SINGLE most interesting and timely topic for a blog post in the "${base}" category. Return ONLY a JSON object.
+
+Today: ${today}
+Category: ${base}
+${avoidList}
+Today's trending news:
+${trendingContext || `${base} 관련 최신 뉴스`}
+
+Return JSON: {"topic": "구체적 주제 (한국어, 30자 이내)", "query": "targeted RSS search query in Korean (10-20 chars)", "reason": "why this topic is hot today"}`;
+
+  let chosenTopic = { topic: '', query: '', reason: '' };
+  try {
+    const pickText = await callGroq(topicPickPrompt, { maxTokens: 300, jsonMode: true });
+    const parsed = JSON.parse(pickText.match(/\{[\s\S]*\}/)?.[0] || pickText);
+    chosenTopic = { topic: parsed.topic || '', query: parsed.query || base, reason: parsed.reason || '' };
+  } catch { chosenTopic = { topic: '', query: base, reason: '' }; }
+
+  // 주제 미선정 시 TOPIC_POOL 폴백
+  if (!chosenTopic.topic) {
+    const fallback = pickUnusedTopic(category);
+    chosenTopic = { topic: fallback.label, query: fallback.query, reason: 'fallback' };
+  }
+
+  console.log(`\n📰 선정된 주제: [${base}] ${chosenTopic.topic}`);
+  if (chosenTopic.reason && chosenTopic.reason !== 'fallback') {
+    console.log(`   └ 선정 이유: ${chosenTopic.reason}`);
+  }
+
+  // 4단계: 선정된 주제로 심층 RSS 수집
+  const detailItems = await fetchNewsRSS(chosenTopic.query);
+  const allNewsItems = [...trendingItems, ...detailItems]
+    .filter((v, i, a) => a.findIndex(x => x.title === v.title) === i) // 중복 제거
+    .slice(0, 8);
+  const newsContext = allNewsItems.length > 0
+    ? allNewsItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
+    : `${chosenTopic.topic} 관련 최신 동향`;
+
+  // 사용 주제 기록 (TOPIC_POOL 기반 폴백일 때)
+  if (chosenTopic.reason === 'fallback') {
+    const fallback = pickUnusedTopic(category);
+    markTopicUsed(fallback.id);
+  }
 
   const prompt = `You are a professional Korean economic blogger with 10 years of experience. Write a detailed, data-rich blog post in KOREAN ONLY.
 
 Date: ${today}
-Category: ${topic.category}
-Topic (MUST write about THIS specific subject): ${topic.label}
+Category: ${base}
+Topic (MUST write about THIS specific subject — based on TODAY's real news): ${chosenTopic.topic}
 
-Latest news headlines to reference (use these as factual context):
+TODAY's real news headlines (use these as factual backbone — cite actual figures):
 ${newsContext}
 
 STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
@@ -336,15 +414,13 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
 
   let data = JSON.parse(jsonMatch[0]);
   data = sanitizeReviewData(data); // 뉴스에도 외국어 제거 적용
-  data.category = topic.category;
+  data.category = base;
   data.date = today;
 
-  if (!data.slug) data.slug = `${topic.id}-${today}`;
+  if (!data.slug) data.slug = `${base}-${today}`;
   data.slug = sanitizeSlug(data.slug) + '-' + getKSTDateTime();
 
-  // 사용한 주제 기록
-  markTopicUsed(topic.id);
-  console.log(`   ✅ 주제 사용 완료: [${topic.id}] ${topic.label}`);
+  console.log(`   ✅ 완료: ${data.title}`);
 
   return data;
 }
