@@ -1,10 +1,9 @@
 /**
  * 자동 글 생성 스크립트
- * - news 모드: Google News RSS → Claude API → 뉴스 기사 HTML 생성
- * - product_review 모드: 제품 URL → Claude API → 리뷰 HTML 생성
+ * - news 모드: Google News RSS → Gemini API → 뉴스 기사 HTML 생성
+ * - product_review 모드: 제품 URL → Gemini API → 리뷰 HTML 생성
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,7 +11,23 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+async function callGemini(prompt) {
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 4000, temperature: 0.7 },
+    }),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (!res.ok) throw new Error(`Gemini API 오류: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
 
 const MODE = process.env.GENERATION_MODE || 'news';
 const CATEGORIES_TO_RUN = (process.env.CATEGORIES || '경제,주식').split(',').map(s => s.trim()).filter(Boolean);
@@ -118,13 +133,7 @@ ${newsContext}
 - 실제 수치, 구체적 정보, 독자에게 유용한 내용 위주
 - 구어체, 친근한 톤으로 작성`;
 
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  const text = response.content[0].text;
+  const text = await callGemini(prompt);
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
@@ -132,7 +141,6 @@ ${newsContext}
   data.category = category;
   data.date = today;
 
-  // slug 중복 방지: 날짜 suffix 추가
   if (!data.slug) data.slug = `${category}-${today}`;
   data.slug = sanitizeSlug(data.slug) + '-' + today;
 
@@ -218,13 +226,7 @@ async function generateProductReview(productUrl, platform = 'coupang') {
 - sections는 3-4개
 - 솔직한 장단점 분석`;
 
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 3000,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  const text = response.content[0].text;
+  const text = await callGemini(prompt);
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
