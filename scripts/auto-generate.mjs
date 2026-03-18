@@ -86,65 +86,108 @@ async function generateNewsArticle(category) {
 
   const today = getKSTDate();
 
-  const prompt = `당신은 10년 경력의 한국 경제 전문 블로거입니다. 독자들이 실제로 돈이 되는 정보를 얻어가는 글을 씁니다.
+  const prompt = `You are a professional Korean economic blogger with 10 years of experience. Write a detailed, data-rich blog post in KOREAN ONLY.
 
-오늘 날짜: ${today}
-카테고리: ${category}
+Date: ${today}
+Category: ${category}
 
-참고할 최신 뉴스:
+Latest news to reference:
 ${newsContext}
 
-[핵심 작성 원칙 — 반드시 지켜야 합니다]
-1. "모색해보겠습니다", "알아보겠습니다" 같은 빈말 절대 금지 → 바로 본론 작성
-2. 모든 섹션에 구체적 수치 포함 필수 (%, 원, 달러, 날짜 등)
-3. "독자가 오늘 당장 할 수 있는 것"을 반드시 1개 이상 포함
-4. 뉴스 요약이 아닌 "왜 내 돈에 영향이 있는가"를 설명
-5. 각 section의 content는 최소 200자 이상, 구체적 사례/수치 포함
-6. 서론에서 핵심 숫자 1개를 바로 꺼냄 (예: "지난달 대비 0.5%p 올랐습니다")
+STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
+1. Write ONLY in Korean (한국어만 사용). ZERO Japanese, Chinese, or English words in the content.
+2. NEVER use phrases like "알아보겠습니다", "살펴보겠습니다", "모색해보겠습니다", "분석해보겠습니다" — start with the actual content immediately.
+3. Every section MUST contain at least 3 specific numbers/percentages/dates/amounts (예: 3.5%, 1,380원, 2026년 4월).
+4. Include at least one HTML table with real comparison data.
+5. Last section MUST be a practical checklist of "지금 당장 해야 할 것 3가지".
+6. NO placeholder images, NO graph references, NO "그래프 참조" — use tables and text only.
+7. Each section content must be 300+ Korean characters.
+8. First sentence of intro must contain a specific shocking number.
 
-다음 JSON 형식으로만 응답하세요 (코드블록 없이 순수 JSON):
+Respond with ONLY valid JSON (no code blocks, no markdown):
 {
-  "title": "SEO 최적화된 글 제목 (45-65자, 구체적 수치나 팩트 포함)",
-  "description": "메타 설명 (80-120자, 독자가 얻을 것 명시)",
+  "title": "구체적 수치 포함한 SEO 제목 (45-65자)",
+  "description": "독자가 얻을 것을 명시한 메타 설명 (80-120자)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
-  "slug": "영문-url-슬러그-짧게",
+  "slug": "short-english-slug",
   "heroGradient": "linear-gradient(135deg, #0f172a, #1e3a5f)",
   "heroEmoji": "💰",
   "heroTag": "${category} · ${today}",
   "heroStats": [
-    {"label": "핵심 수치 레이블", "value": "구체적 숫자", "color": "#f87171"},
-    {"label": "레이블2", "value": "구체적 숫자2", "color": "#fbbf24"}
+    {"label": "핵심 지표명", "value": "+X.X%", "color": "#f87171"},
+    {"label": "다른 지표명", "value": "X,XXX원", "color": "#fbbf24"},
+    {"label": "세번째 지표", "value": "X위", "color": "#34d399"}
   ],
-  "heroSubtext": "독자가 이 글을 읽어야 하는 이유 한 줄",
-  "intro": "<p>첫 문장에 핵심 수치 포함. 독자가 공감할 상황 묘사 (3-4문장)</p><p>이 글에서 다룰 내용을 명확히 안내 (2-3문장)</p>",
+  "heroSubtext": "이 글을 읽으면 얻게 되는 것 (구체적으로)",
+  "intro": "<p>[첫 문장: 충격적인 수치로 시작] 예: 지난주 원/달러 환율이 1,450원을 돌파했습니다. [독자 상황 공감 2-3문장]</p><p>[이 글에서 다룰 핵심 3가지를 구체적으로 나열]</p>",
   "cards": [
     {
       "num": "01",
-      "badge": "핵심 키워드",
-      "title": "임팩트 있는 카드 제목",
-      "body": "구체적 수치와 사실 중심 설명. 독자 생활에 미치는 영향 포함. (3-4문장)",
-      "stat": "핵심 수치 (예: +3.2%, 2만원↑)",
+      "badge": "핵심 이슈",
+      "title": "구체적 수치 포함 카드 제목",
+      "body": "수치와 날짜 포함한 구체적 설명. 내 지갑에 미치는 영향. 구체적 금액 예시. (4-5문장)",
+      "stat": "+X.X% 또는 X만원↑",
       "statColor": "#f87171",
       "bg": "linear-gradient(135deg, #0f172a, #1e3a5f)"
+    },
+    {
+      "num": "02",
+      "badge": "영향 분석",
+      "title": "두번째 카드 제목",
+      "body": "구체적 내용 (4-5문장)",
+      "stat": "핵심 수치",
+      "statColor": "#fbbf24",
+      "bg": "linear-gradient(135deg, #7f1d1d, #991b1b)"
+    },
+    {
+      "num": "03",
+      "badge": "실전 대응",
+      "title": "세번째 카드 제목",
+      "body": "구체적 내용 (4-5문장)",
+      "stat": "핵심 수치",
+      "statColor": "#34d399",
+      "bg": "linear-gradient(135deg, #14532d, #166534)"
+    },
+    {
+      "num": "04",
+      "badge": "전망",
+      "title": "네번째 카드 제목",
+      "body": "구체적 내용 (4-5문장)",
+      "stat": "핵심 수치",
+      "statColor": "#60a5fa",
+      "bg": "linear-gradient(135deg, #1e3a5f, #1d4ed8)"
     }
   ],
   "sections": [
     {
       "id": "section1",
-      "heading": "이모지 + 구체적 섹션 제목",
-      "content": "<p>최소 200자 이상. 구체적 수치, 날짜, 사례 포함. 독자가 바로 활용 가능한 정보.</p><p>추가 설명 또는 표, 리스트 등 활용.</p>"
+      "heading": "🔍 [구체적 섹션 제목 — 수치 포함]",
+      "content": "<p>300자 이상의 구체적 본문. 수치, 날짜, 사례 포함.</p><table><thead><tr><th>구분</th><th>이전</th><th>현재</th><th>변화</th></tr></thead><tbody><tr><td>항목1</td><td>값</td><td>값</td><td>+X%</td></tr><tr><td>항목2</td><td>값</td><td>값</td><td>+X%</td></tr></tbody></table><p>표 해석 및 독자에게 미치는 영향 설명.</p>"
+    },
+    {
+      "id": "section2",
+      "heading": "💸 [두번째 섹션 제목]",
+      "content": "<p>300자 이상 본문.</p><blockquote>핵심 인사이트나 중요 수치를 강조한 인용구</blockquote><p>추가 설명.</p><ul><li><strong>포인트1:</strong> 구체적 설명</li><li><strong>포인트2:</strong> 구체적 설명</li><li><strong>포인트3:</strong> 구체적 설명</li></ul>"
+    },
+    {
+      "id": "section3",
+      "heading": "📊 [세번째 섹션 제목]",
+      "content": "<p>300자 이상 본문. 반드시 수치 포함.</p><p>추가 분석.</p>"
+    },
+    {
+      "id": "section4",
+      "heading": "🏦 [네번째 섹션 제목]",
+      "content": "<p>300자 이상 본문.</p><p>구체적 사례와 수치.</p>"
+    },
+    {
+      "id": "checklist",
+      "heading": "✅ 지금 당장 해야 할 것 3가지",
+      "content": "<p>이 상황에서 독자가 오늘 바로 실행할 수 있는 행동 3가지입니다.</p><ul><li><strong>1. [구체적 행동]:</strong> 언제, 어떻게, 얼마나 — 구체적으로 설명 (2-3문장)</li><li><strong>2. [구체적 행동]:</strong> 구체적 설명 (2-3문장)</li><li><strong>3. [구체적 행동]:</strong> 구체적 설명 (2-3문장)</li></ul><blockquote>핵심 한 줄 요약</blockquote>"
     }
   ],
-  "summary": ["오늘 바로 실천할 것: 구체적 행동", "핵심 팩트 요약", "앞으로 주목할 것"],
-  "readMinutes": 6
-}
-
-규칙:
-- cards는 4-5개, 각각 구체적 수치 포함 필수
-- sections는 5-6개, 각 content 최소 200자
-- 마지막 section은 반드시 "지금 당장 해야 할 것" 또는 "실전 체크리스트"
-- HTML 태그 적극 활용 (table, blockquote, ul/li, strong)
-- 절대 금지: "~해보겠습니다", "~살펴보겠습니다", "~알아보겠습니다"`;
+  "summary": ["✅ 오늘 당장: 구체적 행동", "📌 핵심 팩트: 수치 포함 요약", "🔮 앞으로: 주목할 날짜/지표"],
+  "readMinutes": 7
+}`;
 
   const text = await callGemini(prompt);
   const jsonMatch = text.match(/\{[\s\S]*\}/);
