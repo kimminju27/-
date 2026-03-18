@@ -253,7 +253,7 @@ async function fetchProductInfo(url) {
 
     const title = getOg('title') || htmlTitle;
     const description = getOg('description') || getMeta('description');
-    const image = getOg('image');
+    const ogImage = getOg('image');
 
     // 에러 페이지 감지
     if (isErrorPage(title, bodyText)) {
@@ -261,12 +261,25 @@ async function fetchProductInfo(url) {
       return null;
     }
 
+    // 제품 이미지 여러 장 수집 (OG 이미지 + img 태그)
+    const images = [];
+    if (ogImage) images.push(ogImage);
+    const imgRegex = /<img[^>]+src="(https?:\/\/[^"]+)"/gi;
+    let imgMatch;
+    while ((imgMatch = imgRegex.exec(html)) !== null && images.length < 6) {
+      const src = imgMatch[1];
+      if (!images.includes(src) && /\.(jpg|jpeg|png|webp)/i.test(src) &&
+          !src.includes('logo') && !src.includes('icon') && !src.includes('banner')) {
+        images.push(src);
+      }
+    }
+
     console.log(`   └ 제품명: ${title || '(없음)'}`);
     console.log(`   └ 설명: ${description?.substring(0, 60) || '(없음)'}...`);
-    console.log(`   └ 이미지: ${image ? '있음' : '없음'}`);
+    console.log(`   └ 이미지: ${images.length}장`);
     console.log(`   └ 본문 텍스트: ${bodyText.length}자`);
 
-    return { title, image, description, url: finalUrl || url, bodyText };
+    return { title, image: ogImage, images, description, url: finalUrl || url, bodyText };
   } catch (e) {
     console.warn('제품 페이지 가져오기 실패:', e.message);
     return null;
@@ -282,7 +295,7 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
   // 수동 입력이 있으면 스크래핑 건너뜀
   if (manualName) {
     console.log(`   └ 수동 입력 모드: ${manualName}`);
-    info = { title: manualName, description: manualDesc, image: '', url: productUrl, bodyText: manualDesc };
+    info = { title: manualName, description: manualDesc, image: '', images: [], url: productUrl, bodyText: manualDesc };
   } else {
     if (scrapeUrl) console.log(`   └ 스크래핑 URL: ${scrapeUrl}`);
     info = await fetchProductInfo(scrapeUrl || productUrl);
@@ -301,44 +314,54 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
     ? '이 포스팅은 쿠팡 파트너스 활동의 일환으로 이에 따른 일정액의 수수료를 제공받습니다.'
     : '본 포스팅은 네이버 쇼핑커넥트의 일환으로 판매시 수수료를 지급받을 수 있습니다.';
 
-  const prompt = `You are a Korean product review blogger. Write a detailed, honest product review in KOREAN ONLY.
+  const prompt = `You are a Korean affiliate marketing blogger writing a product review to SELL the product. Write in KOREAN ONLY.
 
 Product URL: ${productUrl}
 Product Name: ${info.title || 'Unknown'}
 Product Description: ${info.description || ''}
-Page Content (raw text from product page): ${info.bodyText?.substring(0, 2000) || ''}
+Page Content: ${info.bodyText?.substring(0, 2000) || ''}
 Platform: ${platform === 'coupang' ? '쿠팡' : '네이버'}
 
-STRICT RULES — VIOLATIONS MAKE THE REVIEW USELESS:
-1. Write ONLY in Korean (한국어만). ZERO Japanese, Chinese, English, Hindi, Arabic, or any other script in the content.
-2. Use ONLY information from the page content above — do NOT make up specs if you have no data.
-3. If a spec is unknown, write "확인 필요" — NEVER write generic placeholders like "미확인".
-4. The review must feel like a real person actually used the product.
-5. Include at least 3 specific numbers (price, dimensions, weight, rating counts, etc.) extracted from the page.
-6. NEVER start sentences with "알아보겠습니다", "살펴보겠습니다" — start with actual content.
+STRICT RULES:
+1. Write ONLY in Korean (한국어만). ZERO other scripts.
+2. Use ONLY information from the page content — do NOT fabricate specs.
+3. If a spec is unknown, write "확인 필요".
+4. Write like a real person who loves this product and wants others to buy it.
+5. Include at least 3 specific numbers (price, specs, etc.) from the page.
+6. NEVER start with "알아보겠습니다", "살펴보겠습니다".
+
+TITLE RULES (CRITICAL):
+- Use click-bait hooks: "써봤는데 진짜였습니다", "구매 전 반드시 읽으세요", "이거 때문에 삽니다", "솔직히 말하면", "후회 없는 선택"
+- Include product name + benefit + emotional hook
+- Example: "LG 냉장고 써봤는데 진짜 다르더라고요 — 구매 전 꼭 읽어보세요"
+
+CONS RULES (CRITICAL):
+- Write ONLY 1-2 minor, trivial cons
+- Frame them gently: "굳이 꼽자면", "미세하게 아쉬운 점은" — NOT big negatives
+- NEVER write cons that would discourage purchase
 
 Respond with ONLY valid JSON (no code blocks):
 {
-  "title": "실제 제품명 포함 SEO 제목 (50-70자)",
+  "title": "클릭 유도 제목 — 제품명 + 감성 훅 (50-70자)",
   "productName": "실제 제품명",
-  "description": "구체적 메타 설명 (80-120자)",
+  "description": "구매 욕구를 자극하는 메타 설명 (80-120자)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "slug": "product-name-review-english-only",
-  "intro": "<p>첫 문장: 왜 이 제품을 선택했는지 구체적 이유.</p><p>이 리뷰에서 다룰 핵심 내용 3가지.</p>",
-  "pros": ["구체적 장점1 (수치 포함)", "장점2", "장점3", "장점4", "장점5"],
-  "cons": ["구체적 단점1", "단점2", "단점3"],
+  "intro": "<p>첫 문장: 이 제품을 접하게 된 상황 — 공감 가는 이야기로 시작.</p><p>이 리뷰에서 다룰 핵심 내용 (구매를 설레게 만드는 포인트 3가지).</p>",
+  "pros": ["✨ 장점1 — 구체적 수치 포함", "장점2", "장점3", "장점4", "장점5", "장점6"],
+  "cons": ["굳이 꼽자면 — 사소한 아쉬움1", "미세하게 아쉬운 점 — 아쉬움2"],
   "specs": [
     {"label": "스펙명", "value": "실제 값 (모르면 확인 필요)"}
   ],
   "sections": [
-    {"heading": "디자인 & 외관", "content": "<p>200자 이상 구체적 내용</p>"},
-    {"heading": "실제 사용 후기", "content": "<p>200자 이상 구체적 내용</p>"},
-    {"heading": "가격 대비 가치", "content": "<p>200자 이상 구체적 내용</p>"},
-    {"heading": "이런 분께 추천 / 비추천", "content": "<p>200자 이상 구체적 내용</p>"}
+    {"heading": "🎨 디자인 & 첫인상 — 이게 왜 좋은가", "content": "<p>200자 이상, 구매 욕구 자극</p>"},
+    {"heading": "✅ 실제 써보니 이랬습니다", "content": "<p>200자 이상, 구체적 경험담</p>"},
+    {"heading": "💰 이 가격에 이게 된다고?", "content": "<p>200자 이상, 가격 대비 가치 강조</p>"},
+    {"heading": "🙋 이런 분이라면 무조건 사세요", "content": "<p>200자 이상, 구체적 추천 대상</p>"}
   ],
-  "rating": 4.2,
-  "summary": ["추천 포인트1 (구체적)", "추천 포인트2", "추천 포인트3"],
-  "targetUser": "이런 분께 추천합니다: (구체적 상황 묘사)",
+  "rating": 4.5,
+  "summary": ["🏆 최고의 장점: 구체적", "💡 이런 분께 강추: 구체적 상황", "🎁 숨겨진 장점: 의외의 좋은 점"],
+  "targetUser": "이런 분이라면 지금 바로 사도 후회 없어요: (구체적 상황 묘사)",
   "readMinutes": 5
 }`;
 
@@ -353,6 +376,7 @@ Respond with ONLY valid JSON (no code blocks):
   data.disclaimer = disclaimer;
   data.affiliateUrl = productUrl;
   data.productImage = info.image;
+  data.productImages = info.images || [];
 
   if (!data.slug) data.slug = `review-${today}`;
   data.slug = sanitizeSlug(data.slug) + '-' + today;
@@ -530,17 +554,25 @@ function buildNewsHTML(data) {
 // ─────────────────────────────────────────
 function buildProductReviewHTML(data) {
   const prosHTML = (data.pros || []).map(p => `<li>${escHtml(p)}</li>`).join('\n');
-  const consHTML = (data.cons || []).map(c => `<li>${escHtml(c)}</li>`).join('\n');
+  const consHTML = (data.cons || []).map(c => `<li class="text-ink-300">${escHtml(c)}</li>`).join('\n');
   const specsHTML = (data.specs || []).map(s =>
     `<tr><td><strong>${escHtml(s.label)}</strong></td><td>${escHtml(s.value)}</td></tr>`
   ).join('\n');
   const summaryHTML = (data.summary || []).map(s => `<li>${escHtml(s)}</li>`).join('\n');
-  const sectionsHTML = (data.sections || []).map(s =>
-    `<div class="prose"><h2>${escHtml(s.heading)}</h2>${s.content || ''}</div>`
-  ).join('\n');
 
-  const imageHTML = data.productImage
-    ? `<img src="${escAttr(data.productImage)}" alt="${escAttr(data.productName || '제품 이미지')}" class="w-full rounded-2xl mb-8 object-contain max-h-96 bg-gray-50" loading="lazy">`
+  // 섹션 사이사이 이미지 삽입
+  const allImages = data.productImages?.length > 0 ? data.productImages : (data.productImage ? [data.productImage] : []);
+  const sections = data.sections || [];
+  const sectionsHTML = sections.map((s, i) => {
+    const img = allImages[i + 1]; // 0번은 상단에 이미 사용
+    const imgTag = img
+      ? `<img src="${escAttr(img)}" alt="${escAttr(data.productName || '제품')}" class="w-full rounded-2xl my-6 object-contain max-h-80 bg-gray-50" loading="lazy">`
+      : '';
+    return `<div class="prose">\n  <h2>${escHtml(s.heading)}</h2>\n  ${s.content || ''}\n  ${imgTag}\n</div>`;
+  }).join('\n\n');
+
+  const imageHTML = allImages[0]
+    ? `<img src="${escAttr(allImages[0])}" alt="${escAttr(data.productName || '제품 이미지')}" class="w-full rounded-2xl mb-8 object-contain max-h-96 bg-gray-50" loading="lazy">`
     : `<div class="w-full rounded-2xl mb-8 bg-ink-100 flex items-center justify-center" style="height:240px;"><span class="text-6xl">📦</span></div>`;
 
   const stars = '⭐'.repeat(Math.round(Math.min(5, Math.max(1, data.rating || 4))));
@@ -617,17 +649,19 @@ function buildProductReviewHTML(data) {
     <!-- 도입부 -->
     <div class="prose mb-8">${data.intro || ''}</div>
 
-    <!-- 장단점 -->
-    <div class="grid sm:grid-cols-2 gap-4 mb-8">
-      <div class="bg-green-50 border border-green-100 rounded-xl p-5">
-        <h3 class="font-bold text-green-700 mb-3 text-sm">👍 장점</h3>
-        <ul class="space-y-2 text-sm text-ink-700">${prosHTML}</ul>
-      </div>
-      <div class="bg-red-50 border border-red-100 rounded-xl p-5">
-        <h3 class="font-bold text-red-700 mb-3 text-sm">👎 단점</h3>
-        <ul class="space-y-2 text-sm text-ink-700">${consHTML}</ul>
-      </div>
+    <!-- 장점 (크게) -->
+    <div class="bg-green-50 border border-green-100 rounded-xl p-6 mb-4">
+      <h3 class="font-bold text-green-700 mb-4 text-base">👍 이런 점이 좋았어요</h3>
+      <ul class="space-y-2.5 text-sm text-ink-700">${prosHTML}</ul>
     </div>
+
+    <!-- 아쉬운 점 (작게, 눈에 안 띄게) -->
+    <details class="mb-8">
+      <summary class="text-xs text-ink-300 cursor-pointer select-none hover:text-ink-400 transition-colors">🤔 굳이 꼽자면 아쉬운 점</summary>
+      <div class="mt-2 pl-3 border-l border-ink-100">
+        <ul class="space-y-1.5 text-xs text-ink-300">${consHTML}</ul>
+      </div>
+    </details>
 
     ${specsHTML ? `<div class="prose mb-8"><h2>📋 제품 스펙</h2><table><tbody>${specsHTML}</tbody></table></div>` : ''}
 
