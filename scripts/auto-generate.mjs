@@ -59,7 +59,7 @@ function repairJson(str) {
   return result;
 }
 
-// 외국어 문자 제거: 중국 한자 + 일본 히라가나/가타카나 (한국어 한글은 유지)
+// 외국어 문자 제거: 중국 한자 + 일본 히라가나/가타카나 + 베트남어 등 라틴 확장 (한국어 한글은 유지)
 function removeForeignChars(text) {
   if (typeof text !== 'string') return text;
   return text
@@ -69,6 +69,8 @@ function removeForeignChars(text) {
     .replace(/[\u30A0-\u30FF]/g, '')
     // 중국어 한자 (CJK Unified Ideographs)
     .replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]/g, '')
+    // 베트남어·프랑스어 등 라틴 확장 문자(ắềụổế 등)가 포함된 단어 통째로 제거
+    .replace(/\S*[\u00C0-\u024F\u1E00-\u1EFF]\S*/g, '')
     // 영어 단어가 한글 문장 중간에 삽입된 경우 제거 (앞뒤가 한글/공백인 영단어)
     .replace(/(?<=[가-힣\s])[A-Za-z]{2,}(?=[가-힣\s])/g, '');
 }
@@ -314,7 +316,7 @@ TODAY's real news headlines (use these as factual backbone — cite actual figur
 ${newsContext}
 
 STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
-1. Write ONLY in Korean (한국어만 사용). ZERO Japanese, Chinese, or English words in the content. ABSOLUTELY NO hiragana (あいうえお), katakana (アイウエオ), kanji (比べて経験など), or Chinese characters. If you need to express "compared to", use "대비" or "에 비해". Use "있음/없음" instead of ○/×.
+1. Write ONLY in Korean (한국어만 사용). ZERO foreign words — no Japanese (hiragana あいうえお, katakana アイウエオ, kanji 比べて), no Chinese characters, no English words, no Vietnamese (quyết, của, đã 등 절대 금지), no French, no any other language. Every single word must be pure Korean. If you need "compared to" → "대비" or "에 비해". Use "있음/없음" instead of ○/×.
 2. NEVER use phrases like "알아보겠습니다", "살펴보겠습니다", "모색해보겠습니다", "분석해보겠습니다" — start with the actual content immediately.
 3. Every section MUST contain at least 3 specific numbers/percentages/dates/amounts (예: 3.5%, 1,380원, 2026년 4월).
 4. Include at least one HTML table with real comparison data.
