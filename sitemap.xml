@@ -126,4 +126,18 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <url>
+    <loc>https://bloginfo360.com/posts/da-ju-taek-ja-se-gum-bok-tan-2026-03-20-2046</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://bloginfo360.com/posts/2026-03-20-jubsikbyeonghap-rusi-2026-03-20-2046</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
