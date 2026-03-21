@@ -312,7 +312,9 @@
           if (!fileRes.ok) return { name: f.name, sha: f.sha, title: f.name, date: '' };
           const fileData = await fileRes.json();
           const raw = atob(fileData.content.replace(/\n/g, ''));
-          const content = decodeURIComponent(raw.split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join(''));
+          const bytes = new Uint8Array(raw.length);
+          for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+          const content = new TextDecoder('utf-8').decode(bytes);
           const titleMatch = content.match(/<title>([^<]+)<\/title>/i);
           const rawTitle = titleMatch ? titleMatch[1] : f.name;
           const title = rawTitle.replace(/\s*-\s*경제적 자유를 위한 도전\s*$/, '').trim();
