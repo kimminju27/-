@@ -311,7 +311,8 @@
           const fileRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts/${f.name}`);
           if (!fileRes.ok) return { name: f.name, sha: f.sha, title: f.name, date: '' };
           const fileData = await fileRes.json();
-          const content = atob(fileData.content.replace(/\n/g, ''));
+          const raw = atob(fileData.content.replace(/\n/g, ''));
+          const content = decodeURIComponent(raw.split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join(''));
           const titleMatch = content.match(/<title>([^<]+)<\/title>/i);
           const rawTitle = titleMatch ? titleMatch[1] : f.name;
           const title = rawTitle.replace(/\s*-\s*경제적 자유를 위한 도전\s*$/, '').trim();
