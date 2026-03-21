@@ -263,15 +263,15 @@ async function generateNewsArticle(category) {
     : '';
 
   // 3단계: AI가 오늘의 핫이슈에서 주제 선정 + 상세 RSS 추가 수집
-  const topicPickPrompt = `You are a Korean news editor. From today's trending news below, pick the SINGLE most interesting and timely topic for a blog post in the "${base}" category. Return ONLY a JSON object.
+  const topicPickPrompt = `당신은 한국 경제 뉴스 에디터입니다. 오늘의 트렌딩 뉴스 중 "${base}" 카테고리에 맞는 가장 흥미롭고 시의성 있는 주제 하나를 선정하세요.
 
-Today: ${today}
-Category: ${base}
-${avoidList}
-Today's trending news:
+오늘 날짜: ${today}
+카테고리: ${base}
+${avoidList ? `\n⛔ 아래 주제들은 오늘 이미 발행했으므로 절대 선택하지 마세요. 비슷한 주제도 금지입니다:\n${usedTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n` : ''}
+오늘의 실시간 트렌딩 뉴스:
 ${trendingContext || `${base} 관련 최신 뉴스`}
 
-Return JSON: {"topic": "구체적 주제 (한국어, 30자 이내)", "query": "targeted RSS search query in Korean (10-20 chars)", "reason": "why this topic is hot today"}`;
+위 금지 목록과 완전히 다른 새로운 주제를 선택하세요. JSON으로만 응답: {"topic": "구체적 주제 (한국어, 30자 이내)", "query": "RSS 검색 키워드 (한국어, 10-20자)", "reason": "이 주제가 오늘 화제인 이유"}`;
 
   let chosenTopic = { topic: '', query: '', reason: '' };
   try {

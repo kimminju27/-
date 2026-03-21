@@ -53,51 +53,41 @@ jobs:
         id: cats
         run: |
           HOUR=$(date -u +%H)
-          # 요일(0=일,1=월,...,6=토)로 주간 로테이션
+          # 요일(1=월,...,7=일)
           DOW=$(date -u +%u)
+          # 규칙: 하루 3개 슬롯에서 기본 카테고리(경제/부동산/주식/복지정책/세금/금융)가 겹치지 않도록 설계
           if [ "$HOUR" = "01" ]; then
-            # 오전 10시 — 요일별 다른 조합
+            # 오전 10시 KST
             case $DOW in
-              1) echo "CATS=경제,부동산_청약" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=부동산,복지_청년" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=경제_소비,주식" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=부동산_재개발,세금" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=경제_고용,복지정책" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=주식_ETF,부동산_전세" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=금융,경제" >> $GITHUB_OUTPUT ;;
+              1) echo "CATS=경제_환율,부동산_청약" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=부동산_전세,복지_출산" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=경제_고용,주식_반도체" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=부동산_신도시,세금_증여" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=경제_GDP,복지_아동" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=주식_2차전지,금융_재테크" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=부동산_임대차,주식_AI" >> $GITHUB_OUTPUT ;;
             esac
           elif [ "$HOUR" = "04" ]; then
-            # 오후 1시 — 요일별 다른 조합
+            # 오후 1시 KST
             case $DOW in
-              1) echo "CATS=주식,복지_출산" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=주식_해외,경제_소비" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=복지정책,부동산" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=주식_ETF,경제_고용" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=금융,부동산_청약" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=세금,복지_노인" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=경제,주식" >> $GITHUB_OUTPUT ;;
-            esac
-          elif [ "$HOUR" = "08" ]; then
-            # 오후 5시 — 요일별 다른 조합
-            case $DOW in
-              1) echo "CATS=복지_청년,주식_해외" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=부동산_전세,금융" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=세금,주식" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=복지_출산,경제" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=부동산,주식_ETF" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=경제_소비,복지_노인" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=주식,복지정책" >> $GITHUB_OUTPUT ;;
+              1) echo "CATS=주식_ETF,복지_청년" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=주식_해외,경제_물가" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=복지_노인,부동산_재개발" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=주식_배당,경제_수출" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=금융_청약통장,부동산_빌라" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=세금_양도세,복지_실업급여" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=경제_금리,복지_기초연금" >> $GITHUB_OUTPUT ;;
             esac
           else
-            # 오후 7시 — 요일별 다른 조합
+            # 오후 7시 KST (UTC 10:00)
             case $DOW in
-              1) echo "CATS=복지정책,부동산_재개발" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=경제_고용,주식_해외" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=금융,복지_청년" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=부동산_전세,경제_소비" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=세금,주식" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=복지_노인,부동산" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=복지정책,부동산" >> $GITHUB_OUTPUT ;;
+              1) echo "CATS=세금_양도세,금융_대출" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=금융_예금,세금_연말정산" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=세금_종소세,금융_ISA" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=복지_장애인,금융_신용" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=주식_공매도,세금_근로소득" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=경제_관세,부동산_1인가구" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=금융_연금,세금_프리랜서" >> $GITHUB_OUTPUT ;;
             esac
           fi
 
