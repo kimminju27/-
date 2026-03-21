@@ -155,6 +155,17 @@ const TOPIC_POOL = [
   { id: 'fin-004', category: '금융', label: '신용점수 올리는 방법', query: '신용점수 신용등급 올리기 관리 방법' },
   { id: 'fin-005', category: '금융', label: '청년 우대형 청약통장', query: '청년 우대형 청약통장 금리 가입 조건' },
   { id: 'fin-006', category: '금융', label: '소액 투자 재테크 시작법', query: '소액 투자 재테크 시작 초보 방법 추천' },
+  // 연예계
+  { id: 'ent-001', category: '연예계', label: '아이돌 컴백 신곡 반응', query: '아이돌 컴백 신곡 뮤직비디오 차트' },
+  { id: 'ent-002', category: '연예계', label: '드라마 시청률 화제작', query: '드라마 시청률 화제 넷플릭스 OTT' },
+  { id: 'ent-003', category: '연예계', label: '배우 영화 개봉 흥행', query: '영화 개봉 흥행 박스오피스 배우' },
+  { id: 'ent-004', category: '연예계', label: '연예인 열애 결혼 소식', query: '연예인 열애 결혼 발표 커플' },
+  { id: 'ent-005', category: '연예계', label: '아이돌 팬덤 해외 활동', query: '케이팝 아이돌 해외 투어 빌보드 팬덤' },
+  { id: 'ent-006', category: '연예계', label: '연예계 논란 사건 사고', query: '연예인 논란 사건 사과 해명 이슈' },
+  { id: 'ent-007', category: '연예계', label: '예능 프로그램 화제 장면', query: '예능 프로그램 화제 클립 시청률 출연진' },
+  { id: 'ent-008', category: '연예계', label: '스트리밍 음원 차트 1위', query: '멜론 지니 음원차트 1위 신곡 가수' },
+  { id: 'ent-009', category: '연예계', label: '오디션 서바이벌 탈락 화제', query: '오디션 서바이벌 탈락 화제 데뷔' },
+  { id: 'ent-010', category: '연예계', label: '연예인 SNS 인스타 화제', query: '연예인 인스타그램 SNS 화제 근황' },
 ];
 
 // 사용한 주제 추적 (topics-history.json)
@@ -198,6 +209,7 @@ async function fetchTrendingNews(category) {
     '복지정책': '복지 정책 지원',
     '세금': '세금 절세',
     '금융': '금융 재테크',
+    '연예계': '연예계 연예인 이슈',
   };
   const q = encodeURIComponent(queries[base] || base);
   const url = `https://news.google.com/rss/search?q=${q}&hl=ko&gl=KR&ceid=KR:ko`;
@@ -1075,6 +1087,7 @@ const CAT_CONFIG = {
   '주식':   { emoji: '📈', tagColor: '#60a5fa', tagBg: 'rgba(96,165,250,0.15)', cardBg: 'linear-gradient(135deg,#1e3a5f,#1d4ed8)' },
   '복지정책': { emoji: '🏛️', tagColor: '#c084fc', tagBg: 'rgba(192,132,252,0.15)', cardBg: 'linear-gradient(135deg,#3b0764,#6b21a8)' },
   '제품리뷰': { emoji: '📦', tagColor: '#fb923c', tagBg: 'rgba(251,146,60,0.15)', cardBg: 'linear-gradient(135deg,#7c2d12,#9a3412)' },
+  '연예계':  { emoji: '🎬', tagColor: '#f472b6', tagBg: 'rgba(244,114,182,0.15)', cardBg: 'linear-gradient(135deg,#4a044e,#86198f)' },
 };
 
 function buildPostCard(data) {
