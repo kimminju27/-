@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 - 경제적 자유를 위한 도전</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50:"#f0fdf4", 100:"#dcfce7", 600:"#16a34a", 700:"#15803d" },
+            gold:  { 400:"#fbbf24", 500:"#f59e0b" },
+            ink:   { 900:"#0f172a", 700:"#1e293b", 500:"#475569", 300:"#94a3b8", 100:"#f1f5f9" }
+          },
+          fontFamily: { sans: ["Noto Sans KR", "sans-serif"] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: "Noto Sans KR", sans-serif; }
+    .spinner {
+      border: 3px solid #f1f5f9;
+      border-top: 3px solid #16a34a;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #16a34a; color: #fff;
+      padding: 10px 20px; border-radius: 8px;
+      font-weight: 700; font-size: 0.9rem;
+      border: none; cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { background: #15803d; transform: scale(1.01); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:focus { outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,0.3); }
+    .btn-danger {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fff; color: #ef4444;
+      padding: 6px 12px; border-radius: 6px;
+      font-weight: 600; font-size: 0.8rem;
+      border: 1.5px solid #fca5a5; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .btn-danger:hover { background: #fef2f2; border-color: #ef4444; }
+    .btn-danger:active { transform: scale(0.97); }
+    .btn-edit {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fff; color: #16a34a;
+      padding: 6px 12px; border-radius: 6px;
+      font-weight: 600; font-size: 0.8rem;
+      border: 1.5px solid #bbf7d0; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+    .btn-edit:hover { background: #f0fdf4; border-color: #16a34a; }
+    .btn-edit:active { transform: scale(0.97); }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 600;
+      z-index: 1000; opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast-success { background: #16a34a; color: #fff; }
+    .toast-error { background: #ef4444; color: #fff; }
+  </style>
+</head>
+<body class="bg-ink-100 text-ink-900 min-h-screen">
+
+  <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-black text-brand-600 leading-tight">경제적 자유를<br class="sm:hidden"> 위한 도전</a>
+      <span class="text-sm font-bold text-ink-500 bg-ink-100 px-3 py-1 rounded-full">관리자</span>
+    </div>
+  </header>
+
+  <!-- 로그인 화면 -->
+  <div id="loginSection" class="min-h-[calc(100vh-73px)] flex items-center justify-center px-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-ink-100 p-8 w-full max-w-md">
+      <h1 class="text-2xl font-black text-ink-900 mb-2">관리자 로그인</h1>
+      <p class="text-ink-500 text-sm mb-8">블로그 관리자 페이지입니다.</p>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="mb-5">
+          <label class="block text-sm font-bold text-ink-700 mb-1.5" for="passwordInput">비밀번호</label>
+          <input
+            id="passwordInput"
+            type="password"
+            placeholder="관리자 비밀번호 입력"
+            class="w-full px-4 py-3 rounded-xl border border-ink-100 text-ink-900 text-sm focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition"
+            autocomplete="current-password"
+          >
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-bold text-ink-700 mb-1.5" for="tokenInput">GitHub Token</label>
+          <input
+            id="tokenInput"
+            type="password"
+            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+            class="w-full px-4 py-3 rounded-xl border border-ink-100 text-ink-900 text-sm focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition"
+            autocomplete="off"
+          >
+          <p class="text-xs text-ink-300 mt-1.5">Contents 읽기/쓰기 권한이 있는 Personal Access Token</p>
+        </div>
+        <div id="loginError" class="hidden mb-4 text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3 border border-red-100"></div>
+        <button type="submit" class="btn-primary w-full justify-center py-3 text-base">
+          <span id="loginBtnText">로그인</span>
+          <span id="loginSpinner" class="hidden"><span class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff"></span></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 관리자 대시보드 -->
+  <div id="dashboardSection" class="hidden max-w-5xl mx-auto px-4 py-10">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-black text-ink-900">포스트 관리</h1>
+        <p class="text-ink-500 text-sm mt-1">kimminju27/-  ·  posts/ 폴더</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="loadPosts()" class="btn-edit" style="border-color:#e2e8f0; color:#475569;">
+          🔄 새로고침
+        </button>
+        <a href="admin-editor.html" class="btn-primary">
+          ✏️ 새 글 작성
+        </a>
+        <button onclick="handleLogout()" class="text-sm text-ink-300 hover:text-ink-500 transition-colors px-2">로그아웃</button>
+      </div>
+    </div>
+
+    <!-- 로딩 -->
+    <div id="loadingState" class="text-center py-16">
+      <div class="spinner mx-auto mb-4"></div>
+      <p class="text-ink-500 text-sm">포스트 목록을 불러오는 중...</p>
+    </div>
+
+    <!-- 에러 -->
+    <div id="errorState" class="hidden text-center py-16">
+      <div class="text-4xl mb-4">⚠️</div>
+      <p id="errorMsg" class="text-ink-500 text-sm mb-4"></p>
+      <button onclick="loadPosts()" class="btn-primary">다시 시도</button>
+    </div>
+
+    <!-- 빈 목록 -->
+    <div id="emptyState" class="hidden text-center py-16">
+      <div class="text-4xl mb-4">📝</div>
+      <p class="text-ink-500 text-sm mb-4">아직 작성된 포스트가 없습니다.</p>
+      <a href="admin-editor.html" class="btn-primary inline-flex">첫 글 작성하기</a>
+    </div>
+
+    <!-- 포스트 테이블 -->
+    <div id="postTable" class="hidden bg-white rounded-2xl border border-ink-100 overflow-hidden shadow-sm">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-ink-100 bg-ink-100">
+            <th class="text-left px-6 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide">제목</th>
+            <th class="text-left px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide hidden sm:table-cell">파일명</th>
+            <th class="text-center px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide">관리</th>
+          </tr>
+        </thead>
+        <tbody id="postTableBody">
+        </tbody>
+      </table>
+      <div id="postCount" class="px-6 py-3 border-t border-ink-100 text-xs text-ink-300 bg-ink-100/50"></div>
+    </div>
+  </div>
+
+  <!-- 삭제 확인 모달 -->
+  <div id="deleteModal" class="hidden fixed inset-0 bg-ink-900/40 z-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-2xl shadow-xl p-7 w-full max-w-sm">
+      <h3 class="font-black text-ink-900 text-lg mb-2">포스트 삭제</h3>
+      <p class="text-ink-500 text-sm mb-1">정말로 이 포스트를 삭제하시겠습니까?</p>
+      <p id="deleteFileName" class="text-xs font-mono text-red-500 bg-red-50 px-3 py-2 rounded-lg mt-3 mb-6"></p>
+      <div class="flex gap-3">
+        <button onclick="closeDeleteModal()" class="flex-1 py-2.5 rounded-xl border border-ink-100 text-ink-500 font-bold text-sm hover:bg-ink-100 transition">취소</button>
+        <button id="confirmDeleteBtn" onclick="confirmDelete()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition">
+          <span id="deleteBtnText">삭제</span>
+          <span id="deleteSpinner" class="hidden"><span class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 -->
+  <div id="toast" class="toast"></div>
+
+  <footer class="border-t border-ink-100 bg-white mt-16">
+    <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
+      <span class="font-bold text-ink-500">경제적 자유를 위한 도전</span>
+      <span>2026. All rights reserved.</span>
+    </div>
+  </footer>
+
+<script>
+  const OWNER = 'kimminju27';
+  const REPO = '-';
+  const API_BASE = 'https://api.github.com';
+  const CORRECT_HASH = '7f4533b56bc1e88871538df344b04b8c057be4f8287e4a1e188a9f498dadf73d';
+
+  let pendingDeleteFile = null;
+  let pendingDeleteSha = null;
+  let postsData = [];
+
+  // ── SHA-256 해시 ──────────────────────────────────
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ── 로그인 ────────────────────────────────────────
+  async function handleLogin(e) {
+    e.preventDefault();
+    const pw = document.getElementById('passwordInput').value.trim();
+    const token = document.getElementById('tokenInput').value.trim();
+    const errDiv = document.getElementById('loginError');
+    errDiv.classList.add('hidden');
+
+    if (!pw || !token) {
+      showLoginError('비밀번호와 GitHub Token을 모두 입력해주세요.');
+      return;
+    }
+
+    setLoginLoading(true);
+    const hash = await sha256(pw);
+    if (hash !== CORRECT_HASH) {
+      setLoginLoading(false);
+      showLoginError('비밀번호가 올바르지 않습니다.');
+      return;
+    }
+
+    sessionStorage.setItem('gh_token', token);
+    setLoginLoading(false);
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('dashboardSection').classList.remove('hidden');
+    loadPosts();
+  }
+
+  function showLoginError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+
+  function setLoginLoading(on) {
+    document.getElementById('loginBtnText').classList.toggle('hidden', on);
+    document.getElementById('loginSpinner').classList.toggle('hidden', !on);
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem('gh_token');
+    location.reload();
+  }
+
+  // ── GitHub API ────────────────────────────────────
+  function getToken() {
+    return sessionStorage.getItem('gh_token') || '';
+  }
+
+  async function ghFetch(path, opts = {}) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...opts,
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        ...(opts.headers || {})
+      }
+    });
+    return res;
+  }
+
+  // ── 포스트 목록 로드 ──────────────────────────────
+  async function loadPosts() {
+    showState('loading');
+    try {
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `GitHub API 오류 (${res.status})`);
+      }
+      const files = await res.json();
+      const htmlFiles = files.filter(f =>
+        f.name.endsWith('.html') &&
+        f.name !== '_template.html' &&
+        f.type === 'file'
+      );
+
+      if (htmlFiles.length === 0) {
+        showState('empty');
+        return;
+      }
+
+      // 각 파일의 내용에서 title 파싱
+      postsData = await Promise.all(htmlFiles.map(async (f) => {
+        try {
+          const fileRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts/${f.name}`);
+          if (!fileRes.ok) return { name: f.name, sha: f.sha, title: f.name, date: '' };
+          const fileData = await fileRes.json();
+          const content = atob(fileData.content.replace(/\n/g, ''));
+          const titleMatch = content.match(/<title>([^<]+)<\/title>/i);
+          const rawTitle = titleMatch ? titleMatch[1] : f.name;
+          const title = rawTitle.replace(/\s*-\s*경제적 자유를 위한 도전\s*$/, '').trim();
+
+          // published_time 메타에서 날짜 추출
+          const dateMatch = content.match(/article:published_time"\s+content="([^"]+)"/);
+          let date = '';
+          if (dateMatch) {
+            date = dateMatch[1].slice(0, 10).replace(/-/g, '.');
+          }
+          return { name: f.name, sha: f.sha, title, date };
+        } catch {
+          return { name: f.name, sha: f.sha, title: f.name, date: '' };
+        }
+      }));
+
+      // 날짜 내림차순 정렬
+      postsData.sort((a, b) => {
+        if (a.date && b.date) return b.date.localeCompare(a.date);
+        return 0;
+      });
+
+      renderTable(postsData);
+      showState('table');
+    } catch (err) {
+      document.getElementById('errorMsg').textContent = err.message;
+      showState('error');
+    }
+  }
+
+  function renderTable(posts) {
+    const tbody = document.getElementById('postTableBody');
+    tbody.innerHTML = posts.map(post => `
+      <tr class="border-b border-ink-100 last:border-0 hover:bg-ink-100/50 transition-colors">
+        <td class="px-6 py-4">
+          <div class="font-semibold text-ink-900 line-clamp-1">${escHtml(post.title)}</div>
+          ${post.date ? `<div class="text-xs text-ink-300 mt-0.5">${post.date}</div>` : ''}
+        </td>
+        <td class="px-4 py-4 hidden sm:table-cell">
+          <span class="text-xs font-mono text-ink-500 bg-ink-100 px-2 py-0.5 rounded">${escHtml(post.name)}</span>
+        </td>
+        <td class="px-4 py-4">
+          <div class="flex items-center justify-center gap-2">
+            <a href="admin-editor.html?file=${encodeURIComponent(post.name)}" class="btn-edit">✏️ 수정</a>
+            <button onclick="openDeleteModal('${escAttr(post.name)}','${escAttr(post.sha)}')" class="btn-danger">🗑️ 삭제</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    document.getElementById('postCount').textContent = `총 ${posts.length}개의 포스트`;
+  }
+
+  function showState(state) {
+    ['loading', 'error', 'empty', 'table'].forEach(s => {
+      const map = { loading: 'loadingState', error: 'errorState', empty: 'emptyState', table: 'postTable' };
+      document.getElementById(map[s]).classList.toggle('hidden', s !== state);
+    });
+  }
+
+  // ── 삭제 모달 ─────────────────────────────────────
+  function openDeleteModal(fileName, sha) {
+    pendingDeleteFile = fileName;
+    pendingDeleteSha = sha;
+    document.getElementById('deleteFileName').textContent = `posts/${fileName}`;
+    document.getElementById('deleteModal').classList.remove('hidden');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    pendingDeleteFile = null;
+    pendingDeleteSha = null;
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteFile) return;
+    setDeleteLoading(true);
+    try {
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts/${pendingDeleteFile}`, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          message: `Delete post: ${pendingDeleteFile}`,
+          sha: pendingDeleteSha
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || '삭제 실패');
+      }
+      closeDeleteModal();
+      showToast('포스트가 삭제되었습니다.', 'success');
+      await loadPosts();
+    } catch (err) {
+      setDeleteLoading(false);
+      showToast(err.message, 'error');
+    }
+  }
+
+  function setDeleteLoading(on) {
+    document.getElementById('deleteBtnText').classList.toggle('hidden', on);
+    document.getElementById('deleteSpinner').classList.toggle('hidden', !on);
+    document.getElementById('confirmDeleteBtn').disabled = on;
+  }
+
+  // ── 토스트 ────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast toast-${type} show`;
+    setTimeout(() => { el.classList.remove('show'); }, 3000);
+  }
+
+  // ── 유틸 ──────────────────────────────────────────
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escAttr(str) {
+    return String(str).replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  }
+
+  // 모달 배경 클릭 시 닫기
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  // 세션 확인 (이미 로그인돼 있으면 대시보드 바로 표시)
+  if (sessionStorage.getItem('gh_token')) {
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('dashboardSection').classList.remove('hidden');
+    loadPosts();
+  }
+</script>
+</body>
+</html>
