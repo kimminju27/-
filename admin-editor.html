@@ -495,13 +495,159 @@
         throw new Error(err.message || '저장에 실패했습니다.');
       }
 
+      // index.html 카드 동기화
+      document.getElementById('savingMsg').textContent = 'index.html 카드 동기화 중...';
+      await syncIndexOnSave({ title, desc, category, date, slug, isEdit: editMode });
+
+      // 신규 글이면 sitemap.xml도 업데이트
+      if (!editMode) {
+        document.getElementById('savingMsg').textContent = 'sitemap.xml 업데이트 중...';
+        await syncSitemapOnSave({ slug, date });
+      }
+
       showSavingOverlay(false);
-      showToast('저장 완료! 목록으로 이동합니다.', 'success');
+      showToast(editMode ? '수정 완료! 목록으로 이동합니다.' : '저장 완료! 목록으로 이동합니다.', 'success');
       setTimeout(() => { location.href = 'admin.html'; }, 1500);
     } catch (err) {
       showSavingOverlay(false);
       showToast(err.message, 'error');
     }
+  }
+
+  // ── GitHub 유틸 ───────────────────────────────────
+  function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    return btoa(binary);
+  }
+
+  function decodeGhBase64(b64) {
+    const raw = atob(b64.replace(/\n/g, ''));
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
+  async function getGhFile(filepath) {
+    const token = sessionStorage.getItem('gh_token');
+    const res = await fetch(`${API_BASE}/repos/${OWNER}/${REPO}/contents/${filepath}`, {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    return { sha: d.sha, content: decodeGhBase64(d.content) };
+  }
+
+  async function putGhFile(filepath, content, sha, message) {
+    const token = sessionStorage.getItem('gh_token');
+    const res = await fetch(`${API_BASE}/repos/${OWNER}/${REPO}/contents/${filepath}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message, content: utf8ToBase64(content), sha })
+    });
+    return res.ok;
+  }
+
+  // ── 카테고리 스타일 ───────────────────────────────
+  const CAT_CONFIG = {
+    '경제':     { emoji: '💰', tagColor: '#fbbf24', tagBg: 'rgba(251,191,36,0.15)', cardBg: 'linear-gradient(135deg,#0f172a,#1e3a5f)' },
+    '부동산':   { emoji: '🏠', tagColor: '#34d399', tagBg: 'rgba(52,211,153,0.15)', cardBg: 'linear-gradient(135deg,#064e3b,#065f46)' },
+    '주식':     { emoji: '📈', tagColor: '#60a5fa', tagBg: 'rgba(96,165,250,0.15)', cardBg: 'linear-gradient(135deg,#1e3a5f,#1d4ed8)' },
+    '복지정책': { emoji: '🏛️', tagColor: '#c084fc', tagBg: 'rgba(192,132,252,0.15)', cardBg: 'linear-gradient(135deg,#3b0764,#6b21a8)' },
+    '세금':     { emoji: '📋', tagColor: '#f97316', tagBg: 'rgba(249,115,22,0.15)', cardBg: 'linear-gradient(135deg,#431407,#7c2d12)' },
+    '금융':     { emoji: '🏦', tagColor: '#22d3ee', tagBg: 'rgba(34,211,238,0.15)', cardBg: 'linear-gradient(135deg,#083344,#164e63)' },
+    '연예계':   { emoji: '🎬', tagColor: '#f472b6', tagBg: 'rgba(244,114,182,0.15)', cardBg: 'linear-gradient(135deg,#4a044e,#86198f)' },
+    '제품리뷰': { emoji: '📦', tagColor: '#fb923c', tagBg: 'rgba(251,146,60,0.15)', cardBg: 'linear-gradient(135deg,#7c2d12,#9a3412)' },
+  };
+
+  // ── index.html 카드 동기화 ────────────────────────
+  function buildNewCard({ title, desc, category, date, slug }) {
+    const cfg = CAT_CONFIG[category] || CAT_CONFIG['경제'];
+    const dateStr = date.replace(/-/g, '.');
+    const shortDesc = (desc || '').substring(0, 80) + '...';
+    return `
+      <!-- AUTO: ${escHtml(title)} -->
+      <article class="post-item post-card rounded-2xl border border-ink-100 overflow-hidden bg-white shadow-card cursor-pointer"
+               data-category="${escAttrHtml(category)}" data-title="${escAttrHtml(title)}"
+               onclick="location.href='posts/${slug}'">
+        <div class="h-44 relative overflow-hidden" style="background:${cfg.cardBg};">
+          <div class="absolute inset-0 flex flex-col justify-between p-4">
+            <div class="flex items-center justify-between">
+              <span style="background:${cfg.tagBg};color:${cfg.tagColor};" class="text-xs font-bold px-2 py-0.5 rounded-full border border-white/10">${cfg.emoji} ${escHtml(category)}</span>
+              <span class="text-xs text-white/40">${dateStr}</span>
+            </div>
+            <div>
+              <p class="text-white font-black text-lg leading-tight line-clamp-2">${escHtml(title)}</p>
+            </div>
+          </div>
+          <div class="absolute -right-3 -top-3 text-8xl opacity-5">${cfg.emoji}</div>
+        </div>
+        <div class="p-5">
+          <span class="text-xs font-bold text-gold-500 bg-yellow-50 px-2 py-0.5 rounded-full">${escHtml(category)}</span>
+          <h2 class="mt-2 font-bold text-ink-900 text-base leading-snug">${escHtml(title)}</h2>
+          <p class="mt-1.5 text-xs text-ink-500 line-clamp-2">${escHtml(shortDesc)}</p>
+          <div class="mt-4 flex items-center justify-between text-xs text-ink-300">
+            <span>${dateStr}</span>
+            <span class="flex items-center gap-1 text-brand-600 font-bold">🆕 NEW</span>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function updateCardInIndex(html, slug, { title, desc, category, date }) {
+    const shortDesc = (desc || '').substring(0, 80) + '...';
+    const dateStr = date.replace(/-/g, '.');
+    const cfg = CAT_CONFIG[category] || CAT_CONFIG['경제'];
+    return html.replace(/[ \t]*<!-- AUTO:[^\n]*-->\n[ \t]*<article[\s\S]*?<\/article>\n?/g, (match) => {
+      if (!match.includes(`posts/${slug}`)) return match;
+      let m = match;
+      m = m.replace(/<!-- AUTO:[^\n]*-->/, `<!-- AUTO: ${escHtml(title)} -->`);
+      m = m.replace(/data-title="[^"]*"/, `data-title="${escAttrHtml(title)}"`);
+      m = m.replace(/data-category="[^"]*"/, `data-category="${escAttrHtml(category)}"`);
+      m = m.replace(/<h2[^>]*>[\s\S]*?<\/h2>/, `<h2 class="mt-2 font-bold text-ink-900 text-base leading-snug">${escHtml(title)}</h2>`);
+      m = m.replace(/<p class="mt-1\.5 text-xs text-ink-500 line-clamp-2">[\s\S]*?<\/p>/, `<p class="mt-1.5 text-xs text-ink-500 line-clamp-2">${escHtml(shortDesc)}</p>`);
+      return m;
+    });
+  }
+
+  async function syncIndexOnSave({ title, desc, category, date, slug, isEdit }) {
+    try {
+      const idx = await getGhFile('index.html');
+      if (!idx) return;
+      let newHtml;
+      if (isEdit) {
+        newHtml = updateCardInIndex(idx.content, slug, { title, desc, category, date });
+      } else {
+        const card = buildNewCard({ title, desc, category, date, slug });
+        const marker = '<!-- POSTS_START -->';
+        if (idx.content.includes(marker)) {
+          newHtml = idx.content.replace(marker, marker + '\n' + card);
+        } else {
+          newHtml = idx.content.replace(/(<div id="postGrid"[^>]*>)/, `$1\n      ${marker}\n${card}`);
+        }
+      }
+      if (newHtml !== idx.content) {
+        await putGhFile('index.html', newHtml, idx.sha,
+          isEdit ? `admin: 포스트 카드 업데이트 (${slug})` : `admin: 새 포스트 카드 추가 (${slug})`);
+      }
+    } catch (e) { console.warn('index.html 동기화 오류:', e.message); }
+  }
+
+  async function syncSitemapOnSave({ slug, date }) {
+    try {
+      const sm = await getGhFile('sitemap.xml');
+      if (!sm) return;
+      const slugName = slug.replace(/\.html$/, '');
+      if (sm.content.includes(`/posts/${slugName}`)) return; // 이미 있음
+      const entry = `\n  <url>\n    <loc>https://bloginfo360.com/posts/${slugName}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`;
+      const newXml = sm.content.replace('</urlset>', entry + '\n</urlset>');
+      await putGhFile('sitemap.xml', newXml, sm.sha, `admin: sitemap 추가 (${slug})`);
+    } catch (e) { console.warn('sitemap.xml 동기화 오류:', e.message); }
   }
 
   // ── HTML 생성 ─────────────────────────────────────
