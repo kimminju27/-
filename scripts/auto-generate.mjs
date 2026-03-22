@@ -257,14 +257,35 @@ async function fetchNewsRSS(query) {
 // ─────────────────────────────────────────
 // 2. 뉴스 기사 생성
 // ─────────────────────────────────────────
+async function fetchEntNewsMulti(queries) {
+  // 여러 검색어로 RSS를 병렬 수집해 교차 검증용 데이터 확보
+  const results = await Promise.allSettled(
+    queries.map(q => fetchNewsRSS(q))
+  );
+  const allItems = [];
+  results.forEach(r => {
+    if (r.status === 'fulfilled') allItems.push(...r.value);
+  });
+  // 중복 제거
+  return allItems.filter((v, i, a) => a.findIndex(x => x.title === v.title) === i);
+}
+
 async function generateEntertainmentArticle(category) {
   const today = getKSTDate();
   const base = '연예계';
 
-  console.log(`\n📡 실시간 연예계 뉴스 탐색 중...`);
-  const trendingItems = await fetchTrendingNews(category);
-  const trendingContext = trendingItems.length > 0
-    ? trendingItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
+  console.log(`\n📡 연예계 뉴스 다중 수집 중...`);
+
+  // 1단계: 다양한 검색어로 병렬 RSS 수집 (교차 검증용)
+  const multiItems = await fetchEntNewsMulti([
+    '연예계 이슈 오늘',
+    '아이돌 드라마 영화 화제',
+    '연예인 뉴스 최신',
+    '케이팝 한류 이슈',
+  ]);
+
+  const trendingContext = multiItems.length > 0
+    ? multiItems.slice(0, 16).map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
     : '';
 
   const usedTitles = getExistingPostTitles();
@@ -272,35 +293,47 @@ async function generateEntertainmentArticle(category) {
     ? `⛔ 아래 주제들은 이미 발행했으므로 절대 선택하지 마세요:\n${usedTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
     : '';
 
-  // 연예계 전용: 오늘의 핫이슈 선정
-  const topicPickPrompt = `당신은 한국 연예 뉴스 에디터입니다. 오늘 가장 화제인 연예계 이슈 하나를 선정하세요.
+  // 2단계: 수집된 뉴스 중 여러 소스에서 확인된 이슈 선정
+  const topicPickPrompt = `당신은 한국 연예 뉴스 팩트체커 겸 에디터입니다.
 
 오늘 날짜: ${today}
 ${avoidList}
-오늘의 실시간 트렌딩 연예 뉴스:
+아래는 구글 뉴스 RSS에서 실시간 수집한 연예 뉴스 목록입니다:
 ${trendingContext || '연예계 최신 이슈'}
 
-위 금지 목록과 완전히 다른 새로운 주제를 선택하세요. JSON으로만 응답: {"topic": "구체적 이슈 (한국어, 30자 이내)", "query": "RSS 검색 키워드 (한국어, 10-20자)", "reason": "이 이슈가 오늘 화제인 이유"}`;
+선정 기준 (엄격하게 적용):
+1. 위 뉴스 목록에 실제로 등장하는 이슈만 선택 (목록에 없는 내용 지어내기 금지)
+2. 여러 뉴스 제목에서 반복적으로 등장하는 인물/사건을 우선 선택 (다중 소스 확인)
+3. 오늘 날짜 기준 가장 최신이고 화제인 이슈 1개 선정
+4. 루머/찌라시가 아닌 공식 발표 또는 미디어 보도된 내용만
 
-  let chosenTopic = { topic: '', query: '', reason: '' };
+JSON으로만 응답:
+{"topic": "구체적 이슈 (한국어, 30자 이내)", "query": "추가 검색 키워드 (한국어, 10-20자)", "reason": "선정 이유 — 몇 개 소스에서 확인됐는지 포함", "confirmed": true}`;
+
+  let chosenTopic = { topic: '', query: '', reason: '', confirmed: false };
   try {
-    const pickText = await callGroq(topicPickPrompt, { maxTokens: 300, jsonMode: true });
+    const pickText = await callGroq(topicPickPrompt, { maxTokens: 400, jsonMode: true });
     const parsed = JSON.parse(pickText.match(/\{[\s\S]*\}/)?.[0] || pickText);
-    chosenTopic = { topic: parsed.topic || '', query: parsed.query || '연예계', reason: parsed.reason || '' };
-  } catch { chosenTopic = { topic: '', query: '연예계 이슈', reason: '' }; }
+    chosenTopic = {
+      topic: parsed.topic || '',
+      query: parsed.query || '연예계',
+      reason: parsed.reason || '',
+      confirmed: parsed.confirmed || false,
+    };
+  } catch { chosenTopic = { topic: '', query: '연예계 이슈', reason: '', confirmed: false }; }
 
   if (!chosenTopic.topic) {
     const fallback = pickUnusedTopic(category);
-    chosenTopic = { topic: fallback.label, query: fallback.query, reason: 'fallback' };
+    chosenTopic = { topic: fallback.label, query: fallback.query, reason: 'fallback', confirmed: false };
   }
 
-  console.log(`\n🎬 선정된 연예계 주제: ${chosenTopic.topic}`);
+  console.log(`\n🎬 선정된 연예계 주제: ${chosenTopic.topic} (${chosenTopic.reason})`);
 
-  // 추가 RSS 수집
+  // 3단계: 선정된 주제로 추가 RSS 수집 — 더 구체적인 팩트 확보
   const detailItems = await fetchNewsRSS(chosenTopic.query);
-  const allItems = [...trendingItems, ...detailItems]
+  const allItems = [...multiItems, ...detailItems]
     .filter((v, i, a) => a.findIndex(x => x.title === v.title) === i)
-    .slice(0, 8);
+    .slice(0, 16);
   const newsContext = allItems.length > 0
     ? allItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
     : `${chosenTopic.topic} 관련 최신 소식`;
@@ -310,24 +343,25 @@ ${trendingContext || '연예계 최신 이슈'}
     markTopicUsed(fallback.id);
   }
 
-  // 연예계 전용 프롬프트 — 통계/% 수치 중심이 아닌 스토리/이슈 내러티브 형식
-  const prompt = `당신은 10년 경력의 한국 연예 전문 블로거입니다. 오늘의 연예계 핫이슈를 독자가 흥미롭게 읽을 수 있는 스토리텔링 형식으로 작성하세요.
+  // 4단계: 팩트 기반 상세 기사 작성 프롬프트
+  const prompt = `당신은 10년 경력의 한국 연예 전문 블로거입니다. 아래 실시간 뉴스 데이터만을 근거로 상세한 기사를 작성하세요.
 
 날짜: ${today}
 카테고리: 연예계
 오늘의 이슈: ${chosenTopic.topic}
 
-오늘의 실시간 연예 뉴스 (이것을 기반으로 작성):
+【실시간 수집 뉴스 — 이 내용만을 사실로 사용할 것】:
 ${newsContext}
 
-엄격한 규칙:
-1. 한국어로만 작성. 일본어(히라가나/가타카나/한자), 중국어, 영어 단어, 베트남어 절대 금지.
-2. "알아보겠습니다", "살펴보겠습니다" 같은 문장 시작 금지. 바로 내용으로 시작.
-3. 경제 통계 형식(% 증가/감소, GDP 같은 수치) 절대 사용 금지. 연예 이슈에 어울리는 서술형으로 작성.
-4. heroStats는 숫자 통계가 아닌 이슈 핵심 키워드/팩트로 구성 (예: 컴백 날짜, 팬덤 반응, 차트 순위 등).
-5. 각 섹션은 200자 이상의 구체적 내용.
-6. 섹션 구성: 이슈 배경 → 상세 경위/반응 → 팬/업계 반응 → 향후 전망
-7. 마지막 섹션은 "이 이슈의 핵심 포인트 3가지" 체크리스트.
+【절대 엄수 규칙】:
+1. 위 뉴스에 실제로 나온 사실만 작성. 뉴스에 없는 내용을 창작하거나 추측으로 채우기 절대 금지.
+2. 확인되지 않은 내용은 "~로 알려졌다", "~라는 보도가 있다" 등 유보적 표현 사용. 단정하지 말 것.
+3. 루머나 추측을 사실처럼 서술 금지.
+4. 한국어로만 작성. 외국어(일본어/중국어/영어) 절대 금지.
+5. "알아보겠습니다", "살펴보겠습니다" 문장 시작 금지. 바로 핵심 내용으로 시작.
+6. 경제 통계 형식(% 수치) 절대 금지. 연예 이슈 서술형으로 작성.
+7. 각 섹션은 400자 이상의 구체적 내용 (단순 나열이 아닌 깊이 있는 서술).
+8. heroStats는 이슈 핵심 키워드/팩트로 구성 (날짜, 반응, 핵심 사실 등).
 
 유효한 JSON만 응답 (코드블록/마크다운 없이):
 {
@@ -339,9 +373,9 @@ ${newsContext}
   "heroEmoji": "🎬",
   "heroTag": "연예계 · ${today}",
   "heroStats": [
-    {"label": "이슈 키워드1", "value": "핵심 팩트", "color": "#f472b6"},
-    {"label": "이슈 키워드2", "value": "핵심 팩트", "color": "#fbbf24"},
-    {"label": "이슈 키워드3", "value": "핵심 팩트", "color": "#c084fc"}
+    {"label": "이슈 키워드1", "value": "확인된 팩트", "color": "#f472b6"},
+    {"label": "이슈 키워드2", "value": "확인된 팩트", "color": "#fbbf24"},
+    {"label": "이슈 키워드3", "value": "확인된 팩트", "color": "#c084fc"}
   ],
   "heroSubtext": "이 글에서 확인할 수 있는 것 (구체적으로)",
   "intro": "<p>[첫 문장: 오늘 이슈의 핵심을 임팩트 있게 요약] [배경 설명 2-3문장]</p><p>[이 글에서 다룰 내용 소개]</p>",
@@ -350,8 +384,8 @@ ${newsContext}
       "num": "01",
       "badge": "이슈 발생",
       "title": "사건/이슈의 핵심 제목",
-      "body": "이슈가 발생한 배경과 경위를 구체적으로 서술 (4-5문장)",
-      "stat": "핵심 팩트 한 줄",
+      "body": "뉴스에서 확인된 경위를 구체적으로 서술 (5-6문장, 400자 이상)",
+      "stat": "확인된 핵심 팩트",
       "statColor": "#f472b6",
       "bg": "linear-gradient(135deg, #4a044e, #86198f)"
     },
@@ -359,7 +393,7 @@ ${newsContext}
       "num": "02",
       "badge": "반응 현황",
       "title": "팬/대중/업계의 반응",
-      "body": "팬덤 반응, 온라인 반응, 업계 관계자 코멘트 등 (4-5문장)",
+      "body": "보도된 팬덤 반응, 온라인 반응, 업계 코멘트 (5-6문장, 400자 이상)",
       "stat": "반응 키워드",
       "statColor": "#fbbf24",
       "bg": "linear-gradient(135deg, #7c1d4f, #9d174d)"
@@ -368,7 +402,7 @@ ${newsContext}
       "num": "03",
       "badge": "상세 분석",
       "title": "이슈의 맥락과 배경",
-      "body": "해당 이슈가 갖는 의미, 과거 사례 비교, 연예계 내 영향 (4-5문장)",
+      "body": "이슈의 의미, 과거 사례 비교, 연예계 내 영향 (5-6문장, 400자 이상)",
       "stat": "분석 키워드",
       "statColor": "#c084fc",
       "bg": "linear-gradient(135deg, #3b0764, #6b21a8)"
@@ -377,7 +411,7 @@ ${newsContext}
       "num": "04",
       "badge": "향후 전망",
       "title": "앞으로 주목해야 할 포인트",
-      "body": "이후 일정, 예상 시나리오, 놓치지 말아야 할 포인트 (4-5문장)",
+      "body": "이후 일정, 예상 시나리오, 주목 포인트 (5-6문장, 400자 이상)",
       "stat": "전망 키워드",
       "statColor": "#818cf8",
       "bg": "linear-gradient(135deg, #1e1b4b, #312e81)"
@@ -387,29 +421,34 @@ ${newsContext}
     {
       "id": "section1",
       "heading": "🎭 [이슈 배경 — 구체적 제목]",
-      "content": "<p>200자 이상의 이슈 배경 설명. 인물/작품/상황을 구체적으로 묘사.</p><p>추가 경위 설명.</p><ul><li><strong>포인트1:</strong> 구체적 설명</li><li><strong>포인트2:</strong> 구체적 설명</li></ul>"
+      "content": "<p>400자 이상. 뉴스 기반 이슈 배경 상세 설명. 인물/작품/상황을 구체적으로.</p><p>추가 경위 설명.</p><ul><li><strong>확인된 사실1:</strong> 설명</li><li><strong>확인된 사실2:</strong> 설명</li><li><strong>확인된 사실3:</strong> 설명</li></ul>"
     },
     {
       "id": "section2",
-      "heading": "💬 [반응 및 현황]",
-      "content": "<p>200자 이상. 팬 반응, SNS 반응, 미디어 보도 내용.</p><blockquote>핵심 발언이나 팬덤 반응 인용</blockquote><p>추가 내용.</p>"
+      "heading": "💬 [반응 및 현황 — 구체적 제목]",
+      "content": "<p>400자 이상. 보도된 팬 반응, SNS 반응, 미디어 보도.</p><blockquote>보도된 핵심 발언이나 반응 인용</blockquote><p>추가 반응 내용.</p>"
     },
     {
       "id": "section3",
-      "heading": "🔍 [이슈의 맥락과 의미]",
-      "content": "<p>200자 이상. 이 이슈가 갖는 의미, 연예계 내 영향력, 과거 사례.</p><p>추가 분석.</p>"
+      "heading": "🔍 [이슈의 맥락과 의미 — 구체적 제목]",
+      "content": "<p>400자 이상. 이슈가 갖는 의미, 연예계 내 영향, 과거 유사 사례.</p><p>추가 분석.</p>"
+    },
+    {
+      "id": "section4",
+      "heading": "📅 [향후 일정 및 전망]",
+      "content": "<p>400자 이상. 공식 확인된 향후 일정, 예상 흐름, 독자가 주목해야 할 포인트.</p><p>추가 전망.</p>"
     },
     {
       "id": "checklist",
       "heading": "✅ 이 이슈의 핵심 포인트 3가지",
-      "content": "<p>오늘 이슈를 정리한 핵심 포인트입니다.</p><ul><li><strong>1. [포인트1]:</strong> 구체적 설명 (2-3문장)</li><li><strong>2. [포인트2]:</strong> 구체적 설명 (2-3문장)</li><li><strong>3. [포인트3]:</strong> 구체적 설명 (2-3문장)</li></ul><blockquote>한 줄 요약</blockquote>"
+      "content": "<p>오늘 이슈를 정리한 핵심 포인트입니다.</p><ul><li><strong>1. [포인트1]:</strong> 뉴스에서 확인된 내용 기반 설명 (2-3문장)</li><li><strong>2. [포인트2]:</strong> 뉴스에서 확인된 내용 기반 설명 (2-3문장)</li><li><strong>3. [포인트3]:</strong> 뉴스에서 확인된 내용 기반 설명 (2-3문장)</li></ul><blockquote>한 줄 팩트 요약</blockquote>"
     }
   ],
-  "summary": ["🎬 핵심 이슈: 한 줄 요약", "💬 반응: 팬/대중 반응 요약", "📅 다음: 주목할 일정이나 포인트"],
-  "readMinutes": 5
+  "summary": ["🎬 핵심 이슈: 확인된 사실 요약", "💬 반응: 보도된 팬/대중 반응", "📅 다음: 공식 확인된 일정/포인트"],
+  "readMinutes": 6
 }`;
 
-  const text = await callGroq(prompt, { maxTokens: 4500 });
+  const text = await callGroq(prompt, { maxTokens: 6000 });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('연예계 JSON을 찾을 수 없습니다');
 
