@@ -257,9 +257,180 @@ async function fetchNewsRSS(query) {
 // ─────────────────────────────────────────
 // 2. 뉴스 기사 생성
 // ─────────────────────────────────────────
+async function generateEntertainmentArticle(category) {
+  const today = getKSTDate();
+  const base = '연예계';
+
+  console.log(`\n📡 실시간 연예계 뉴스 탐색 중...`);
+  const trendingItems = await fetchTrendingNews(category);
+  const trendingContext = trendingItems.length > 0
+    ? trendingItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
+    : '';
+
+  const usedTitles = getExistingPostTitles();
+  const avoidList = usedTitles.length > 0
+    ? `⛔ 아래 주제들은 이미 발행했으므로 절대 선택하지 마세요:\n${usedTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
+    : '';
+
+  // 연예계 전용: 오늘의 핫이슈 선정
+  const topicPickPrompt = `당신은 한국 연예 뉴스 에디터입니다. 오늘 가장 화제인 연예계 이슈 하나를 선정하세요.
+
+오늘 날짜: ${today}
+${avoidList}
+오늘의 실시간 트렌딩 연예 뉴스:
+${trendingContext || '연예계 최신 이슈'}
+
+위 금지 목록과 완전히 다른 새로운 주제를 선택하세요. JSON으로만 응답: {"topic": "구체적 이슈 (한국어, 30자 이내)", "query": "RSS 검색 키워드 (한국어, 10-20자)", "reason": "이 이슈가 오늘 화제인 이유"}`;
+
+  let chosenTopic = { topic: '', query: '', reason: '' };
+  try {
+    const pickText = await callGroq(topicPickPrompt, { maxTokens: 300, jsonMode: true });
+    const parsed = JSON.parse(pickText.match(/\{[\s\S]*\}/)?.[0] || pickText);
+    chosenTopic = { topic: parsed.topic || '', query: parsed.query || '연예계', reason: parsed.reason || '' };
+  } catch { chosenTopic = { topic: '', query: '연예계 이슈', reason: '' }; }
+
+  if (!chosenTopic.topic) {
+    const fallback = pickUnusedTopic(category);
+    chosenTopic = { topic: fallback.label, query: fallback.query, reason: 'fallback' };
+  }
+
+  console.log(`\n🎬 선정된 연예계 주제: ${chosenTopic.topic}`);
+
+  // 추가 RSS 수집
+  const detailItems = await fetchNewsRSS(chosenTopic.query);
+  const allItems = [...trendingItems, ...detailItems]
+    .filter((v, i, a) => a.findIndex(x => x.title === v.title) === i)
+    .slice(0, 8);
+  const newsContext = allItems.length > 0
+    ? allItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
+    : `${chosenTopic.topic} 관련 최신 소식`;
+
+  if (chosenTopic.reason === 'fallback') {
+    const fallback = pickUnusedTopic(category);
+    markTopicUsed(fallback.id);
+  }
+
+  // 연예계 전용 프롬프트 — 통계/% 수치 중심이 아닌 스토리/이슈 내러티브 형식
+  const prompt = `당신은 10년 경력의 한국 연예 전문 블로거입니다. 오늘의 연예계 핫이슈를 독자가 흥미롭게 읽을 수 있는 스토리텔링 형식으로 작성하세요.
+
+날짜: ${today}
+카테고리: 연예계
+오늘의 이슈: ${chosenTopic.topic}
+
+오늘의 실시간 연예 뉴스 (이것을 기반으로 작성):
+${newsContext}
+
+엄격한 규칙:
+1. 한국어로만 작성. 일본어(히라가나/가타카나/한자), 중국어, 영어 단어, 베트남어 절대 금지.
+2. "알아보겠습니다", "살펴보겠습니다" 같은 문장 시작 금지. 바로 내용으로 시작.
+3. 경제 통계 형식(% 증가/감소, GDP 같은 수치) 절대 사용 금지. 연예 이슈에 어울리는 서술형으로 작성.
+4. heroStats는 숫자 통계가 아닌 이슈 핵심 키워드/팩트로 구성 (예: 컴백 날짜, 팬덤 반응, 차트 순위 등).
+5. 각 섹션은 200자 이상의 구체적 내용.
+6. 섹션 구성: 이슈 배경 → 상세 경위/반응 → 팬/업계 반응 → 향후 전망
+7. 마지막 섹션은 "이 이슈의 핵심 포인트 3가지" 체크리스트.
+
+유효한 JSON만 응답 (코드블록/마크다운 없이):
+{
+  "title": "연예 이슈 중심의 SEO 제목 (45-65자, 인물명/작품명 포함)",
+  "description": "독자의 호기심을 자극하는 메타 설명 (80-120자)",
+  "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+  "slug": "short-english-slug",
+  "heroGradient": "linear-gradient(135deg, #4a044e, #86198f)",
+  "heroEmoji": "🎬",
+  "heroTag": "연예계 · ${today}",
+  "heroStats": [
+    {"label": "이슈 키워드1", "value": "핵심 팩트", "color": "#f472b6"},
+    {"label": "이슈 키워드2", "value": "핵심 팩트", "color": "#fbbf24"},
+    {"label": "이슈 키워드3", "value": "핵심 팩트", "color": "#c084fc"}
+  ],
+  "heroSubtext": "이 글에서 확인할 수 있는 것 (구체적으로)",
+  "intro": "<p>[첫 문장: 오늘 이슈의 핵심을 임팩트 있게 요약] [배경 설명 2-3문장]</p><p>[이 글에서 다룰 내용 소개]</p>",
+  "cards": [
+    {
+      "num": "01",
+      "badge": "이슈 발생",
+      "title": "사건/이슈의 핵심 제목",
+      "body": "이슈가 발생한 배경과 경위를 구체적으로 서술 (4-5문장)",
+      "stat": "핵심 팩트 한 줄",
+      "statColor": "#f472b6",
+      "bg": "linear-gradient(135deg, #4a044e, #86198f)"
+    },
+    {
+      "num": "02",
+      "badge": "반응 현황",
+      "title": "팬/대중/업계의 반응",
+      "body": "팬덤 반응, 온라인 반응, 업계 관계자 코멘트 등 (4-5문장)",
+      "stat": "반응 키워드",
+      "statColor": "#fbbf24",
+      "bg": "linear-gradient(135deg, #7c1d4f, #9d174d)"
+    },
+    {
+      "num": "03",
+      "badge": "상세 분석",
+      "title": "이슈의 맥락과 배경",
+      "body": "해당 이슈가 갖는 의미, 과거 사례 비교, 연예계 내 영향 (4-5문장)",
+      "stat": "분석 키워드",
+      "statColor": "#c084fc",
+      "bg": "linear-gradient(135deg, #3b0764, #6b21a8)"
+    },
+    {
+      "num": "04",
+      "badge": "향후 전망",
+      "title": "앞으로 주목해야 할 포인트",
+      "body": "이후 일정, 예상 시나리오, 놓치지 말아야 할 포인트 (4-5문장)",
+      "stat": "전망 키워드",
+      "statColor": "#818cf8",
+      "bg": "linear-gradient(135deg, #1e1b4b, #312e81)"
+    }
+  ],
+  "sections": [
+    {
+      "id": "section1",
+      "heading": "🎭 [이슈 배경 — 구체적 제목]",
+      "content": "<p>200자 이상의 이슈 배경 설명. 인물/작품/상황을 구체적으로 묘사.</p><p>추가 경위 설명.</p><ul><li><strong>포인트1:</strong> 구체적 설명</li><li><strong>포인트2:</strong> 구체적 설명</li></ul>"
+    },
+    {
+      "id": "section2",
+      "heading": "💬 [반응 및 현황]",
+      "content": "<p>200자 이상. 팬 반응, SNS 반응, 미디어 보도 내용.</p><blockquote>핵심 발언이나 팬덤 반응 인용</blockquote><p>추가 내용.</p>"
+    },
+    {
+      "id": "section3",
+      "heading": "🔍 [이슈의 맥락과 의미]",
+      "content": "<p>200자 이상. 이 이슈가 갖는 의미, 연예계 내 영향력, 과거 사례.</p><p>추가 분석.</p>"
+    },
+    {
+      "id": "checklist",
+      "heading": "✅ 이 이슈의 핵심 포인트 3가지",
+      "content": "<p>오늘 이슈를 정리한 핵심 포인트입니다.</p><ul><li><strong>1. [포인트1]:</strong> 구체적 설명 (2-3문장)</li><li><strong>2. [포인트2]:</strong> 구체적 설명 (2-3문장)</li><li><strong>3. [포인트3]:</strong> 구체적 설명 (2-3문장)</li></ul><blockquote>한 줄 요약</blockquote>"
+    }
+  ],
+  "summary": ["🎬 핵심 이슈: 한 줄 요약", "💬 반응: 팬/대중 반응 요약", "📅 다음: 주목할 일정이나 포인트"],
+  "readMinutes": 5
+}`;
+
+  const text = await callGroq(prompt, { maxTokens: 4500 });
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('연예계 JSON을 찾을 수 없습니다');
+
+  let data = JSON.parse(repairJson(jsonMatch[0]));
+  data = sanitizeReviewData(data);
+  data.category = base;
+  data.date = today;
+
+  if (!data.slug) data.slug = `ent-${today}`;
+  data.slug = sanitizeSlug(data.slug) + '-' + getKSTDateTime();
+
+  console.log(`   ✅ 완료: ${data.title}`);
+  return data;
+}
+
 async function generateNewsArticle(category) {
   const today = getKSTDate();
   const base = category.split('_')[0];
+
+  // 연예계는 전용 함수로 분기
+  if (base === '연예계') return generateEntertainmentArticle(category);
 
   // 1단계: 실시간 트렌딩 뉴스 수집
   console.log(`\n📡 실시간 뉴스 탐색 중: [${base}]`);

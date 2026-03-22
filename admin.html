@@ -142,6 +142,16 @@
       </div>
     </div>
 
+    <!-- 일괄 삭제 툴바 (선택 시 표시) -->
+    <div id="bulkToolbar" class="hidden mb-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-5 py-3">
+      <span id="bulkCount" class="text-sm font-bold text-red-600"></span>
+      <span class="text-red-300">|</span>
+      <button onclick="openBulkDeleteModal()" class="btn-danger" style="padding:6px 14px;">
+        🗑️ 선택 항목 삭제
+      </button>
+      <button onclick="clearSelection()" class="text-sm text-ink-400 hover:text-ink-600 transition ml-auto">선택 해제</button>
+    </div>
+
     <!-- 로딩 -->
     <div id="loadingState" class="text-center py-16">
       <div class="spinner mx-auto mb-4"></div>
@@ -167,7 +177,11 @@
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-ink-100 bg-ink-100">
-            <th class="text-left px-6 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide">제목</th>
+            <th class="px-4 py-3.5 w-10">
+              <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)"
+                class="w-4 h-4 accent-red-500 cursor-pointer rounded">
+            </th>
+            <th class="text-left px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide">제목</th>
             <th class="text-left px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide hidden sm:table-cell">파일명</th>
             <th class="text-center px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide">관리</th>
           </tr>
@@ -195,6 +209,22 @@
     </div>
   </div>
 
+  <!-- 일괄 삭제 확인 모달 -->
+  <div id="bulkDeleteModal" class="hidden fixed inset-0 bg-ink-900/40 z-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-2xl shadow-xl p-7 w-full max-w-sm">
+      <h3 class="font-black text-ink-900 text-lg mb-2">일괄 삭제</h3>
+      <p id="bulkDeleteDesc" class="text-ink-500 text-sm mb-1"></p>
+      <p class="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg mt-3 mb-6">삭제된 파일은 복구할 수 없습니다.</p>
+      <div class="flex gap-3">
+        <button onclick="closeBulkDeleteModal()" class="flex-1 py-2.5 rounded-xl border border-ink-100 text-ink-500 font-bold text-sm hover:bg-ink-100 transition">취소</button>
+        <button id="confirmBulkDeleteBtn" onclick="confirmBulkDelete()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition">
+          <span id="bulkDeleteBtnText">전체 삭제</span>
+          <span id="bulkDeleteSpinner" class="hidden"><span class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 토스트 -->
   <div id="toast" class="toast"></div>
 
@@ -214,6 +244,7 @@
   let pendingDeleteFile = null;
   let pendingDeleteSha = null;
   let postsData = [];
+  let selectedFiles = new Set(); // 일괄 삭제용 선택 목록
 
   // ── SHA-256 해시 ──────────────────────────────────
   async function sha256(str) {
@@ -346,10 +377,18 @@
   }
 
   function renderTable(posts) {
+    selectedFiles.clear();
+    updateBulkToolbar();
+    document.getElementById('selectAllCheckbox').checked = false;
     const tbody = document.getElementById('postTableBody');
     tbody.innerHTML = posts.map(post => `
-      <tr class="border-b border-ink-100 last:border-0 hover:bg-ink-100/50 transition-colors">
-        <td class="px-6 py-4">
+      <tr class="border-b border-ink-100 last:border-0 hover:bg-ink-100/50 transition-colors" id="row-${escAttr(post.name)}">
+        <td class="px-4 py-4 w-10">
+          <input type="checkbox" class="row-checkbox w-4 h-4 accent-red-500 cursor-pointer rounded"
+            data-name="${escAttr(post.name)}" data-sha="${escAttr(post.sha)}"
+            onchange="handleRowCheck(this)">
+        </td>
+        <td class="px-4 py-4">
           <div class="font-semibold text-ink-900 line-clamp-1">${escHtml(post.title)}</div>
           ${post.date ? `<div class="text-xs text-ink-300 mt-0.5">${post.date}</div>` : ''}
         </td>
@@ -365,6 +404,50 @@
       </tr>
     `).join('');
     document.getElementById('postCount').textContent = `총 ${posts.length}개의 포스트`;
+  }
+
+  // ── 체크박스 선택 ─────────────────────────────────
+  function handleRowCheck(cb) {
+    const { name, sha } = cb.dataset;
+    if (cb.checked) {
+      selectedFiles.add({ name, sha });
+    } else {
+      selectedFiles.forEach(f => { if (f.name === name) selectedFiles.delete(f); });
+    }
+    updateBulkToolbar();
+    // 전체선택 체크박스 동기화
+    const all = document.querySelectorAll('.row-checkbox');
+    const checked = document.querySelectorAll('.row-checkbox:checked');
+    document.getElementById('selectAllCheckbox').checked = all.length > 0 && all.length === checked.length;
+    document.getElementById('selectAllCheckbox').indeterminate = checked.length > 0 && checked.length < all.length;
+  }
+
+  function toggleSelectAll(checked) {
+    selectedFiles.clear();
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      cb.checked = checked;
+      if (checked) selectedFiles.add({ name: cb.dataset.name, sha: cb.dataset.sha });
+    });
+    updateBulkToolbar();
+  }
+
+  function clearSelection() {
+    selectedFiles.clear();
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCheckbox').checked = false;
+    document.getElementById('selectAllCheckbox').indeterminate = false;
+    updateBulkToolbar();
+  }
+
+  function updateBulkToolbar() {
+    const toolbar = document.getElementById('bulkToolbar');
+    const count = selectedFiles.size;
+    if (count > 0) {
+      toolbar.classList.remove('hidden');
+      document.getElementById('bulkCount').textContent = `${count}개 선택됨`;
+    } else {
+      toolbar.classList.add('hidden');
+    }
   }
 
   function showState(state) {
@@ -418,6 +501,53 @@
     document.getElementById('confirmDeleteBtn').disabled = on;
   }
 
+  // ── 일괄 삭제 모달 ────────────────────────────────
+  function openBulkDeleteModal() {
+    const count = selectedFiles.size;
+    if (count === 0) return;
+    document.getElementById('bulkDeleteDesc').textContent = `선택한 ${count}개 포스트를 삭제하시겠습니까?`;
+    document.getElementById('bulkDeleteModal').classList.remove('hidden');
+  }
+
+  function closeBulkDeleteModal() {
+    document.getElementById('bulkDeleteModal').classList.add('hidden');
+  }
+
+  async function confirmBulkDelete() {
+    const files = [...selectedFiles];
+    if (files.length === 0) return;
+
+    document.getElementById('bulkDeleteBtnText').classList.add('hidden');
+    document.getElementById('bulkDeleteSpinner').classList.remove('hidden');
+    document.getElementById('confirmBulkDeleteBtn').disabled = true;
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const f of files) {
+      try {
+        const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts/${f.name}`, {
+          method: 'DELETE',
+          body: JSON.stringify({ message: `Delete post: ${f.name}`, sha: f.sha })
+        });
+        if (res.ok) successCount++;
+        else failCount++;
+      } catch { failCount++; }
+    }
+
+    document.getElementById('bulkDeleteBtnText').classList.remove('hidden');
+    document.getElementById('bulkDeleteSpinner').classList.add('hidden');
+    document.getElementById('confirmBulkDeleteBtn').disabled = false;
+    closeBulkDeleteModal();
+
+    if (failCount === 0) {
+      showToast(`${successCount}개 포스트가 삭제되었습니다.`, 'success');
+    } else {
+      showToast(`${successCount}개 삭제 완료, ${failCount}개 실패.`, failCount > 0 ? 'error' : 'success');
+    }
+    await loadPosts();
+  }
+
   // ── 토스트 ────────────────────────────────────────
   function showToast(msg, type = 'success') {
     const el = document.getElementById('toast');
@@ -437,6 +567,9 @@
   // 모달 배경 클릭 시 닫기
   document.getElementById('deleteModal').addEventListener('click', function(e) {
     if (e.target === this) closeDeleteModal();
+  });
+  document.getElementById('bulkDeleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBulkDeleteModal();
   });
 
   // 세션 확인 (이미 로그인돼 있으면 대시보드 바로 표시)
