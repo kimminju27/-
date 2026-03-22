@@ -366,12 +366,17 @@
         headers: {
           'Authorization': `token ${token}`,
           'Accept': 'application/vnd.github.v3+json'
-        }
+        },
+        signal: AbortSignal.timeout(20000)
       });
       if (!res.ok) throw new Error('파일을 불러올 수 없습니다.');
       const data = await res.json();
       editFileSha = data.sha;
-      const html = atob(data.content.replace(/\n/g, ''));
+      // UTF-8 한글 깨짐 방지: TextDecoder 사용
+      const rawB64 = atob(data.content.replace(/\n/g, ''));
+      const bytes = new Uint8Array(rawB64.length);
+      for (let i = 0; i < rawB64.length; i++) bytes[i] = rawB64.charCodeAt(i);
+      const html = new TextDecoder('utf-8').decode(bytes);
 
       // 파싱
       const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
@@ -487,7 +492,8 @@
           'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json'
         },
-        body
+        body,
+        signal: AbortSignal.timeout(30000)
       });
 
       if (!res.ok) {
