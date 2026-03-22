@@ -310,7 +310,8 @@
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json',
         ...(opts.headers || {})
-      }
+      },
+      signal: opts.signal || AbortSignal.timeout(20000)
     });
     return res;
   }
@@ -382,11 +383,10 @@
     document.getElementById('selectAllCheckbox').checked = false;
     const tbody = document.getElementById('postTableBody');
     tbody.innerHTML = posts.map(post => `
-      <tr class="border-b border-ink-100 last:border-0 hover:bg-ink-100/50 transition-colors" id="row-${escAttr(post.name)}">
+      <tr class="border-b border-ink-100 last:border-0 hover:bg-ink-100/50 transition-colors">
         <td class="px-4 py-4 w-10">
           <input type="checkbox" class="row-checkbox w-4 h-4 accent-red-500 cursor-pointer rounded"
-            data-name="${escAttr(post.name)}" data-sha="${escAttr(post.sha)}"
-            onchange="handleRowCheck(this)">
+            data-name="${escHtml(post.name)}" data-sha="${escHtml(post.sha)}">
         </td>
         <td class="px-4 py-4">
           <div class="font-semibold text-ink-900 line-clamp-1">${escHtml(post.title)}</div>
@@ -398,7 +398,7 @@
         <td class="px-4 py-4">
           <div class="flex items-center justify-center gap-2">
             <a href="admin-editor.html?file=${encodeURIComponent(post.name)}" class="btn-edit">✏️ 수정</a>
-            <button onclick="openDeleteModal('${escAttr(post.name)}','${escAttr(post.sha)}')" class="btn-danger">🗑️ 삭제</button>
+            <button class="btn-danger btn-delete-row" data-name="${escHtml(post.name)}" data-sha="${escHtml(post.sha)}">🗑️ 삭제</button>
           </div>
         </td>
       </tr>
@@ -406,21 +406,26 @@
     document.getElementById('postCount').textContent = `총 ${posts.length}개의 포스트`;
   }
 
-  // ── 체크박스 선택 ─────────────────────────────────
-  function handleRowCheck(cb) {
-    const { name, sha } = cb.dataset;
-    if (cb.checked) {
+  // ── 체크박스 + 삭제버튼 이벤트 위임 ─────────────
+  document.getElementById('postTableBody').addEventListener('change', function(e) {
+    if (!e.target.classList.contains('row-checkbox')) return;
+    const { name, sha } = e.target.dataset;
+    if (e.target.checked) {
       selectedFiles.add({ name, sha });
     } else {
       selectedFiles.forEach(f => { if (f.name === name) selectedFiles.delete(f); });
     }
     updateBulkToolbar();
-    // 전체선택 체크박스 동기화
     const all = document.querySelectorAll('.row-checkbox');
     const checked = document.querySelectorAll('.row-checkbox:checked');
     document.getElementById('selectAllCheckbox').checked = all.length > 0 && all.length === checked.length;
     document.getElementById('selectAllCheckbox').indeterminate = checked.length > 0 && checked.length < all.length;
-  }
+  });
+
+  document.getElementById('postTableBody').addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-delete-row');
+    if (btn) openDeleteModal(btn.dataset.name, btn.dataset.sha);
+  });
 
   function toggleSelectAll(checked) {
     selectedFiles.clear();

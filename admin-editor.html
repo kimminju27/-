@@ -495,19 +495,14 @@
         throw new Error(err.message || '저장에 실패했습니다.');
       }
 
-      // index.html 카드 동기화
-      document.getElementById('savingMsg').textContent = 'index.html 카드 동기화 중...';
-      await syncIndexOnSave({ title, desc, category, date, slug, isEdit: editMode });
-
-      // 신규 글이면 sitemap.xml도 업데이트
-      if (!editMode) {
-        document.getElementById('savingMsg').textContent = 'sitemap.xml 업데이트 중...';
-        await syncSitemapOnSave({ slug, date });
-      }
-
+      // 저장 완료 → 즉시 화면 전환 (동기화는 백그라운드)
       showSavingOverlay(false);
-      showToast(editMode ? '수정 완료! 목록으로 이동합니다.' : '저장 완료! 목록으로 이동합니다.', 'success');
-      setTimeout(() => { location.href = 'admin.html'; }, 1500);
+      showToast(editMode ? '수정 완료!' : '저장 완료!', 'success');
+      setTimeout(() => { location.href = 'admin.html'; }, 800);
+
+      // 백그라운드에서 index.html / sitemap.xml 동기화 (비동기, 실패해도 무관)
+      syncIndexOnSave({ title, desc, category, date, slug, isEdit: editMode }).catch(() => {});
+      if (!editMode) syncSitemapOnSave({ slug, date }).catch(() => {});
     } catch (err) {
       showSavingOverlay(false);
       showToast(err.message, 'error');
@@ -532,7 +527,8 @@
   async function getGhFile(filepath) {
     const token = sessionStorage.getItem('gh_token');
     const res = await fetch(`${API_BASE}/repos/${OWNER}/${REPO}/contents/${filepath}`, {
-      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+      signal: AbortSignal.timeout(15000)
     });
     if (!res.ok) return null;
     const d = await res.json();
@@ -548,7 +544,8 @@
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ message, content: utf8ToBase64(content), sha })
+      body: JSON.stringify({ message, content: utf8ToBase64(content), sha }),
+      signal: AbortSignal.timeout(15000)
     });
     return res.ok;
   }
