@@ -115,22 +115,6 @@
     /* 카운터 */
     #descCount { transition: color 0.15s; }
 
-    /* 저장 오버레이 */
-    #savingOverlay {
-      position: fixed; inset: 0;
-      background: rgba(15,23,42,0.5);
-      z-index: 100;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 12px;
-    }
-    #savingOverlay .save-box {
-      background: #fff;
-      padding: 28px 40px;
-      border-radius: 16px;
-      text-align: center;
-    }
-
     /* 토스트 */
     .toast {
       position: fixed; bottom: 24px; right: 24px;
@@ -239,14 +223,6 @@
           <span id="saveBtnSpinner" class="hidden"><span class="spinner"></span></span>
         </button>
       </div>
-    </div>
-  </div>
-
-  <!-- 저장 중 오버레이 -->
-  <div id="savingOverlay" class="hidden">
-    <div class="save-box">
-      <div class="border-4 border-ink-100 border-t-brand-600 rounded-full w-12 h-12 animate-spin mx-auto mb-4"></div>
-      <p id="savingMsg" class="text-ink-700 font-bold text-sm">GitHub에 저장 중...</p>
     </div>
   </div>
 
@@ -873,13 +849,7 @@ ${bodyHtml}
     return String(str).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
   }
 
-  // ── 오버레이 / 토스트 ─────────────────────────────
-  function showSavingOverlay(show, msg = 'GitHub에 저장 중...') {
-    const el = document.getElementById('savingOverlay');
-    el.classList.toggle('hidden', !show);
-    if (show) document.getElementById('savingMsg').textContent = msg;
-  }
-
+  // ── 토스트 ────────────────────────────────────────
   function showToast(msg, type = 'success') {
     const el = document.getElementById('toast');
     el.textContent = msg;
