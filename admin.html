@@ -135,6 +135,9 @@
         <button onclick="loadPosts()" class="btn-edit" style="border-color:#e2e8f0; color:#475569;">
           🔄 새로고침
         </button>
+        <button id="syncBtn" onclick="syncHomepage()" class="btn-edit" style="border-color:#fbbf24; color:#d97706;">
+          🏠 홈페이지 동기화
+        </button>
         <a href="admin-editor.html" class="btn-primary">
           ✏️ 새 글 작성
         </a>
@@ -511,6 +514,70 @@
     document.getElementById('deleteBtnText').classList.toggle('hidden', on);
     document.getElementById('deleteSpinner').classList.toggle('hidden', !on);
     document.getElementById('confirmDeleteBtn').disabled = on;
+  }
+
+  // ── 홈페이지 동기화 (index.html 재빌드) ──────────
+  async function syncHomepage() {
+    const btn = document.getElementById('syncBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 동기화 중...';
+    try {
+      // 1. 현재 posts/ 폴더의 실제 파일 목록 가져오기
+      const listRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts`);
+      if (!listRes.ok) throw new Error('posts 폴더 읽기 실패');
+      const files = await listRes.json();
+      const existingFiles = new Set(
+        files.filter(f => f.name.endsWith('.html') && f.name !== '_template.html')
+             .map(f => f.name)
+      );
+
+      // 2. index.html 불러오기
+      const idx = await getFileShaAndContent('index.html');
+      if (!idx) throw new Error('index.html 읽기 실패');
+
+      // 3. <!-- AUTO: --> 블록 중 파일이 없는 것 제거
+      const parts = idx.content.split('<!-- AUTO:');
+      const kept = parts.filter((part, i) => {
+        if (i === 0) return true; // 헤더 부분
+        // 이 블록이 참조하는 파일명 추출
+        const match = part.match(/onclick="location\.href='posts\/([^'"]+)'"/);
+        if (!match) return true; // 패턴 없으면 유지
+        const refFile = match[1]; // 예: ai-financial-technology-2026-03-22-1957.html
+        return existingFiles.has(refFile);
+      });
+
+      const newHtml = kept.join('<!-- AUTO:');
+      const removedCount = parts.length - kept.length;
+
+      if (removedCount === 0) {
+        showToast('이미 동기화되어 있습니다.', 'success');
+        return;
+      }
+
+      // 4. sitemap.xml도 동기화
+      const sm = await getFileShaAndContent('sitemap.xml');
+      if (sm) {
+        const newXml = sm.content.replace(/<url>[\s\S]*?<\/url>/g, (match) => {
+          const m = match.match(/<loc>https:\/\/bloginfo360\.com\/posts\/([^<]+)<\/loc>/);
+          if (!m) return match;
+          const slugName = m[1].endsWith('.html') ? m[1] : m[1] + '.html';
+          return existingFiles.has(slugName) ? match : '';
+        }).replace(/\n\s*\n\s*\n/g, '\n\n');
+        await putFile('sitemap.xml', newXml, sm.sha, 'admin: sitemap 동기화');
+      }
+
+      // 5. index.html 저장
+      const ok = await putFile('index.html', newHtml, idx.sha,
+        `admin: 홈페이지 동기화 (카드 ${removedCount}개 제거)`);
+      if (!ok) throw new Error('index.html 저장 실패');
+
+      showToast(`✅ 완료! 카드 ${removedCount}개 제거. Vercel 배포 후 반영됩니다.`, 'success');
+    } catch (e) {
+      showToast('❌ ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🏠 홈페이지 동기화';
+    }
   }
 
   // ── 일괄 삭제 모달 ────────────────────────────────
