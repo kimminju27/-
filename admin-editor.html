@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>글 편집기 - 경제적 자유를 위한 도전</title>
+  <title>글 편집기 - 나만 모르는 요즘 소식</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -133,7 +133,7 @@
 
   <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="index.html" class="text-xl font-black text-brand-600 leading-tight">경제적 자유를<br class="sm:hidden"> 위한 도전</a>
+      <a href="index.html" class="text-xl font-black text-brand-600 leading-tight">나만 모르는<br class="sm:hidden"> 요즘 소식</a>
       <div class="flex items-center gap-3">
         <a href="admin.html" class="btn-secondary text-sm py-2 px-4">← 목록으로</a>
         <span id="modeLabel" class="text-sm font-bold text-ink-500 bg-ink-100 px-3 py-1 rounded-full">신규 작성</span>
@@ -231,7 +231,7 @@
 
   <footer class="border-t border-ink-100 bg-white mt-4">
     <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
-      <span class="font-bold text-ink-500">경제적 자유를 위한 도전</span>
+      <span class="font-bold text-ink-500">나만 모르는 요즘 소식</span>
       <span>2026. All rights reserved.</span>
     </div>
   </footer>
@@ -357,7 +357,7 @@
       // 파싱
       const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
       if (titleMatch) {
-        const raw = titleMatch[1].replace(/\s*-\s*경제적 자유를 위한 도전\s*$/, '').trim();
+        const raw = titleMatch[1].replace(/\s*-\s*나만 모르는 요즘 소식\s*$/, '').trim();
         document.getElementById('titleInput').value = raw;
       }
 
@@ -641,7 +641,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="/analytics.js"><\/script>
-  <title>${escHtml(title)} - 경제적 자유를 위한 도전</title>
+  <title>${escHtml(title)} - 나만 모르는 요즘 소식</title>
   <meta name="description" content="${escAttrHtml(desc)}">
   <meta name="robots" content="index, follow">
   <meta name="google-adsense-account" content="ca-pub-1954893264438671">
@@ -664,8 +664,8 @@
     "description": "${escJson(desc)}",
     "datePublished": "${date}",
     "dateModified": "${date}",
-    "author": { "@type": "Person", "name": "경제적 자유를 위한 도전" },
-    "publisher": { "@type": "Organization", "name": "경제적 자유를 위한 도전" }
+    "author": { "@type": "Person", "name": "나만 모르는 요즘 소식" },
+    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식" }
   }
   <\/script>
   <script src="https://cdn.tailwindcss.com"><\/script>
@@ -717,7 +717,7 @@
 
   <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="../index.html" class="text-xl font-black text-brand-600 leading-tight">경제적 자유를<br class="sm:hidden"> 위한 도전</a>
+      <a href="../index.html" class="text-xl font-black text-brand-600 leading-tight">나만 모르는<br class="sm:hidden"> 요즘 소식</a>
       <nav class="hidden sm:flex items-center gap-6 text-sm font-medium text-ink-500">
         <a href="../index.html" class="hover:text-brand-600 transition-colors">홈</a>
         <a href="../index.html#category" class="hover:text-brand-600 transition-colors">카테고리</a>
@@ -795,7 +795,7 @@ ${bodyHtml}
 
   <footer class="border-t border-ink-100 bg-white mt-16">
     <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
-      <span class="font-bold text-ink-500">경제적 자유를 위한 도전</span>
+      <span class="font-bold text-ink-500">나만 모르는 요즘 소식</span>
       <span>2026. All rights reserved.</span>
     </div>
   </footer>

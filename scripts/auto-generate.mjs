@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 자동 글 생성 스크립트
  * - news 모드: Google News RSS → Gemini API → 뉴스 기사 HTML 생성
  * - product_review 모드: 제품 URL → Gemini API → 리뷰 HTML 생성
@@ -969,7 +969,7 @@ function buildNewsHTML(data) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="/analytics.js"></script>
-  <title>${escHtml(data.title)} - 경제적 자유를 위한 도전</title>
+  <title>${escHtml(data.title)} - 나만 모르는 요즘 소식</title>
   <meta name="description" content="${escAttr(data.description)}">
   <meta name="keywords" content="${escAttr((data.keywords || []).join(', '))}">
   <meta name="robots" content="index, follow">
@@ -993,8 +993,8 @@ function buildNewsHTML(data) {
     "description": ${JSON.stringify(data.description)},
     "datePublished": "${data.date}",
     "dateModified": "${data.date}",
-    "author": { "@type": "Person", "name": "경제적 자유를 위한 도전" },
-    "publisher": { "@type": "Organization", "name": "경제적 자유를 위한 도전" }
+    "author": { "@type": "Person", "name": "나만 모르는 요즘 소식" },
+    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식" }
   }
   </script>
   ${commonHead()}
@@ -1126,7 +1126,7 @@ function buildProductReviewHTML(data) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="/analytics.js"></script>
-  <title>${escHtml(data.title)} - 경제적 자유를 위한 도전</title>
+  <title>${escHtml(data.title)} - 나만 모르는 요즘 소식</title>
   <meta name="description" content="${escAttr(data.description)}">
   <meta name="keywords" content="${escAttr((data.keywords || []).join(', '))}">
   <meta name="robots" content="index, follow">
@@ -1144,7 +1144,7 @@ function buildProductReviewHTML(data) {
     "headline": ${JSON.stringify(data.title)},
     "description": ${JSON.stringify(data.description)},
     "datePublished": "${data.date}",
-    "author": { "@type": "Person", "name": "경제적 자유를 위한 도전" },
+    "author": { "@type": "Person", "name": "나만 모르는 요즘 소식" },
     "reviewRating": { "@type": "Rating", "ratingValue": "${data.rating || 4}", "bestRating": "5" }
   }
   </script>
@@ -1481,7 +1481,7 @@ function commonHead() {
 function header() {
   return `<header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="../index.html" class="text-xl font-black text-brand-600 leading-tight">경제적 자유를<br class="sm:hidden"> 위한 도전</a>
+      <a href="../index.html" class="text-xl font-black text-brand-600 leading-tight">나만 모르는<br class="sm:hidden"> 요즘 소식</a>
       <nav class="hidden sm:flex items-center gap-6 text-sm font-medium text-ink-500">
         <a href="../index.html" class="hover:text-brand-600 transition-colors">홈</a>
         <a href="../index.html#category" class="hover:text-brand-600 transition-colors">카테고리</a>
@@ -1496,7 +1496,7 @@ function header() {
 
 function footer() {
   return `<footer class="border-t border-ink-100 mt-16 py-8 text-center text-xs text-ink-300">
-    <p>© 2026 경제적 자유를 위한 도전. All rights reserved.</p>
+    <p>© 2026 나만 모르는 요즘 소식. All rights reserved.</p>
     <p class="mt-1"><a href="../index.html" class="hover:text-brand-600">홈으로 돌아가기</a></p>
   </footer>`;
 }
