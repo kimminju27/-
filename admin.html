@@ -486,7 +486,10 @@
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || '삭제 실패');
       }
+      const deletedFile = pendingDeleteFile;
       closeDeleteModal();
+      showToast('삭제 중... index.html 동기화 중', 'success');
+      await syncAfterDelete([deletedFile]);
       showToast('포스트가 삭제되었습니다.', 'success');
       await loadPosts();
     } catch (err) {
@@ -540,10 +543,14 @@
     document.getElementById('confirmBulkDeleteBtn').disabled = false;
     closeBulkDeleteModal();
 
+    if (successCount > 0) {
+      showToast(`${successCount}개 삭제 중... index.html 동기화 중`, 'success');
+      await syncAfterDelete(files.filter((_, i) => i < successCount).map(f => f.name));
+    }
     if (failCount === 0) {
       showToast(`${successCount}개 포스트가 삭제되었습니다.`, 'success');
     } else {
-      showToast(`${successCount}개 삭제 완료, ${failCount}개 실패.`, failCount > 0 ? 'error' : 'success');
+      showToast(`${successCount}개 삭제 완료, ${failCount}개 실패.`, 'error');
     }
     await loadPosts();
   }
@@ -554,6 +561,77 @@
     el.textContent = msg;
     el.className = `toast toast-${type} show`;
     setTimeout(() => { el.classList.remove('show'); }, 3000);
+  }
+
+  // ── index.html / sitemap.xml 동기화 ──────────────
+  function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    return btoa(binary);
+  }
+
+  function decodeBase64Content(b64) {
+    const raw = atob(b64.replace(/\n/g, ''));
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
+  async function getFileShaAndContent(filepath) {
+    const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filepath}`);
+    if (!res.ok) return null;
+    const d = await res.json();
+    return { sha: d.sha, content: decodeBase64Content(d.content) };
+  }
+
+  async function putFile(filepath, content, sha, message) {
+    const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filepath}`, {
+      method: 'PUT',
+      body: JSON.stringify({ message, content: utf8ToBase64(content), sha })
+    });
+    return res.ok;
+  }
+
+  function removeCardFromIndex(html, filename) {
+    const slug = filename.replace(/\.html$/, '');
+    // AUTO 코멘트 + article 블록을 매칭해서, 해당 slug가 포함된 블록만 제거
+    return html.replace(/[ \t]*<!-- AUTO:[^\n]*-->\n[ \t]*<article[\s\S]*?<\/article>\n?/g, (match) => {
+      return match.includes(`posts/${slug}.html`) ? '' : match;
+    });
+  }
+
+  function removeFromSitemap(xml, filename) {
+    const slug = filename.replace(/\.html$/, '');
+    return xml.replace(/\n  <url>[\s\S]*?<\/url>/g, (match) => {
+      return match.includes(`/posts/${slug}`) ? '' : match;
+    });
+  }
+
+  async function syncAfterDelete(filenames) {
+    if (!filenames || filenames.length === 0) return;
+    try {
+      // index.html 동기화
+      const idx = await getFileShaAndContent('index.html');
+      if (idx) {
+        let newHtml = idx.content;
+        filenames.forEach(f => { newHtml = removeCardFromIndex(newHtml, f); });
+        if (newHtml !== idx.content) {
+          await putFile('index.html', newHtml, idx.sha, `admin: 삭제된 포스트 카드 제거 (${filenames.join(', ')})`);
+        }
+      }
+      // sitemap.xml 동기화
+      const sm = await getFileShaAndContent('sitemap.xml');
+      if (sm) {
+        let newXml = sm.content;
+        filenames.forEach(f => { newXml = removeFromSitemap(newXml, f); });
+        if (newXml !== sm.content) {
+          await putFile('sitemap.xml', newXml, sm.sha, `admin: 삭제된 포스트 sitemap 제거 (${filenames.join(', ')})`);
+        }
+      }
+    } catch (e) {
+      console.warn('index.html/sitemap.xml 동기화 중 오류:', e.message);
+    }
   }
 
   // ── 유틸 ──────────────────────────────────────────
