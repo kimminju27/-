@@ -488,9 +488,13 @@
       }
       const deletedFile = pendingDeleteFile;
       closeDeleteModal();
-      showToast('삭제 중... index.html 동기화 중', 'success');
-      await syncAfterDelete([deletedFile]);
-      showToast('포스트가 삭제되었습니다.', 'success');
+      showToast('홈페이지 카드 제거 중...', 'success');
+      try {
+        await syncAfterDelete([deletedFile]);
+        showToast('삭제 완료! 홈페이지에서도 제거됐습니다.', 'success');
+      } catch (syncErr) {
+        showToast(`포스트 삭제됨, 그러나 카드 제거 실패: ${syncErr.message}`, 'error');
+      }
       await loadPosts();
     } catch (err) {
       setDeleteLoading(false);
@@ -544,13 +548,16 @@
     closeBulkDeleteModal();
 
     if (successCount > 0) {
-      showToast(`${successCount}개 삭제 중... index.html 동기화 중`, 'success');
-      await syncAfterDelete(files.filter((_, i) => i < successCount).map(f => f.name));
+      showToast(`${successCount}개 삭제됨, 홈페이지 카드 제거 중...`, 'success');
+      try {
+        await syncAfterDelete(files.map(f => f.name));
+        showToast(`${successCount}개 삭제 완료! 홈페이지에서도 제거됐습니다.`, 'success');
+      } catch (syncErr) {
+        showToast(`삭제됨, 카드 제거 실패: ${syncErr.message}`, 'error');
+      }
     }
-    if (failCount === 0) {
-      showToast(`${successCount}개 포스트가 삭제되었습니다.`, 'success');
-    } else {
-      showToast(`${successCount}개 삭제 완료, ${failCount}개 실패.`, 'error');
+    if (failCount > 0) {
+      showToast(`${failCount}개 삭제 실패.`, 'error');
     }
     await loadPosts();
   }
@@ -593,45 +600,61 @@
     return res.ok;
   }
 
+  // <!-- AUTO: --> 단위로 split해서 해당 slug 블록만 제거 (정규식 의존 없음)
   function removeCardFromIndex(html, filename) {
     const slug = filename.replace(/\.html$/, '');
-    // AUTO 코멘트 + article 블록을 매칭해서, 해당 slug가 포함된 블록만 제거
-    return html.replace(/[ \t]*<!-- AUTO:[^\n]*-->\n[ \t]*<article[\s\S]*?<\/article>\n?/g, (match) => {
-      return match.includes(`posts/${slug}.html`) ? '' : match;
-    });
+    const target = `posts/${slug}.html`;
+    if (!html.includes(target)) return html; // 없으면 그대로
+    const parts = html.split('<!-- AUTO:');
+    const filtered = parts.filter((part, i) => i === 0 || !part.includes(target));
+    return filtered.join('<!-- AUTO:');
   }
 
   function removeFromSitemap(xml, filename) {
     const slug = filename.replace(/\.html$/, '');
-    return xml.replace(/\n  <url>[\s\S]*?<\/url>/g, (match) => {
-      return match.includes(`/posts/${slug}`) ? '' : match;
-    });
+    const target = `/posts/${slug}`;
+    if (!xml.includes(target)) return xml;
+    // <url>...</url> 블록 단위로 제거
+    return xml.replace(/<url>[\s\S]*?<\/url>/g, (match) => {
+      return match.includes(target) ? '' : match;
+    }).replace(/\n\s*\n\s*\n/g, '\n\n'); // 빈 줄 정리
   }
 
   async function syncAfterDelete(filenames) {
     if (!filenames || filenames.length === 0) return;
+    const errors = [];
+
+    // index.html 동기화
     try {
-      // index.html 동기화
       const idx = await getFileShaAndContent('index.html');
       if (idx) {
         let newHtml = idx.content;
         filenames.forEach(f => { newHtml = removeCardFromIndex(newHtml, f); });
         if (newHtml !== idx.content) {
-          await putFile('index.html', newHtml, idx.sha, `admin: 삭제된 포스트 카드 제거 (${filenames.join(', ')})`);
+          const ok = await putFile('index.html', newHtml, idx.sha,
+            `admin: 포스트 카드 제거 (${filenames.join(', ')})`);
+          if (!ok) errors.push('index.html 저장 실패');
         }
+      } else {
+        errors.push('index.html 읽기 실패');
       }
-      // sitemap.xml 동기화
+    } catch (e) { errors.push(`index.html 오류: ${e.message}`); }
+
+    // sitemap.xml 동기화
+    try {
       const sm = await getFileShaAndContent('sitemap.xml');
       if (sm) {
         let newXml = sm.content;
         filenames.forEach(f => { newXml = removeFromSitemap(newXml, f); });
         if (newXml !== sm.content) {
-          await putFile('sitemap.xml', newXml, sm.sha, `admin: 삭제된 포스트 sitemap 제거 (${filenames.join(', ')})`);
+          const ok = await putFile('sitemap.xml', newXml, sm.sha,
+            `admin: sitemap 제거 (${filenames.join(', ')})`);
+          if (!ok) errors.push('sitemap.xml 저장 실패');
         }
       }
-    } catch (e) {
-      console.warn('index.html/sitemap.xml 동기화 중 오류:', e.message);
-    }
+    } catch (e) { errors.push(`sitemap.xml 오류: ${e.message}`); }
+
+    if (errors.length > 0) throw new Error(errors.join(' / '));
   }
 
   // ── 유틸 ──────────────────────────────────────────

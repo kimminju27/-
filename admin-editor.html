@@ -601,18 +601,24 @@
 
   function updateCardInIndex(html, slug, { title, desc, category, date }) {
     const shortDesc = (desc || '').substring(0, 80) + '...';
-    const dateStr = date.replace(/-/g, '.');
-    const cfg = CAT_CONFIG[category] || CAT_CONFIG['경제'];
-    return html.replace(/[ \t]*<!-- AUTO:[^\n]*-->\n[ \t]*<article[\s\S]*?<\/article>\n?/g, (match) => {
-      if (!match.includes(`posts/${slug}`)) return match;
-      let m = match;
-      m = m.replace(/<!-- AUTO:[^\n]*-->/, `<!-- AUTO: ${escHtml(title)} -->`);
-      m = m.replace(/data-title="[^"]*"/, `data-title="${escAttrHtml(title)}"`);
-      m = m.replace(/data-category="[^"]*"/, `data-category="${escAttrHtml(category)}"`);
-      m = m.replace(/<h2[^>]*>[\s\S]*?<\/h2>/, `<h2 class="mt-2 font-bold text-ink-900 text-base leading-snug">${escHtml(title)}</h2>`);
-      m = m.replace(/<p class="mt-1\.5 text-xs text-ink-500 line-clamp-2">[\s\S]*?<\/p>/, `<p class="mt-1.5 text-xs text-ink-500 line-clamp-2">${escHtml(shortDesc)}</p>`);
-      return m;
-    });
+    const target = `posts/${slug}`;
+    if (!html.includes(target)) return html;
+    // split 방식: <!-- AUTO: --> 단위로 분리 후 해당 블록만 교체
+    const parts = html.split('<!-- AUTO:');
+    for (let i = 1; i < parts.length; i++) {
+      if (parts[i].includes(target)) {
+        let block = parts[i];
+        // title 뒤 --> 까지를 새 제목으로 교체
+        block = block.replace(/^[^>]*-->/, ` ${escHtml(title)} -->`);
+        block = block.replace(/data-title="[^"]*"/, `data-title="${escAttrHtml(title)}"`);
+        block = block.replace(/data-category="[^"]*"/, `data-category="${escAttrHtml(category)}"`);
+        block = block.replace(/<h2[^>]*>[\s\S]*?<\/h2>/, `<h2 class="mt-2 font-bold text-ink-900 text-base leading-snug">${escHtml(title)}</h2>`);
+        block = block.replace(/<p class="mt-1\.5 text-xs text-ink-500 line-clamp-2">[\s\S]*?<\/p>/, `<p class="mt-1.5 text-xs text-ink-500 line-clamp-2">${escHtml(shortDesc)}</p>`);
+        parts[i] = block;
+        break;
+      }
+    }
+    return parts.join('<!-- AUTO:');
   }
 
   async function syncIndexOnSave({ title, desc, category, date, slug, isEdit }) {
