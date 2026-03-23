@@ -860,23 +860,26 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
 ${finalPrice ? `가격: ${finalPrice}` : ''}
 제품 설명: ${productDesc || '없음 (제품명 기반으로 창의적으로 작성)'}
 
-===아래 JSON을 완성하세요. 각 섹션 content는 반드시 실제 리뷰 내용 (400자 이상 한국어)으로 채우세요.===
+===아래 JSON을 완성하세요. 각 섹션 content는 반드시 600자 이상 한국어로 빽빽하게 채우세요. 절대 짧게 쓰지 마세요.===
 
 {
   "title": "제품별 SEO 최적화 제목 (50-65자). 매번 다른 패턴 사용. '한 달', '직접 사용', '실사용', '써봤습니다' 패턴 절대 금지. 예시 패턴: '[제품명] 이게 왜 인기인지 이제 알겠다', '[제품명] — 이 가격에 이 퀄리티 가능한 이유', '요즘 이 제품 왜 다들 사는지 이유 있었다 — [제품명]', '[제품명] 선물로 이게 정답인 이유', '[제품명] 완전 정복 — 스펙·가격·추천 대상 총정리', '지금 가장 핫한 [제품명] 구매 가이드'.",
   "productName": "${info.title}",
   "description": "90-120자 메타 설명. 구매 욕구 자극.",
-  "keywords": ["관련키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+  "keywords": ["핵심키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+  "hashtags": ["해시태그1", "해시태그2", "해시태그3", "해시태그4", "해시태그5", "해시태그6", "해시태그7", "해시태그8", "해시태그9", "해시태그10", "해시태그11", "해시태그12", "해시태그13", "해시태그14", "해시태그15", "해시태그16", "해시태그17", "해시태그18", "해시태그19", "해시태그20"],
   "slug": "영문-슬러그-review",
   "price": "${finalPrice || '네이버 최저가 확인'}",
-  "intro": "2문단 HTML. 이 제품이 왜 주목받는지, 어떤 분들에게 필요한지로 시작. '한 달', '직접 사용', '써봤습니다' 표현 금지. 홍보글·제품 소개글 스타일로.",
+  "intro": "3문단 HTML. 이 제품이 왜 주목받는지, 어떤 분들에게 필요한지, 핵심 특징 3가지 소개. '한 달', '직접 사용', '써봤습니다' 표현 금지. 홍보글·제품 소개글 스타일로. 각 문단 3줄 이상.",
   "pros": [
     "✨ 구체적 장점 1 (수치 포함)",
     "💡 구체적 장점 2",
     "🎯 구체적 장점 3",
     "🏆 구체적 장점 4",
     "🔥 구체적 장점 5",
-    "💰 구체적 장점 6"
+    "💰 구체적 장점 6",
+    "⭐ 구체적 장점 7",
+    "🎁 구체적 장점 8"
   ],
   "cons": [
     "굳이 꼽자면 — 아주 사소한 점 1",
@@ -885,37 +888,48 @@ ${finalPrice ? `가격: ${finalPrice}` : ''}
   "specs": [
     {"label": "스펙항목1", "value": "값"},
     {"label": "스펙항목2", "value": "값"},
-    {"label": "스펙항목3", "value": "값"}
+    {"label": "스펙항목3", "value": "값"},
+    {"label": "스펙항목4", "value": "값"},
+    {"label": "스펙항목5", "value": "값"}
   ],
   "sections": [
     {
-      "heading": "🎨 디자인 & 첫인상 — 박스 열었을 때 느낌",
-      "content": "[설명형 문체로 작성. 400자 이상. <p>본문</p><ul><li><strong>포인트:</strong> 설명</li></ul><blockquote>핵심 한 줄</blockquote> 구조로 작성할 것]"
+      "heading": "🎨 디자인 & 첫인상",
+      "content": "[설명형 문체로 작성. 600자 이상 필수. <p>본문 3줄 이상</p><p>추가 설명 2줄 이상</p><ul><li><strong>포인트1:</strong> 구체적 설명</li><li><strong>포인트2:</strong> 구체적 설명</li></ul><blockquote>핵심 한 줄</blockquote> 구조로 작성]"
     },
     {
-      "heading": "✅ 이 제품의 핵심 기능 & 성능",
-      "content": "[제품 소개·홍보 문체로 작성. 400자 이상. '직접 사용', '한 달' 표현 금지. <p>본문</p><p><strong>주목할 점:</strong> 내용</p><ul><li>특징1</li></ul> 구조로 작성할 것]"
+      "heading": "✅ 핵심 기능 & 성능",
+      "content": "[홍보 문체로 작성. 600자 이상 필수. <p>기능 설명 3줄 이상</p><p>성능 설명 2줄 이상</p><ul><li><strong>기능1:</strong> 수치 포함 설명</li><li><strong>기능2:</strong> 구체적 설명</li><li><strong>기능3:</strong> 구체적 설명</li></ul> 구조로 작성]"
     },
     {
-      "heading": "💰 이 가격에 이게 맞아? — 가격 대비 가치",
-      "content": "[분석형 문체로 작성. 400자 이상. <p>본문</p><table><thead><tr><th>항목</th><th>이 제품</th><th>일반 제품</th></tr></thead><tbody>...</tbody></table> 비교표 필수 포함]"
+      "heading": "📦 구성품 & 사용법",
+      "content": "[안내형 문체로 작성. 600자 이상 필수. <p>구성품 소개</p><p>사용 방법 안내</p><ul><li>구성품1</li><li>구성품2</li></ul><p>사용 시 주의사항 또는 팁</p> 구조로 작성]"
     },
     {
-      "heading": "🙋 이런 분이라면 무조건 사세요",
-      "content": "[대화형 문체로 작성. 400자 이상. <p>본문</p><ul><li>추천 상황1</li></ul><blockquote>구매 결정 유도 마무리 한 줄</blockquote> 구조로 작성할 것]"
+      "heading": "💰 가격 대비 가치 분석",
+      "content": "[분석형 문체로 작성. 600자 이상 필수. <p>가격 분석 3줄</p><table><thead><tr><th>항목</th><th>이 제품</th><th>유사 제품</th></tr></thead><tbody><tr><td>항목1</td><td>값</td><td>값</td></tr><tr><td>항목2</td><td>값</td><td>값</td></tr><tr><td>항목3</td><td>값</td><td>값</td></tr></tbody></table><p>비교 결론 2줄</p> 구조로 작성]"
+    },
+    {
+      "heading": "🛒 구매 전 꼭 확인하세요",
+      "content": "[안내형 문체로 작성. 600자 이상 필수. <p>구매 시 주의사항</p><ul><li>확인사항1</li><li>확인사항2</li><li>확인사항3</li></ul><p>보관·관리 방법</p><blockquote>구매 결정 도움말</blockquote> 구조로 작성]"
+    },
+    {
+      "heading": "🙋 이런 분께 딱 맞아요",
+      "content": "[대화형 문체로 작성. 600자 이상 필수. <p>추천 대상 설명 3줄</p><ul><li>추천 상황1 — 구체적 이유</li><li>추천 상황2 — 구체적 이유</li><li>추천 상황3 — 구체적 이유</li></ul><p>비추천 대상도 솔직하게</p><blockquote>최종 추천 한 줄</blockquote> 구조로 작성]"
     }
   ],
   "rating": 4.6,
   "summary": [
     "🏆 핵심 장점: 구체적으로",
     "💡 이런 분께 강추: 구체적 상황",
-    "🎁 의외의 장점: 예상 못한 좋은 점"
+    "🎁 의외의 장점: 예상 못한 좋은 점",
+    "⚡ 구매 포인트: 지금 사야 하는 이유"
   ],
-  "targetUser": "이 제품이 딱 맞는 구체적인 사람 묘사",
-  "readMinutes": 6
+  "targetUser": "이 제품이 딱 맞는 구체적인 사람 2줄 묘사",
+  "readMinutes": 8
 }`;
 
-  const text = await callGroq(prompt, { maxTokens: 7000, jsonMode: false, systemMsg });
+  const text = await callGroq(prompt, { maxTokens: 12000, jsonMode: false, systemMsg });
 
   // JSON 추출 (코드블록 포함 대응)
   const rawJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
@@ -1279,7 +1293,7 @@ function buildProductReviewHTML(data) {
 
     <!-- 해시태그 -->
     <div class="mt-8 flex flex-wrap gap-2">
-      ${(data.keywords || []).map(k => `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#${escHtml(k.replace(/\s+/g, ''))}</span>`).join('\n      ')}
+      ${(data.hashtags || data.keywords || []).map(k => `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#${escHtml(k.replace(/\s+/g, '').replace(/^#/, ''))}</span>`).join('\n      ')}
     </div>
 
     <!-- 공유 -->
