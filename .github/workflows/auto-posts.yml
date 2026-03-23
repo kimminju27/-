@@ -2,12 +2,12 @@ name: 자동 글 생성
 
 on:
   schedule:
-    # KST 기준 (UTC+9) — 모두 UTC 자정(KST 09:00) 이후 실행
-    # 오전 10시 KST = UTC 01:00
-    - cron: '0 1 * * *'
-    # 오후 1시 KST = UTC 04:00
-    - cron: '0 4 * * *'
-    # 오후 7시 KST = UTC 10:00
+    # KST 기준 (UTC+9) — GitHub Actions 평균 4시간 지연 감안하여 앞당김
+    # 목표 오전 9시 KST → UTC 20:00 (전날) 요청
+    - cron: '0 20 * * *'
+    # 목표 오후 1시 KST → UTC 00:00 요청
+    - cron: '0 0 * * *'
+    # 목표 오후 7시 KST → UTC 10:00 (지연 적어서 유지)
     - cron: '0 10 * * *'
 
   workflow_dispatch:
@@ -56,8 +56,8 @@ jobs:
           # 요일(1=월,...,7=일)
           DOW=$(date -u +%u)
           # 규칙: 하루 3개 슬롯에서 기본 카테고리(경제/부동산/주식/복지정책/세금/금융)가 겹치지 않도록 설계
-          if [ "$HOUR" = "01" ]; then
-            # 오전 10시 KST
+          if [ "$HOUR" = "20" ]; then
+            # 오전 9시 KST (목표)
             case $DOW in
               1) echo "CATS=경제_환율,부동산_청약" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=부동산_전세,복지_출산" >> $GITHUB_OUTPUT ;;
@@ -67,8 +67,8 @@ jobs:
               6) echo "CATS=주식_2차전지,금융_재테크" >> $GITHUB_OUTPUT ;;
               *) echo "CATS=부동산_임대차,주식_AI" >> $GITHUB_OUTPUT ;;
             esac
-          elif [ "$HOUR" = "04" ]; then
-            # 오후 1시 KST
+          elif [ "$HOUR" = "00" ]; then
+            # 오후 1시 KST (목표)
             case $DOW in
               1) echo "CATS=주식_ETF,복지_청년" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=주식_해외,경제_물가" >> $GITHUB_OUTPUT ;;
