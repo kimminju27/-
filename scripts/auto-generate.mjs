@@ -72,7 +72,11 @@ function removeForeignChars(text) {
     // 베트남어·프랑스어 등 라틴 확장 문자(ắềụổế 등)가 포함된 단어 통째로 제거
     .replace(/\S*[\u00C0-\u024F\u1E00-\u1EFF]\S*/g, '')
     // 영어 단어가 한글 문장 중간에 삽입된 경우 제거 (앞뒤가 한글/공백인 영단어)
-    .replace(/(?<=[가-힣\s])[A-Za-z]{2,}(?=[가-힣\s])/g, '');
+    .replace(/(?<=[가-힣\s])[A-Za-z]{2,}(?=[가-힣\s])/g, '')
+    // 영어 단어가 한글 조사/어미와 직접 붙은 경우 제거 (예: Narrow한, recently는)
+    .replace(/[A-Za-z]{2,}(?=[은는이가을를에서도의과와한])/g, '')
+    // 문장 맨 앞에 오는 영어 단어 제거 (예: recently 벤딕트)
+    .replace(/^[A-Za-z]{2,}\s+/gm, '');
 }
 
 function sanitizeReviewData(data) {
@@ -836,15 +840,16 @@ async function generateProductReview(productUrl, platform = 'coupang', scrapeUrl
 
   const finalPrice = manualPrice || info.price || '';
 
-  const systemMsg = `당신은 대한민국 최고의 제품 리뷰 블로거입니다.
+  const systemMsg = `당신은 대한민국 최고의 제품 소개 블로거입니다.
 규칙:
 1. 순수 한국어만 사용. 중국어(한자), 일본어(히라가나/가타카나) 절대 금지.
-2. 영어 단어를 한국어 문장 중간에 절대 삽입 금지. "Introduced", "Review", "Best" 같은 영단어를 문장 안에 쓰지 말 것. 반드시 "소개하겠습니다", "리뷰", "최고" 등 한국어로 대체.
-3. "あり" "なし" "ある" "ない" 같은 일본어 절대 금지. 대신 "있음" "없음" 사용.
+2. 영어 단어를 한국어 문장 중간에 절대 삽입 금지. "Narrow한", "recently", "Best", "Review" 같은 영단어 절대 금지. 반드시 "좁은 공간", "최근", "최고", "리뷰" 등 한국어로 대체.
+3. "あり" "なし" "ある" "ない" 같은 일본어 절대 금지.
 4. "们" "經" "験" 같은 중국 한자 절대 금지.
-5. "알아보겠습니다" "살펴보겠습니다" 금지.
-6. 비교표의 ○/× 대신 반드시 "있음"/"없음" 또는 구체적 한국어 값 사용.
-7. 반드시 valid JSON으로만 응답.`;
+5. "알아보겠습니다" "살펴보겠습니다" "한 달 사용해봤습니다" "직접 사용해봤습니다" 금지.
+6. "한 달 사용", "한달 후기", "실사용 후기", "직접 써봤습니다" 같은 표현 절대 금지. 제품 소개글·홍보글 스타일로 작성.
+7. 비교표의 ○/× 대신 반드시 "있음"/"없음" 또는 구체적 한국어 값 사용.
+8. 반드시 valid JSON으로만 응답.`;
 
   const productDesc = info.bodyText?.substring(0, 1500) || info.description || '';
 
@@ -857,13 +862,13 @@ ${finalPrice ? `가격: ${finalPrice}` : ''}
 ===아래 JSON을 완성하세요. 각 섹션 content는 반드시 실제 리뷰 내용 (400자 이상 한국어)으로 채우세요.===
 
 {
-  "title": "제품별 SEO 최적화 제목 (50-65자). 매번 다른 패턴 사용. 예시 패턴: '[제품명] 한 달 써본 솔직 후기 — 이 가격에 이게 맞아?', '[제품명] 직접 써봤습니다 — 장단점 완전 정리', '[제품명] 구매 전 꼭 읽어보세요 — 실사용 리뷰', '이 제품 살까 말까? [제품명] 실물 비교 분석', '[제품명] 최저가 구매 완료 — 한 달 사용 결과', '솔직히 말할게요 [제품명] 리뷰 — 좋은 점·나쁜 점 전부'. 절대로 '써봤는데 이건 진심이에요'로 시작하지 말 것.",
+  "title": "제품별 SEO 최적화 제목 (50-65자). 매번 다른 패턴 사용. '한 달', '직접 사용', '실사용', '써봤습니다' 패턴 절대 금지. 예시 패턴: '[제품명] 이게 왜 인기인지 이제 알겠다', '[제품명] — 이 가격에 이 퀄리티 가능한 이유', '요즘 이 제품 왜 다들 사는지 이유 있었다 — [제품명]', '[제품명] 선물로 이게 정답인 이유', '[제품명] 완전 정복 — 스펙·가격·추천 대상 총정리', '지금 가장 핫한 [제품명] 구매 가이드'.",
   "productName": "${info.title}",
   "description": "90-120자 메타 설명. 구매 욕구 자극.",
   "keywords": ["관련키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "slug": "영문-슬러그-review",
   "price": "${finalPrice || '네이버 최저가 확인'}",
-  "intro": "2문단 HTML. 독자가 공감할 상황으로 시작. 이 제품을 찾게 된 배경. 이 리뷰에서 다룰 핵심 3가지.",
+  "intro": "2문단 HTML. 이 제품이 왜 주목받는지, 어떤 분들에게 필요한지로 시작. '한 달', '직접 사용', '써봤습니다' 표현 금지. 홍보글·제품 소개글 스타일로.",
   "pros": [
     "✨ 구체적 장점 1 (수치 포함)",
     "💡 구체적 장점 2",
@@ -887,8 +892,8 @@ ${finalPrice ? `가격: ${finalPrice}` : ''}
       "content": "[설명형 문체로 작성. 400자 이상. <p>본문</p><ul><li><strong>포인트:</strong> 설명</li></ul><blockquote>핵심 한 줄</blockquote> 구조로 작성할 것]"
     },
     {
-      "heading": "✅ 실제 사용 후기 — 써보니 이랬습니다",
-      "content": "[경험담 문체로 작성. 400자 이상. <p>본문</p><p><strong>가장 좋았던 점:</strong> 내용</p><ul><li>경험1</li></ul> 구조로 작성할 것]"
+      "heading": "✅ 이 제품의 핵심 기능 & 성능",
+      "content": "[제품 소개·홍보 문체로 작성. 400자 이상. '직접 사용', '한 달' 표현 금지. <p>본문</p><p><strong>주목할 점:</strong> 내용</p><ul><li>특징1</li></ul> 구조로 작성할 것]"
     },
     {
       "heading": "💰 이 가격에 이게 맞아? — 가격 대비 가치",
@@ -1312,7 +1317,6 @@ function buildPostCard(data) {
     const stars = data.rating ? '★'.repeat(Math.round(data.rating)) + ' ' + data.rating : '';
     coverInner = `
             <div>
-              <p class="text-white/60 text-xs mb-1">직접 사용 리뷰</p>
               ${stars ? `<p style="color:#fbbf24;" class="font-black text-lg leading-tight">${escHtml(stars)}</p>` : ''}
               ${data.price ? `<p style="color:#34d399;" class="font-black text-2xl leading-tight">${escHtml(data.price)}</p>` : ''}
               <p class="text-white font-bold text-sm leading-snug mt-1 line-clamp-2">${escHtml(data.productName || data.title)}</p>
