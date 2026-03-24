@@ -569,6 +569,8 @@ STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
 6. NO placeholder images, NO graph references, NO "그래프 참조" — use tables and text only.
 7. Each section content must be 300+ Korean characters.
 8. First sentence of intro must contain a specific shocking number.
+9. CRITICAL: NEVER write placeholder text. Every field must contain REAL, COMPLETE content. Do NOT write "추가 설명", "구체적 설명", "항목1", "값", "표 해석 및 독자에게 미치는 영향 설명" or any template/example text. Replace ALL examples in the JSON schema below with actual content.
+10. sections[].content must be FULLY WRITTEN prose — minimum 3 paragraphs or 1 paragraph + 1 table + 1 paragraph per section. No stub sentences.
 
 Respond with ONLY valid JSON (no code blocks, no markdown):
 {
@@ -627,42 +629,56 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
   "sections": [
     {
       "id": "section1",
-      "heading": "🔍 [구체적 섹션 제목 — 수치 포함]",
-      "content": "<p>300자 이상의 구체적 본문. 수치, 날짜, 사례 포함.</p><table><thead><tr><th>구분</th><th>이전</th><th>현재</th><th>변화</th></tr></thead><tbody><tr><td>항목1</td><td>값</td><td>값</td><td>+X%</td></tr><tr><td>항목2</td><td>값</td><td>값</td><td>+X%</td></tr></tbody></table><p>표 해석 및 독자에게 미치는 영향 설명.</p>"
+      "heading": "🔍 실제 섹션 제목을 여기에 (수치 포함, 예: 기준금리 0.25%p 인상이 대출이자에 미치는 영향)",
+      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자. 수치 3개 이상 포함. 예시: 2026년 3월 한국은행이 기준금리를 0.25%p 인상하여 연 3.75%로 결정했다. 이에 따라 은행권 주택담보대출 금리는 평균 0.3%p 오른 연 5.2% 수준으로 상승할 전망이다. 대출 1억 원 기준 연간 이자 부담은 약 30만 원 증가한다.</p><table><thead><tr><th>대출 종류</th><th>인상 전</th><th>인상 후</th><th>월 이자 변화</th></tr></thead><tbody><tr><td>주택담보대출(변동)</td><td>연 4.9%</td><td>연 5.2%</td><td>+2.5만원</td></tr><tr><td>신용대출</td><td>연 6.1%</td><td>연 6.4%</td><td>+2.5만원</td></tr></tbody></table><p>이 표에서 알 수 있듯이, 변동금리 대출자라면 지금 당장 고정금리 전환을 검토해야 한다. 특히 대출 잔액이 2억 원 이상인 경우 연간 60만 원 이상의 추가 부담이 발생한다.</p>"
     },
     {
       "id": "section2",
-      "heading": "💸 [두번째 섹션 제목]",
-      "content": "<p>300자 이상 본문.</p><blockquote>핵심 인사이트나 중요 수치를 강조한 인용구</blockquote><p>추가 설명.</p><ul><li><strong>포인트1:</strong> 구체적 설명</li><li><strong>포인트2:</strong> 구체적 설명</li><li><strong>포인트3:</strong> 구체적 설명</li></ul>"
+      "heading": "💸 실제 두번째 섹션 제목",
+      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자. 수치 포함.</p><blockquote>실제 핵심 인사이트나 중요 수치를 여기 작성</blockquote><p>실제 추가 분석 내용.</p><ul><li><strong>실제 포인트1:</strong> 구체적 수치와 함께 실제 설명 2-3문장</li><li><strong>실제 포인트2:</strong> 구체적 수치와 함께 실제 설명 2-3문장</li><li><strong>실제 포인트3:</strong> 구체적 수치와 함께 실제 설명 2-3문장</li></ul>"
     },
     {
       "id": "section3",
-      "heading": "📊 [세번째 섹션 제목]",
-      "content": "<p>300자 이상 본문. 반드시 수치 포함.</p><p>추가 분석.</p>"
+      "heading": "📊 실제 세번째 섹션 제목",
+      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자. 반드시 수치 포함.</p><p>실제 추가 분석. 최소 150자 이상.</p>"
     },
     {
       "id": "section4",
-      "heading": "🏦 [네번째 섹션 제목]",
-      "content": "<p>300자 이상 본문.</p><p>구체적 사례와 수치.</p>"
+      "heading": "🏦 실제 네번째 섹션 제목",
+      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자.</p><p>실제 구체적 사례와 수치. 최소 150자 이상.</p>"
     },
     {
       "id": "checklist",
       "heading": "✅ 지금 당장 해야 할 것 3가지",
-      "content": "<p>이 상황에서 독자가 오늘 바로 실행할 수 있는 행동 3가지입니다.</p><ul><li><strong>1. [구체적 행동]:</strong> 언제, 어떻게, 얼마나 — 구체적으로 설명 (2-3문장)</li><li><strong>2. [구체적 행동]:</strong> 구체적 설명 (2-3문장)</li><li><strong>3. [구체적 행동]:</strong> 구체적 설명 (2-3문장)</li></ul><blockquote>핵심 한 줄 요약</blockquote>"
+      "content": "<p>이 상황에서 독자가 오늘 바로 실행할 수 있는 행동 3가지입니다.</p><ul><li><strong>1. 실제 행동 제목:</strong> 언제, 어떻게, 얼마나 — 실제 구체적 설명 2-3문장</li><li><strong>2. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장</li><li><strong>3. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장</li></ul><blockquote>실제 핵심 한 줄 요약</blockquote>"
     }
   ],
-  "summary": ["✅ 오늘 당장: 구체적 행동", "📌 핵심 팩트: 수치 포함 요약", "🔮 앞으로: 주목할 날짜/지표"],
+  "summary": ["✅ 오늘 당장: 실제 행동 내용", "📌 핵심 팩트: 실제 수치 포함 요약", "🔮 앞으로: 실제 주목할 날짜/지표"],
   "readMinutes": 7
 }`;
 
-  const text = await callGemini(prompt);
+  const text = await callGroq(prompt, { maxTokens: 8000 });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
-  let data = JSON.parse(jsonMatch[0]);
+  let data = JSON.parse(repairJson(jsonMatch[0]));
   data = sanitizeReviewData(data); // 뉴스에도 외국어 제거 적용
   data.category = base;
   data.date = today;
+
+  // 콘텐츠 품질 검증 — placeholder 텍스트 감지
+  const PLACEHOLDER_PATTERNS = ['추가 설명', '구체적 설명', '표 해석 및 독자', '항목1', '항목2', 'WRITE ACTUAL', '300자 이상 본문', '포인트1', '포인트2'];
+  if (data.sections) {
+    for (const sec of data.sections) {
+      const text = (sec.content || '').replace(/<[^>]*>/g, '');
+      const hasPlaceholder = PLACEHOLDER_PATTERNS.some(p => text.includes(p));
+      const tooShort = text.length < 150;
+      if (hasPlaceholder || tooShort) {
+        console.warn(`   ⚠️ 섹션 "${sec.heading}" 콘텐츠 품질 미달 (${text.length}자, placeholder: ${hasPlaceholder}) — 재생성 필요`);
+        throw new Error(`콘텐츠 품질 미달: 섹션 "${sec.heading}"`);
+      }
+    }
+  }
 
   if (!data.slug) data.slug = `${base}-${today}`;
   data.slug = sanitizeSlug(data.slug) + '-' + getKSTDateTime();
@@ -1378,7 +1394,7 @@ function buildPostCard(data) {
       <!-- AUTO: ${data.title} -->
       <article class="post-item post-card rounded-2xl border border-ink-100 overflow-hidden bg-white shadow-card cursor-pointer"
                data-category="${escAttr(data.category)}" data-title="${escAttr(data.title)}"
-               onclick="location.href='posts/${data.slug}.html'">
+               onclick="location.href='posts/${data.slug}'">
         <div class="h-44 relative overflow-hidden" style="background:${cfg.cardBg};">
           <div class="absolute inset-0 flex flex-col justify-between p-4">
             <div class="flex items-center justify-between">
@@ -1634,18 +1650,26 @@ async function main() {
     console.log(`   카테고리: ${CATEGORIES_TO_RUN.join(', ')}`);
 
     for (const category of CATEGORIES_TO_RUN) {
-      try {
-        const data = await generateNewsArticle(category);
-        if (!data) { await sleep(1000); continue; } // 중복 스킵 처리
-        const html = buildNewsHTML(data);
-        savePost(data, html);
-        updateIndexHTML(data);
-        updateSitemap(data);
-        console.log(`\n✅ [${category}] 완료: ${data.title}`);
-        await sleep(3000); // API rate limit 방지
-      } catch (e) {
-        console.error(`\n❌ [${category}] 실패:`, e.message);
+      let success = false;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          if (attempt > 1) console.log(`\n🔄 [${category}] 재시도 ${attempt}/3...`);
+          const data = await generateNewsArticle(category);
+          if (!data) { await sleep(1000); break; } // 중복 스킵 처리
+          const html = buildNewsHTML(data);
+          savePost(data, html);
+          updateIndexHTML(data);
+          updateSitemap(data);
+          console.log(`\n✅ [${category}] 완료: ${data.title}`);
+          success = true;
+          break;
+        } catch (e) {
+          console.error(`\n❌ [${category}] 시도 ${attempt} 실패:`, e.message);
+          if (attempt < 3) await sleep(5000);
+        }
       }
+      if (!success) console.error(`\n🚫 [${category}] 3회 재시도 후 최종 실패`);
+      await sleep(3000); // API rate limit 방지
     }
   } else if (MODE === 'product_review') {
     const links = PRODUCT_LINKS_RAW
