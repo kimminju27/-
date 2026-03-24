@@ -1084,9 +1084,13 @@ function buildNewsHTML(data) {
   <meta property="og:locale" content="ko_KR">
   <meta property="article:published_time" content="${data.date}T09:00:00+09:00">
   <meta property="article:section" content="${escAttr(data.category)}">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://bloginfo360.com/og-default.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escAttr(data.title)}">
   <meta name="twitter:description" content="${escAttr(data.description)}">
+  <meta name="twitter:image" content="https://bloginfo360.com/og-default.svg">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -1095,8 +1099,10 @@ function buildNewsHTML(data) {
     "description": ${JSON.stringify(data.description)},
     "datePublished": "${data.date}",
     "dateModified": "${data.date}",
+    "image": "https://bloginfo360.com/og-default.svg",
     "author": { "@type": "Person", "name": "나만 모르는 요즘 소식" },
-    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식" }
+    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식", "logo": { "@type": "ImageObject", "url": "https://bloginfo360.com/og-default.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://bloginfo360.com/posts/${data.slug}" }
   }
   </script>
   ${commonHead()}
@@ -1141,6 +1147,8 @@ function buildNewsHTML(data) {
         <div class="mt-8 flex flex-wrap gap-2">
           ${hashtagsHTML}
         </div>
+
+        ${buildRelatedPostsHTML(data.slug)}
 
         <!-- 공유 버튼 -->
         <div class="mt-4 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
@@ -1339,6 +1347,8 @@ function buildProductReviewHTML(data) {
       ${(data.hashtags || data.keywords || []).map(k => `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#${escHtml(k.replace(/\s+/g, '').replace(/^#/, ''))}</span>`).join('\n      ')}
     </div>
 
+    ${buildRelatedPostsHTML(data.slug)}
+
     <!-- 공유 -->
     <div class="mt-4 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
       <button class="btn-share" onclick="navigator.clipboard.writeText(location.href).then(()=>alert('✅ 링크 복사 완료!'))">🔗 링크 복사</button>
@@ -1504,6 +1514,58 @@ function getTodayCategoryPost(category, date) {
     }
     return null;
   } catch { return null; }
+}
+
+// 관련 글 HTML 생성 (현재 슬러그 제외, 최근 4개 중 3개 랜덤)
+function buildRelatedPostsHTML(currentSlug) {
+  try {
+    const postsDir = path.join(ROOT, 'posts');
+    if (!existsSync(postsDir)) return '';
+    const files = readdirSync(postsDir)
+      .filter(f => f.endsWith('.html') && f !== '_template.html' && !f.includes('_'))
+      .sort().reverse().slice(0, 10);
+
+    const posts = [];
+    for (const file of files) {
+      const slug = file.replace('.html', '');
+      if (slug === currentSlug) continue;
+      try {
+        const content = readFileSync(path.join(postsDir, file), 'utf-8');
+        const titleM = content.match(/<title>([^<]+)<\/title>/);
+        const descM = content.match(/<meta name="description" content="([^"]+)"/);
+        const catM = content.match(/article:section[^>]*content="([^"]+)"/);
+        const dateM = content.match(/article:published_time[^>]*content="(\d{4}-\d{2}-\d{2})/);
+        if (titleM) posts.push({
+          slug,
+          title: titleM[1].replace(/\s*[-|].*$/, '').trim(),
+          desc: descM?.[1] || '',
+          category: catM?.[1] || '',
+          date: dateM?.[1] || '',
+        });
+      } catch { continue; }
+      if (posts.length >= 4) break;
+    }
+
+    if (posts.length === 0) return '';
+
+    const selected = posts.sort(() => 0.5 - Math.random()).slice(0, 3);
+    const cards = selected.map(p => `
+          <a href="/posts/${p.slug}" class="block rounded-xl border border-ink-100 p-4 hover:border-brand-300 hover:bg-brand-50 transition-colors">
+            <span class="text-xs font-bold text-gold-500 bg-yellow-50 px-2 py-0.5 rounded-full">${escHtml(p.category)}</span>
+            <p class="mt-2 font-bold text-ink-900 text-sm leading-snug line-clamp-2">${escHtml(p.title)}</p>
+            <p class="mt-1 text-xs text-ink-400 line-clamp-2">${escHtml(p.desc)}</p>
+            <p class="mt-2 text-xs text-ink-300">${p.date}</p>
+          </a>`).join('\n');
+
+    return `
+        <!-- 관련 글 -->
+        <div class="mt-10 pt-8 border-t border-ink-100">
+          <h3 class="font-bold text-ink-700 text-base mb-4">📚 관련 글</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            ${cards}
+          </div>
+        </div>`;
+  } catch { return ''; }
 }
 
 // 기존 포스트 제목 수집 (중복 주제 방지용) - 최근 30개
