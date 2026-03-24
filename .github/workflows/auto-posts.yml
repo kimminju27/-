@@ -52,12 +52,14 @@ jobs:
       - name: 카테고리 결정 (스케줄 자동 배분)
         id: cats
         run: |
-          HOUR=$(date -u +%H)
-          # 요일(1=월,...,7=일)
+          # github.event.schedule 로 슬롯 식별 — 실제 실행 시각이 아닌 cron 표현식 기준
+          # GitHub Actions 지연으로 HOUR가 달라져도 슬롯이 바뀌지 않음
+          SCHEDULE="${{ github.event.schedule }}"
+          # 요일(1=월,...,7=일) — cron 등록 시각(UTC) 기준 요일
           DOW=$(date -u +%u)
-          # 규칙: 하루 3개 슬롯에서 기본 카테고리(경제/부동산/주식/복지정책/세금/금융)가 겹치지 않도록 설계
-          if [ "$HOUR" = "20" ]; then
-            # 오전 9시 KST (목표)
+          # 규칙: 하루 3개 슬롯에서 카테고리가 겹치지 않도록 설계
+          if [ "$SCHEDULE" = "0 20 * * *" ]; then
+            # 슬롯 A — 오전 9시 KST 목표 (UTC 20:00 등록)
             case $DOW in
               1) echo "CATS=경제_환율,부동산_청약" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=부동산_전세,복지_출산" >> $GITHUB_OUTPUT ;;
@@ -67,8 +69,8 @@ jobs:
               6) echo "CATS=주식_2차전지,금융_재테크" >> $GITHUB_OUTPUT ;;
               *) echo "CATS=부동산_임대차,주식_AI" >> $GITHUB_OUTPUT ;;
             esac
-          elif [ "$HOUR" = "00" ]; then
-            # 오후 1시 KST (목표)
+          elif [ "$SCHEDULE" = "0 0 * * *" ]; then
+            # 슬롯 B — 오후 1시 KST 목표 (UTC 00:00 등록)
             case $DOW in
               1) echo "CATS=주식_ETF,복지_청년" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=주식_해외,경제_물가" >> $GITHUB_OUTPUT ;;
@@ -79,7 +81,7 @@ jobs:
               *) echo "CATS=경제_금리,복지_기초연금" >> $GITHUB_OUTPUT ;;
             esac
           else
-            # 오후 7시 KST (UTC 10:00) — 매일 연예계 1개 포함
+            # 슬롯 C — 오후 7시 KST 목표 (UTC 10:00 등록) — 매일 연예계 1개 포함
             case $DOW in
               1) echo "CATS=연예계,세금_양도세" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=연예계,금융_예금" >> $GITHUB_OUTPUT ;;
@@ -107,4 +109,4 @@ jobs:
           commit_message: "auto: 새 글 자동 생성 🤖"
           commit_user_name: "Auto Post Bot"
           commit_user_email: "bot@bloginfo360.com"
-          file_pattern: "posts/*.html index.html sitemap.xml"
+          file_pattern: "posts/*.html index.html sitemap.xml topics-history.json"

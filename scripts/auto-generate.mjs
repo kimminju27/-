@@ -282,6 +282,13 @@ async function generateEntertainmentArticle(category) {
   const today = getKSTDate();
   const base = '연예계';
 
+  // 오늘 이미 연예계 글이 발행된 경우 스킵 (동시 실행 중복 방지)
+  const existingToday = getTodayCategoryPost(base, today);
+  if (existingToday) {
+    console.log(`⏭️ [연예계] 오늘(${today}) 이미 발행됨: ${existingToday} — 스킵`);
+    return null;
+  }
+
   console.log(`\n📡 연예계 뉴스 다중 수집 중...`);
 
   // 1단계: 방영 중 드라마/예능 중심으로 RSS 수집
@@ -479,6 +486,13 @@ async function generateNewsArticle(category) {
 
   // 연예계는 전용 함수로 분기
   if (base === '연예계') return generateEntertainmentArticle(category);
+
+  // 오늘 같은 카테고리 글이 이미 있으면 스킵 (동시 실행 중복 방지)
+  const existingToday = getTodayCategoryPost(base, today);
+  if (existingToday) {
+    console.log(`⏭️ [${base}] 오늘(${today}) 이미 발행됨: ${existingToday} — 스킵`);
+    return null;
+  }
 
   // 1단계: 실시간 트렌딩 뉴스 수집
   console.log(`\n📡 실시간 뉴스 탐색 중: [${base}]`);
@@ -1458,6 +1472,24 @@ function getKSTDateTime() {
   return `${date}-${hour}${min}`;
 }
 
+// 오늘 날짜 + 카테고리로 이미 발행된 포스트 파일명 반환 (동시 실행 중복 방지용)
+function getTodayCategoryPost(category, date) {
+  try {
+    const postsDir = path.join(ROOT, 'posts');
+    if (!existsSync(postsDir)) return null;
+    const files = readdirSync(postsDir).filter(f => f.endsWith('.html') && f !== '_template.html');
+    for (const file of files) {
+      try {
+        const content = readFileSync(path.join(postsDir, file), 'utf-8');
+        const dateMatch = content.match(/article:published_time[^>]*content="(\d{4}-\d{2}-\d{2})/);
+        const catMatch = content.match(/article:section[^>]*content="([^"]+)"/);
+        if (dateMatch?.[1] === date && catMatch?.[1] === category) return file;
+      } catch { continue; }
+    }
+    return null;
+  } catch { return null; }
+}
+
 // 기존 포스트 제목 수집 (중복 주제 방지용) - 최근 30개
 function getExistingPostTitles() {
   try {
@@ -1604,6 +1636,7 @@ async function main() {
     for (const category of CATEGORIES_TO_RUN) {
       try {
         const data = await generateNewsArticle(category);
+        if (!data) { await sleep(1000); continue; } // 중복 스킵 처리
         const html = buildNewsHTML(data);
         savePost(data, html);
         updateIndexHTML(data);
