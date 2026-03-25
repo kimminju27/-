@@ -195,12 +195,16 @@ function markTopicUsed(id) {
   writeFileSync(TOPICS_HISTORY_PATH, JSON.stringify(used, null, 2), 'utf-8');
 }
 
+// 카테고리 별칭 맵: split('_')[0] 결과 → TOPIC_POOL category명
+const CATEGORY_ALIAS = { '복지': '복지정책' };
+
 // 카테고리에서 아직 안 쓴 주제 랜덤 선택
 function pickUnusedTopic(category) {
   const used = getUsedTopicIds();
   // 카테고리 매칭: '부동산', '부동산_전세' 둘 다 → category '부동산' 매칭
   const base = category.split('_')[0];
-  const pool = TOPIC_POOL.filter(t => t.category === base || t.category === category);
+  const mappedBase = CATEGORY_ALIAS[base] || base;
+  const pool = TOPIC_POOL.filter(t => t.category === mappedBase || t.category === base || t.category === category);
   const available = pool.filter(t => !used.includes(t.id));
   const candidates = available.length > 0 ? available : pool; // 소진 시 전체에서 선택
   return candidates[Math.floor(Math.random() * candidates.length)];
@@ -214,6 +218,7 @@ async function fetchTrendingNews(category) {
     '경제': '한국 경제',
     '부동산': '부동산',
     '주식': '주식 증시',
+    '복지': '복지 정책 지원',
     '복지정책': '복지 정책 지원',
     '세금': '세금 절세',
     '금융': '금융 재테크',
