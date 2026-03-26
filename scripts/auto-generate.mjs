@@ -1407,9 +1407,8 @@ function buildPostCard(data) {
 
   return `
       <!-- AUTO: ${data.title} -->
-      <article class="post-item post-card rounded-2xl border border-ink-100 overflow-hidden bg-white shadow-card cursor-pointer"
-               data-category="${escAttr(data.category)}" data-title="${escAttr(data.title)}"
-               onclick="location.href='posts/${data.slug}'">
+      <a href="posts/${data.slug}" class="block no-underline"><article class="post-item post-card rounded-2xl border border-ink-100 overflow-hidden bg-white shadow-card cursor-pointer"
+               data-category="${escAttr(data.category)}" data-title="${escAttr(data.title)}">
         <div class="h-44 relative overflow-hidden" style="background:${cfg.cardBg};">
           <div class="absolute inset-0 flex flex-col justify-between p-4">
             <div class="flex items-center justify-between">
@@ -1429,7 +1428,7 @@ function buildPostCard(data) {
             <span class="flex items-center gap-1 text-brand-600 font-bold">🆕 NEW</span>
           </div>
         </div>
-      </article>`;
+      </article></a>`;
 }
 
 function updateIndexHTML(data) {
