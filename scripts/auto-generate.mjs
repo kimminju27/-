@@ -1914,7 +1914,7 @@ async function main() {
         try {
           if (attempt > 1) console.log(`\n🔄 [${category}] 재시도 ${attempt}/3...`);
           const data = await generateNewsArticle(category);
-          if (!data) { await sleep(1000); break; } // 중복 스킵 처리
+          if (!data) { success = true; await sleep(1000); break; } // 중복 스킵 → 정상 처리
           const html = buildNewsHTML(data);
           savePost(data, html);
           updateIndexHTML(data);
