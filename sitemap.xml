@@ -3,7 +3,7 @@
 
   <url>
     <loc>https://bloginfo360.com/</loc>
-    <lastmod>2026-03-17</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -201,6 +201,13 @@
 
   <url>
     <loc>https://bloginfo360.com/posts/tesla-stock-forecast-2026-03-31-1100</loc>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://bloginfo360.com/posts/2026-cheongnyeon-bokji-jeongchaek-2026-03-31-1441/</loc>
     <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
