@@ -579,7 +579,7 @@ STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
 2. TONE: Use ONLY "요/어요"체 conversational style throughout ALL text. ABSOLUTELY FORBIDDEN: "합니다", "입니다", "됩니다", "드립니다" sentence endings. WRONG: "금리가 인상되었습니다." RIGHT: "금리가 인상됐어요." / "금리가 올랐어요."
 3. SHORT PARAGRAPHS: Each <p> tag must contain maximum 3 sentences (1~3줄). Break into new <p> after every 3 sentences. Never write a wall of text.
 4. NEVER use AI-tic phrases: "알아보겠습니다", "살펴보겠습니다", "모색해보겠습니다", "분석해보겠습니다", "이번 글에서는", "함께 알아볼게요". Start with the actual content immediately.
-5. Every section MUST contain at least 3 specific numbers/percentages/dates/amounts (예: 3.5%, 1,380원, 2026년 4월).
+5. Every section MUST contain at least 3 REAL specific numbers from the actual news (실제 뉴스에 나온 수치만 사용). NEVER copy example numbers. Use actual figures like real percentages, real prices, real dates from the news context above.
 6. Include at least one HTML table with real comparison data.
 7. Last main section MUST be a practical checklist of "지금 당장 할 수 있는 것 3가지".
 8. NO placeholder images, NO graph references, NO "그래프 참조" — use tables and text only.
