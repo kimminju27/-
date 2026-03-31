@@ -378,11 +378,14 @@ ${newsContext}
 【절대 엄수 규칙】:
 1. 위 뉴스에 실제로 나온 사실만 작성. 뉴스에 없는 내용을 창작하거나 추측으로 채우기 절대 금지.
 2. 현재 방영 중인 드라마/예능 내용이면 줄거리, 출연진, 화제 장면, 시청률 중심으로 서술.
-3. 확인되지 않은 내용은 "~로 알려졌다", "~라는 보도가 있다" 등 유보적 표현 사용.
+3. 확인되지 않은 내용은 "~로 알려졌어요", "~라는 보도가 있어요" 등 유보적 표현 사용.
 4. 한국어로만 작성. 외국어(일본어/중국어/영어) 절대 금지.
-5. "알아보겠습니다", "살펴보겠습니다" 문장 시작 금지. 바로 핵심 내용으로 시작.
-6. 각 섹션은 400자 이상의 구체적 내용 (단순 나열이 아닌 깊이 있는 서술).
-7. heroStats는 작품명, 방송사/OTT, 시청률 또는 화제 장면으로 구성.
+5. "알아보겠습니다", "살펴보겠습니다", "이번 글에서는" 문장 시작 금지. 바로 핵심 내용으로 시작.
+6. TONE: 반드시 "요/어요"체 구어체만 사용. "합니다", "입니다", "됩니다" 문장 종결 절대 금지. 예: "화제를 모으고 있어요", "확인됐어요", "주목받고 있어요".
+7. SHORT PARAGRAPHS: 각 <p>태그는 최대 3문장. 짧게 끊어서 가독성 확보.
+8. 각 섹션은 400자 이상의 구체적 내용 (단순 나열이 아닌 깊이 있는 서술).
+9. heroStats는 작품명, 방송사/OTT, 시청률 또는 화제 장면으로 구성.
+10. FAQ 3~5개 포함: 독자들이 실제로 궁금해하는 질문과 답변 (요/어요체).
 
 유효한 JSON만 응답 (코드블록/마크다운 없이):
 {
@@ -465,7 +468,13 @@ ${newsContext}
       "content": "<p>오늘 이슈를 정리한 핵심 포인트입니다.</p><ul><li><strong>1. [포인트1]:</strong> 뉴스에서 확인된 내용 기반 설명 (2-3문장)</li><li><strong>2. [포인트2]:</strong> 뉴스에서 확인된 내용 기반 설명 (2-3문장)</li><li><strong>3. [포인트3]:</strong> 뉴스에서 확인된 내용 기반 설명 (2-3문장)</li></ul><blockquote>한 줄 팩트 요약</blockquote>"
     }
   ],
+  "faq": [
+    {"question": "독자들이 실제로 궁금해하는 질문 1?", "answer": "뉴스 기반의 구체적 답변 (요/어요체, 2~3문장)"},
+    {"question": "독자들이 실제로 궁금해하는 질문 2?", "answer": "뉴스 기반의 구체적 답변 (요/어요체, 2~3문장)"},
+    {"question": "독자들이 실제로 궁금해하는 질문 3?", "answer": "뉴스 기반의 구체적 답변 (요/어요체, 2~3문장)"}
+  ],
   "summary": ["🎬 핵심 이슈: 확인된 사실 요약", "💬 반응: 보도된 팬/대중 반응", "📅 다음: 공식 확인된 일정/포인트"],
+  "references": ["출처 이름 1 (예: 연합뉴스 2026.03.30 보도, 공식 방송사 보도자료 등)", "출처 이름 2"],
   "readMinutes": 6
 }`;
 
@@ -566,16 +575,18 @@ TODAY's real news headlines (use these as factual backbone — cite actual figur
 ${newsContext}
 
 STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
-1. Write ONLY in Korean (한국어만 사용). ZERO foreign words — no Japanese (hiragana あいうえお, katakana アイウエオ, kanji 比べて), no Chinese characters, no English words, no Vietnamese (quyết, của, đã 등 절대 금지), no French, no any other language. Every single word must be pure Korean. If you need "compared to" → "대비" or "에 비해". Use "있음/없음" instead of ○/×.
-2. NEVER use phrases like "알아보겠습니다", "살펴보겠습니다", "모색해보겠습니다", "분석해보겠습니다" — start with the actual content immediately.
-3. Every section MUST contain at least 3 specific numbers/percentages/dates/amounts (예: 3.5%, 1,380원, 2026년 4월).
-4. Include at least one HTML table with real comparison data.
-5. Last section MUST be a practical checklist of "지금 당장 해야 할 것 3가지".
-6. NO placeholder images, NO graph references, NO "그래프 참조" — use tables and text only.
-7. Each section content must be 300+ Korean characters.
-8. First sentence of intro must contain a specific shocking number.
-9. CRITICAL: NEVER write placeholder text. Every field must contain REAL, COMPLETE content. Do NOT write "추가 설명", "구체적 설명", "항목1", "값", "표 해석 및 독자에게 미치는 영향 설명" or any template/example text. Replace ALL examples in the JSON schema below with actual content.
-10. sections[].content must be FULLY WRITTEN prose — minimum 3 paragraphs or 1 paragraph + 1 table + 1 paragraph per section. No stub sentences.
+1. Write ONLY in Korean (한국어만 사용). ZERO foreign words — no Japanese, no Chinese characters, no English words, no Vietnamese, no French. Every single word must be pure Korean. Use "있음/없음" instead of ○/×.
+2. TONE: Use ONLY "요/어요"체 conversational style throughout ALL text. ABSOLUTELY FORBIDDEN: "합니다", "입니다", "됩니다", "드립니다" sentence endings. WRONG: "금리가 인상되었습니다." RIGHT: "금리가 인상됐어요." / "금리가 올랐어요."
+3. SHORT PARAGRAPHS: Each <p> tag must contain maximum 3 sentences (1~3줄). Break into new <p> after every 3 sentences. Never write a wall of text.
+4. NEVER use AI-tic phrases: "알아보겠습니다", "살펴보겠습니다", "모색해보겠습니다", "분석해보겠습니다", "이번 글에서는", "함께 알아볼게요". Start with the actual content immediately.
+5. Every section MUST contain at least 3 specific numbers/percentages/dates/amounts (예: 3.5%, 1,380원, 2026년 4월).
+6. Include at least one HTML table with real comparison data.
+7. Last main section MUST be a practical checklist of "지금 당장 할 수 있는 것 3가지".
+8. NO placeholder images, NO graph references, NO "그래프 참조" — use tables and text only.
+9. Total content length: aim for 3,000~5,000 Korean characters across intro + all sections.
+10. CRITICAL: NEVER write placeholder text. Every field must contain REAL, COMPLETE content.
+11. sections[].content must be FULLY WRITTEN prose — minimum 3 short paragraphs per section. No stub sentences.
+12. FAQ section REQUIRED: include 3~5 questions readers actually ask, with practical answers in "요/어요"체.
 
 Respond with ONLY valid JSON (no code blocks, no markdown):
 {
@@ -654,11 +665,26 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
     },
     {
       "id": "checklist",
-      "heading": "✅ 지금 당장 해야 할 것 3가지",
-      "content": "<p>이 상황에서 독자가 오늘 바로 실행할 수 있는 행동 3가지입니다.</p><ul><li><strong>1. 실제 행동 제목:</strong> 언제, 어떻게, 얼마나 — 실제 구체적 설명 2-3문장</li><li><strong>2. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장</li><li><strong>3. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장</li></ul><blockquote>실제 핵심 한 줄 요약</blockquote>"
+      "heading": "✅ 지금 당장 할 수 있는 것 3가지",
+      "content": "<p>이 상황에서 오늘 바로 실행할 수 있는 행동이에요.</p><ul><li><strong>1. 실제 행동 제목:</strong> 언제, 어떻게, 얼마나 — 실제 구체적 설명 2-3문장 (요/어요체)</li><li><strong>2. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장 (요/어요체)</li><li><strong>3. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장 (요/어요체)</li></ul><blockquote>실제 핵심 한 줄 요약 (요/어요체)</blockquote>"
+    }
+  ],
+  "faq": [
+    {
+      "question": "독자들이 실제로 궁금해하는 질문 1?",
+      "answer": "구체적이고 실용적인 답변을 요/어요체로 2~3문장으로 작성해요."
+    },
+    {
+      "question": "독자들이 실제로 궁금해하는 질문 2?",
+      "answer": "구체적이고 실용적인 답변을 요/어요체로 2~3문장으로 작성해요."
+    },
+    {
+      "question": "독자들이 실제로 궁금해하는 질문 3?",
+      "answer": "구체적이고 실용적인 답변을 요/어요체로 2~3문장으로 작성해요."
     }
   ],
   "summary": ["✅ 오늘 당장: 실제 행동 내용", "📌 핵심 팩트: 실제 수치 포함 요약", "🔮 앞으로: 실제 주목할 날짜/지표"],
+  "references": ["출처 이름 1 (예: 한국은행 보도자료 2026.03, 기획재정부 경제정책브리핑, 연합뉴스 2026.03.30 보도 등)", "출처 이름 2"],
   "readMinutes": 7
 }`;
 
@@ -1105,8 +1131,8 @@ function buildNewsHTML(data) {
     "datePublished": "${data.date}",
     "dateModified": "${data.date}",
     "image": "https://bloginfo360.com/og-default.svg",
-    "author": { "@type": "Person", "name": "나만 모르는 요즘 소식" },
-    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식", "logo": { "@type": "ImageObject", "url": "https://bloginfo360.com/og-default.svg" } },
+    "author": { "@type": "Person", "name": "김민주", "url": "https://bloginfo360.com/about" },
+    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식", "url": "https://bloginfo360.com", "logo": { "@type": "ImageObject", "url": "https://bloginfo360.com/og-default.svg" } },
     "mainEntityOfPage": { "@type": "WebPage", "@id": "https://bloginfo360.com/posts/${data.slug}" }
   }
   </script>
@@ -1148,12 +1174,28 @@ function buildNewsHTML(data) {
           </ul>
         </div>
 
+        ${(data.faq && data.faq.length) ? `
+        <!-- FAQ -->
+        <div class="mt-10 bg-white border border-ink-100 rounded-2xl p-6">
+          <h2 class="font-black text-ink-900 text-lg mb-5">❓ 자주 묻는 질문</h2>
+          <div class="space-y-4">
+            ${(data.faq || []).map((q, i) => `
+            <div class="border-b border-ink-100 pb-4 last:border-0 last:pb-0">
+              <p class="font-bold text-ink-900 text-sm mb-1.5">Q${i + 1}. ${escHtml(q.question)}</p>
+              <p class="text-ink-500 text-sm leading-relaxed">A. ${escHtml(q.answer)}</p>
+            </div>`).join('')}
+          </div>
+        </div>` : ''}
+
+        ${buildSourcesHTML(data)}
+        ${authorBox()}
+
         <!-- 해시태그 -->
         <div class="mt-8 flex flex-wrap gap-2">
           ${hashtagsHTML}
         </div>
 
-        ${buildRelatedPostsHTML(data.slug)}
+        ${buildRelatedPostsHTML(data.slug, data.category)}
 
         <!-- 공유 버튼 -->
         <div class="mt-4 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
@@ -1259,7 +1301,7 @@ function buildProductReviewHTML(data) {
     "headline": ${JSON.stringify(data.title)},
     "description": ${JSON.stringify(data.description)},
     "datePublished": "${data.date}",
-    "author": { "@type": "Person", "name": "나만 모르는 요즘 소식" },
+    "author": { "@type": "Person", "name": "김민주", "url": "https://bloginfo360.com/about" },
     "reviewRating": { "@type": "Rating", "ratingValue": "${data.rating || 4}", "bestRating": "5" }
   }
   </script>
@@ -1347,12 +1389,14 @@ function buildProductReviewHTML(data) {
       <p class="text-xs text-ink-300 text-center">${escHtml(data.disclaimer)}</p>
     </div>
 
+    ${authorBox()}
+
     <!-- 해시태그 -->
     <div class="mt-8 flex flex-wrap gap-2">
       ${(data.hashtags || data.keywords || []).map(k => `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#${escHtml(k.replace(/\s+/g, '').replace(/^#/, ''))}</span>`).join('\n      ')}
     </div>
 
-    ${buildRelatedPostsHTML(data.slug)}
+    ${buildRelatedPostsHTML(data.slug, data.category)}
 
     <!-- 공유 -->
     <div class="mt-4 pt-6 border-t border-ink-100 flex flex-wrap gap-3">
@@ -1520,16 +1564,17 @@ function getTodayCategoryPost(category, date) {
   } catch { return null; }
 }
 
-// 관련 글 HTML 생성 (현재 슬러그 제외, 최근 4개 중 3개 랜덤)
-function buildRelatedPostsHTML(currentSlug) {
+// 관련 글 HTML 생성 (같은 카테고리 우선, 현재 슬러그 제외)
+function buildRelatedPostsHTML(currentSlug, currentCategory) {
   try {
     const postsDir = path.join(ROOT, 'posts');
     if (!existsSync(postsDir)) return '';
     const files = readdirSync(postsDir)
       .filter(f => f.endsWith('.html') && f !== '_template.html' && !f.includes('_'))
-      .sort().reverse().slice(0, 10);
+      .sort().reverse().slice(0, 30);
 
-    const posts = [];
+    const sameCat = [];
+    const otherCat = [];
     for (const file of files) {
       const slug = file.replace('.html', '');
       if (slug === currentSlug) continue;
@@ -1539,20 +1584,33 @@ function buildRelatedPostsHTML(currentSlug) {
         const descM = content.match(/<meta name="description" content="([^"]+)"/);
         const catM = content.match(/article:section[^>]*content="([^"]+)"/);
         const dateM = content.match(/article:published_time[^>]*content="(\d{4}-\d{2}-\d{2})/);
-        if (titleM) posts.push({
+        if (!titleM) continue;
+        const post = {
           slug,
           title: titleM[1].replace(/\s*[-|].*$/, '').trim(),
           desc: descM?.[1] || '',
           category: catM?.[1] || '',
           date: dateM?.[1] || '',
-        });
+        };
+        if (currentCategory && post.category === currentCategory) {
+          sameCat.push(post);
+        } else {
+          otherCat.push(post);
+        }
       } catch { continue; }
-      if (posts.length >= 4) break;
     }
+
+    // 같은 카테고리 우선 최대 2개, 나머지 1개는 다른 카테고리
+    const pool = [
+      ...sameCat.sort(() => 0.5 - Math.random()).slice(0, 2),
+      ...otherCat.sort(() => 0.5 - Math.random()).slice(0, 1),
+    ].slice(0, 3);
+
+    const posts = pool;
 
     if (posts.length === 0) return '';
 
-    const selected = posts.sort(() => 0.5 - Math.random()).slice(0, 3);
+    const selected = posts;
     const cards = selected.map(p => `
           <a href="/posts/${p.slug}" class="block rounded-xl border border-ink-100 p-4 hover:border-brand-300 hover:bg-brand-50 transition-colors">
             <span class="text-xs font-bold text-gold-500 bg-yellow-50 px-2 py-0.5 rounded-full">${escHtml(p.category)}</span>
@@ -1682,8 +1740,77 @@ function header() {
 function footer() {
   return `<footer class="border-t border-ink-100 mt-16 py-8 text-center text-xs text-ink-300">
     <p>© 2026 나만 모르는 요즘 소식. All rights reserved.</p>
+    <p class="mt-1">운영자: 김민주 &nbsp;|&nbsp; <a href="mailto:contact@bloginfo360.com" class="hover:text-brand-600">contact@bloginfo360.com</a> &nbsp;|&nbsp; <a href="../about.html" class="hover:text-brand-600">소개</a> &nbsp;|&nbsp; <a href="../privacy.html" class="hover:text-brand-600">개인정보처리방침</a></p>
     <p class="mt-1"><a href="../index.html" class="hover:text-brand-600">홈으로 돌아가기</a></p>
   </footer>`;
+}
+
+// 저자 박스
+function authorBox() {
+  return `
+        <div class="mt-8 p-5 bg-gray-50 border border-ink-100 rounded-2xl flex items-start gap-4">
+          <div class="w-12 h-12 rounded-full bg-brand-600 flex items-center justify-center text-white font-black text-lg shrink-0">민</div>
+          <div>
+            <p class="font-bold text-ink-900 text-sm">김민주</p>
+            <p class="text-xs text-brand-600 font-semibold mt-0.5">나만 모르는 요즘 소식 운영자</p>
+            <p class="text-xs text-ink-400 mt-2 leading-relaxed">경제·재테크·복지정책 분야의 공식 자료와 최신 뉴스를 기반으로 정보를 정리합니다. 오류 제보 및 문의: <a href="mailto:contact@bloginfo360.com" class="text-brand-600 underline underline-offset-2">contact@bloginfo360.com</a></p>
+          </div>
+        </div>`;
+}
+
+// 출처 및 공식 링크 섹션
+const OFFICIAL_LINKS = {
+  '복지정책': [
+    { name: '복지로 (정부 복지서비스 포털)', url: 'https://www.bokjiro.go.kr' },
+    { name: '보건복지부', url: 'https://www.mohw.go.kr' },
+  ],
+  '세금': [
+    { name: '국세청 홈택스', url: 'https://www.hometax.go.kr' },
+    { name: '국세청', url: 'https://www.nts.go.kr' },
+  ],
+  '금융': [
+    { name: '금융감독원 파인', url: 'https://fine.fss.or.kr' },
+    { name: '금융위원회', url: 'https://www.fsc.go.kr' },
+  ],
+  '경제': [
+    { name: '한국은행', url: 'https://www.bok.or.kr' },
+    { name: '기획재정부', url: 'https://www.moef.go.kr' },
+  ],
+  '주식': [
+    { name: '한국거래소 (KRX)', url: 'https://www.krx.co.kr' },
+    { name: '금융감독원 전자공시 (DART)', url: 'https://dart.fss.or.kr' },
+  ],
+  '부동산': [
+    { name: '국토교통부 실거래가 공개', url: 'https://rt.molit.go.kr' },
+    { name: '청약홈', url: 'https://www.applyhome.co.kr' },
+  ],
+};
+
+function buildSourcesHTML(data) {
+  const refs = data.references || [];
+  const official = OFFICIAL_LINKS[data.category] || [];
+  if (refs.length === 0 && official.length === 0) return '';
+
+  let html = `\n        <div class="mt-8 pt-6 border-t border-ink-100">`;
+
+  if (refs.length > 0) {
+    const refsHTML = refs.map(r => `<li class="text-xs text-ink-500 leading-relaxed">${escHtml(r)}</li>`).join('\n            ');
+    html += `
+          <p class="text-xs font-bold text-ink-700 mb-2">📰 참고 자료</p>
+          <ul class="space-y-1 mb-4 list-disc list-inside">${refsHTML}</ul>`;
+  }
+
+  if (official.length > 0) {
+    const linksHTML = official.map(s =>
+      `<a href="${escAttr(s.url)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs bg-white border border-ink-100 hover:border-brand-600 text-ink-600 hover:text-brand-600 px-3 py-1.5 rounded-lg transition-colors">${escHtml(s.name)} ↗</a>`
+    ).join('\n            ');
+    html += `
+          <p class="text-xs font-bold text-ink-700 mb-2">🏛️ 공식 사이트에서 직접 확인하세요</p>
+          <div class="flex flex-wrap gap-2">${linksHTML}</div>`;
+  }
+
+  html += `\n        </div>`;
+  return html;
 }
 
 function disqus(slug) {
