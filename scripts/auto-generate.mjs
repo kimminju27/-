@@ -390,7 +390,7 @@ ${newsContext}
 유효한 JSON만 응답 (코드블록/마크다운 없이):
 {
   "title": "연예 이슈 중심의 SEO 제목 (45-65자, 인물명/작품명 포함)",
-  "description": "독자의 호기심을 자극하는 메타 설명 (80-120자)",
+  "description": "독자의 호기심을 자극하는 메타 설명 (반드시 150-160자, 핵심 사실·수치·키워드 포함)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "slug": "short-english-slug",
   "heroGradient": "linear-gradient(135deg, #4a044e, #86198f)",
@@ -591,7 +591,7 @@ STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
 Respond with ONLY valid JSON (no code blocks, no markdown):
 {
   "title": "구체적 수치 포함한 SEO 제목 (45-65자)",
-  "description": "독자가 얻을 것을 명시한 메타 설명 (80-120자)",
+  "description": "독자가 얻을 것을 명시한 메타 설명 (반드시 150-160자, 핵심 수치·날짜·키워드 포함)",
   "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "slug": "short-english-slug",
   "heroGradient": "linear-gradient(135deg, #0f172a, #1e3a5f)",
@@ -939,7 +939,7 @@ ${finalPrice ? `가격: ${finalPrice}` : ''}
 {
   "title": "제품별 SEO 최적화 제목 (50-65자). 매번 다른 패턴 사용. '한 달', '직접 사용', '실사용', '써봤습니다' 패턴 절대 금지. 예시 패턴: '[제품명] 이게 왜 인기인지 이제 알겠다', '[제품명] — 이 가격에 이 퀄리티 가능한 이유', '요즘 이 제품 왜 다들 사는지 이유 있었다 — [제품명]', '[제품명] 선물로 이게 정답인 이유', '[제품명] 완전 정복 — 스펙·가격·추천 대상 총정리', '지금 가장 핫한 [제품명] 구매 가이드'.",
   "productName": "${info.title}",
-  "description": "90-120자 메타 설명. 구매 욕구 자극.",
+  "description": "반드시 150-160자 메타 설명. 제품명·가격·핵심 장점 포함. 구매 욕구 자극.",
   "keywords": ["핵심키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
   "hashtags": ["해시태그1", "해시태그2", "해시태그3", "해시태그4", "해시태그5", "해시태그6", "해시태그7", "해시태그8", "해시태그9", "해시태그10", "해시태그11", "해시태그12", "해시태그13", "해시태그14", "해시태그15", "해시태그16", "해시태그17", "해시태그18", "해시태그19", "해시태그20"],
   "slug": "영문-슬러그-review",
@@ -1096,45 +1096,66 @@ function buildNewsHTML(data) {
     `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">#${escHtml(k.replace(/\s+/g, ''))}</span>`
   ).join('\n          ');
 
+  const ogImage = getCategoryOgImage(data.category);
+  const postUrl = `https://bloginfo360.com/posts/${data.slug}/`;
+  const wordCount = Math.round(
+    (data.description || '').length +
+    (data.sections || []).reduce((a, s) => a + (s.content || '').replace(/<[^>]*>/g, '').length, 0)
+  );
+
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/analytics.js"></script>
+  <script src="/analytics.js" defer></script>
   <title>${escHtml(data.title)} - 나만 모르는 요즘 소식</title>
   <meta name="description" content="${escAttr(data.description)}">
   <meta name="keywords" content="${escAttr((data.keywords || []).join(', '))}">
   <meta name="robots" content="index, follow">
   <meta name="google-adsense-account" content="ca-pub-1954893264438671">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954893264438671" crossorigin="anonymous"></script>
-  <link rel="canonical" href="https://bloginfo360.com/posts/${data.slug}">
+  <link rel="canonical" href="${postUrl}">
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escAttr(data.title)}">
   <meta property="og:description" content="${escAttr(data.description)}">
+  <meta property="og:url" content="${postUrl}">
   <meta property="og:locale" content="ko_KR">
   <meta property="article:published_time" content="${data.date}T09:00:00+09:00">
   <meta property="article:section" content="${escAttr(data.category)}">
-  <meta property="og:image" content="https://bloginfo360.com/og-default.svg">
+  <meta property="og:image" content="${ogImage}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escAttr(data.title)}">
   <meta name="twitter:description" content="${escAttr(data.description)}">
-  <meta name="twitter:image" content="https://bloginfo360.com/og-default.svg">
+  <meta name="twitter:image" content="${ogImage}">
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": ${JSON.stringify(data.title)},
-    "description": ${JSON.stringify(data.description)},
-    "datePublished": "${data.date}",
-    "dateModified": "${data.date}",
-    "image": "https://bloginfo360.com/og-default.svg",
-    "author": { "@type": "Person", "name": "김민주", "url": "https://bloginfo360.com/about" },
-    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식", "url": "https://bloginfo360.com", "logo": { "@type": "ImageObject", "url": "https://bloginfo360.com/og-default.svg" } },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://bloginfo360.com/posts/${data.slug}" }
-  }
+  [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": ${JSON.stringify(data.title)},
+      "description": ${JSON.stringify(data.description)},
+      "datePublished": "${data.date}",
+      "dateModified": "${data.date}",
+      "inLanguage": "ko-KR",
+      "wordCount": ${wordCount},
+      "image": "${ogImage}",
+      "author": { "@type": "Person", "name": "김민주", "url": "https://bloginfo360.com/about" },
+      "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식", "url": "https://bloginfo360.com", "logo": { "@type": "ImageObject", "url": "https://bloginfo360.com/og-default.svg" } },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "${postUrl}" }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "홈", "item": "https://bloginfo360.com/" },
+        { "@type": "ListItem", "position": 2, "name": ${JSON.stringify(data.category)}, "item": "https://bloginfo360.com/#${escAttr(data.category)}" },
+        { "@type": "ListItem", "position": 3, "name": ${JSON.stringify(data.title)}, "item": "${postUrl}" }
+      ]
+    }
+  ]
   </script>
   ${commonHead()}
 </head>
@@ -1277,33 +1298,57 @@ function buildProductReviewHTML(data) {
   const btnLabel = data.platform === 'coupang' ? '쿠팡에서 보기' : '네이버에서 보기';
   const btnLabel2 = data.platform === 'coupang' ? '쿠팡에서 구매하기' : '네이버에서 구매하기';
 
+  const reviewOgImage = data.productImage || getCategoryOgImage('제품리뷰');
+  const reviewUrl = `https://bloginfo360.com/posts/${data.slug}/`;
+
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/analytics.js"></script>
+  <script src="/analytics.js" defer></script>
   <title>${escHtml(data.title)} - 나만 모르는 요즘 소식</title>
   <meta name="description" content="${escAttr(data.description)}">
   <meta name="keywords" content="${escAttr((data.keywords || []).join(', '))}">
   <meta name="robots" content="index, follow">
   <meta name="google-adsense-account" content="ca-pub-1954893264438671">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954893264438671" crossorigin="anonymous"></script>
-  <link rel="canonical" href="https://bloginfo360.com/posts/${data.slug}">
+  <link rel="canonical" href="${reviewUrl}">
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escAttr(data.title)}">
   <meta property="og:description" content="${escAttr(data.description)}">
-  ${data.productImage ? `<meta property="og:image" content="${escAttr(data.productImage)}">` : ''}
+  <meta property="og:url" content="${reviewUrl}">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:image" content="${reviewOgImage}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escAttr(data.title)}">
+  <meta name="twitter:description" content="${escAttr(data.description)}">
+  <meta name="twitter:image" content="${reviewOgImage}">
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Review",
-    "headline": ${JSON.stringify(data.title)},
-    "description": ${JSON.stringify(data.description)},
-    "datePublished": "${data.date}",
-    "author": { "@type": "Person", "name": "김민주", "url": "https://bloginfo360.com/about" },
-    "reviewRating": { "@type": "Rating", "ratingValue": "${data.rating || 4}", "bestRating": "5" }
-  }
+  [
+    {
+      "@context": "https://schema.org",
+      "@type": "Review",
+      "headline": ${JSON.stringify(data.title)},
+      "description": ${JSON.stringify(data.description)},
+      "datePublished": "${data.date}",
+      "inLanguage": "ko-KR",
+      "author": { "@type": "Person", "name": "김민주", "url": "https://bloginfo360.com/about" },
+      "reviewRating": { "@type": "Rating", "ratingValue": "${data.rating || 4}", "bestRating": "5" },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "${reviewUrl}" }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "홈", "item": "https://bloginfo360.com/" },
+        { "@type": "ListItem", "position": 2, "name": "제품리뷰", "item": "https://bloginfo360.com/#제품리뷰" },
+        { "@type": "ListItem", "position": 3, "name": ${JSON.stringify(data.title)}, "item": "${reviewUrl}" }
+      ]
+    }
+  ]
   </script>
   ${commonHead()}
   <style>
@@ -1505,13 +1550,21 @@ function updateSitemap(data) {
 
   const newEntry = `
   <url>
-    <loc>https://bloginfo360.com/posts/${data.slug}</loc>
+    <loc>https://bloginfo360.com/posts/${data.slug}/</loc>
     <lastmod>${data.date}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>`;
 
+  // 신규 포스트 추가
   xml = xml.replace('</urlset>', newEntry + '\n</urlset>');
+
+  // 루트 페이지 lastmod 실시간 업데이트
+  xml = xml.replace(
+    /(<loc>https:\/\/bloginfo360\.com\/<\/loc>\s*<lastmod>)[^<]*/,
+    `$1${data.date}`
+  );
+
   writeFileSync(sitemapPath, xml, 'utf-8');
   console.log(`✅ sitemap.xml 업데이트 완료`);
 }
@@ -1756,6 +1809,19 @@ function authorBox() {
             <p class="text-xs text-ink-400 mt-2 leading-relaxed">경제·재테크·복지정책 분야의 공식 자료와 최신 뉴스를 기반으로 정보를 정리합니다. 오류 제보 및 문의: <a href="mailto:contact@bloginfo360.com" class="text-brand-600 underline underline-offset-2">contact@bloginfo360.com</a></p>
           </div>
         </div>`;
+}
+
+// 카테고리별 OG 이미지
+function getCategoryOgImage(category) {
+  const map = {
+    '경제':     'https://bloginfo360.com/og-economy.svg',
+    '주식':     'https://bloginfo360.com/og-stock.svg',
+    '부동산':   'https://bloginfo360.com/og-realestate.svg',
+    '복지정책': 'https://bloginfo360.com/og-welfare.svg',
+    '제품리뷰': 'https://bloginfo360.com/og-review.svg',
+    '연예계':   'https://bloginfo360.com/og-entertainment.svg',
+  };
+  return map[category] || 'https://bloginfo360.com/og-default.svg';
 }
 
 // 출처 및 공식 링크 섹션
