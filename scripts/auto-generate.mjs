@@ -1884,7 +1884,7 @@ function header() {
 function footer() {
   return `<footer class="border-t border-ink-100 mt-16 py-8 text-center text-xs text-ink-300">
     <p>© 2026 나만 모르는 요즘 소식. All rights reserved.</p>
-    <p class="mt-1">운영자: 김민주 &nbsp;|&nbsp; <a href="mailto:contact@bloginfo360.com" class="hover:text-brand-600">contact@bloginfo360.com</a> &nbsp;|&nbsp; <a href="../about.html" class="hover:text-brand-600">소개</a> &nbsp;|&nbsp; <a href="../privacy.html" class="hover:text-brand-600">개인정보처리방침</a></p>
+    <p class="mt-1">운영자: 김민주 &nbsp;|&nbsp; <a href="mailto:mju427@naver.com" class="hover:text-brand-600">mju427@naver.com</a> &nbsp;|&nbsp; <a href="../about.html" class="hover:text-brand-600">소개</a> &nbsp;|&nbsp; <a href="../privacy.html" class="hover:text-brand-600">개인정보처리방침</a></p>
     <p class="mt-1"><a href="../index.html" class="hover:text-brand-600">홈으로 돌아가기</a></p>
   </footer>`;
 }
@@ -1897,7 +1897,7 @@ function authorBox() {
           <div>
             <p class="font-bold text-ink-900 text-sm">김민주</p>
             <p class="text-xs text-brand-600 font-semibold mt-0.5">나만 모르는 요즘 소식 운영자</p>
-            <p class="text-xs text-ink-400 mt-2 leading-relaxed">경제·재테크·복지정책 분야의 공식 자료와 최신 뉴스를 기반으로 정보를 정리합니다. 오류 제보 및 문의: <a href="mailto:contact@bloginfo360.com" class="text-brand-600 underline underline-offset-2">contact@bloginfo360.com</a></p>
+            <p class="text-xs text-ink-400 mt-2 leading-relaxed">경제·재테크·복지정책 분야의 공식 자료와 최신 뉴스를 기반으로 정보를 정리합니다. 오류 제보 및 문의: <a href="mailto:mju427@naver.com" class="text-brand-600 underline underline-offset-2">mju427@naver.com</a></p>
           </div>
         </div>`;
 }
