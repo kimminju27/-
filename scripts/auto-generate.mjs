@@ -156,6 +156,11 @@ const TOPIC_POOL = [
   { id: 'tax-003', category: '세금', label: '증여세 가족 간 절세 한도', query: '증여세 상속세 가족간 절세 한도 방법' },
   { id: 'tax-004', category: '세금', label: '부동산 양도소득세 절세', query: '부동산 양도소득세 절세 1주택 비과세' },
   { id: 'tax-005', category: '세금', label: '근로소득세 과세표준 변경', query: '근로소득세 과세표준 세율 변경 2026' },
+  { id: 'tax-006', category: '세금', label: 'ISA 계좌 비과세 한도 활용', query: 'ISA 계좌 비과세 한도 절세 투자 활용법' },
+  { id: 'tax-007', category: '세금', label: '상속세 개편안 핵심 정리', query: '상속세 개편 공제 한도 세율 2026 변경' },
+  { id: 'tax-008', category: '세금', label: '부가세 간이과세자 기준', query: '부가가치세 간이과세자 기준 신고 방법' },
+  { id: 'tax-009', category: '세금', label: '해외주식 양도소득세 신고법', query: '해외주식 양도소득세 신고 절세 방법 2026' },
+  { id: 'tax-010', category: '세금', label: '1주택 비과세 요건 총정리', query: '1세대 1주택 비과세 요건 거주기간 양도세' },
   // 금융
   { id: 'fin-001', category: '금융', label: '고금리 예금 적금 특판 비교', query: '예금 적금 특판 고금리 은행 금리비교' },
   { id: 'fin-002', category: '금융', label: 'ISA 계좌 절세 투자 활용법', query: 'ISA 계좌 절세 비과세 투자 활용 방법' },
@@ -1556,6 +1561,7 @@ const CAT_CONFIG = {
   '복지정책': { emoji: '🏛️', tagColor: '#c084fc', tagBg: 'rgba(192,132,252,0.15)', cardBg: 'linear-gradient(135deg,#3b0764,#6b21a8)' },
   '제품리뷰': { emoji: '📦', tagColor: '#fb923c', tagBg: 'rgba(251,146,60,0.15)', cardBg: 'linear-gradient(135deg,#7c2d12,#9a3412)' },
   '보험':    { emoji: '💼', tagColor: '#3b82f6', tagBg: 'rgba(59,130,246,0.15)',  cardBg: 'linear-gradient(135deg,#1e3a8a,#1d4ed8)' },
+  '세금':    { emoji: '💸', tagColor: '#f97316', tagBg: 'rgba(249,115,22,0.15)', cardBg: 'linear-gradient(135deg,#7c2d12,#c2410c)' },
 };
 
 function buildPostCard(data) {
@@ -1911,6 +1917,7 @@ function getCategoryOgImage(category) {
     '복지정책': 'https://bloginfo360.com/og-welfare.svg',
     '제품리뷰': 'https://bloginfo360.com/og-review.svg',
     '보험':     'https://bloginfo360.com/og-default.svg',
+    '세금':     'https://bloginfo360.com/og-default.svg',
   };
   return map[category] || 'https://bloginfo360.com/og-default.svg';
 }

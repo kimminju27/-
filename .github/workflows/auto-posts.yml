@@ -61,35 +61,35 @@ jobs:
           if [ "$SCHEDULE" = "0 20 * * *" ]; then
             # 슬롯 A — 오전 9시 KST 목표 (UTC 20:00 등록)
             case $DOW in
-              1) echo "CATS=경제_환율,부동산_청약" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=부동산_전세,복지_출산" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=경제_고용,주식_반도체" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=부동산_신도시,세금_증여" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=경제_GDP,복지_아동" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=주식_2차전지,금융_재테크" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=부동산_임대차,주식_AI" >> $GITHUB_OUTPUT ;;
+              1) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=부동산,복지정책" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=세금,부동산" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=보험,부동산" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=세금,주식" >> $GITHUB_OUTPUT ;;
             esac
           elif [ "$SCHEDULE" = "0 0 * * *" ]; then
             # 슬롯 B — 오후 1시 KST 목표 (UTC 00:00 등록)
             case $DOW in
-              1) echo "CATS=주식_ETF,복지_청년" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=주식_해외,경제_물가" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=복지_노인,부동산_재개발" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=주식_배당,경제_수출" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=금융_청약통장,부동산_빌라" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=세금_양도세,복지_실업급여" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=경제_금리,복지_기초연금" >> $GITHUB_OUTPUT ;;
+              1) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=부동산,복지정책" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=세금,부동산" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=보험,부동산" >> $GITHUB_OUTPUT ;;
             esac
           else
-            # 슬롯 C — 오후 7시 KST 목표 (UTC 10:00 등록) — 보험·세금 고CPC 카테고리
+            # 슬롯 C — 오후 7시 KST 목표 (UTC 10:00 등록)
             case $DOW in
-              1) echo "CATS=보험,세금_양도세" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=보험,금융_예금" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=보험,세금_종소세" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=보험,금융_신용" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=보험,세금_근로소득" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=보험,경제_관세" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=보험,금융_연금" >> $GITHUB_OUTPUT ;;
+              1) echo "CATS=세금,복지정책" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=세금,부동산" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=부동산,복지정책" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
             esac
           fi
 
