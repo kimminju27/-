@@ -1,2 +1,6 @@
 node_modules/
 package-lock.json
+# 임시/로그 파일
+*.log
+2026-*.txt
+2025-*.txt

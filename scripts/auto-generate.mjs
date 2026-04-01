@@ -1667,6 +1667,41 @@ function updateSitemap(data) {
 }
 
 // ─────────────────────────────────────────
+// 7-2. feed.xml 업데이트
+// ─────────────────────────────────────────
+function updateFeedXML(data) {
+  const feedPath = path.join(ROOT, 'feed.xml');
+  if (!existsSync(feedPath)) return;
+  let xml = readFileSync(feedPath, 'utf-8');
+
+  // 이미 같은 슬러그가 있으면 스킵
+  if (xml.includes(`/posts/${data.slug}`)) return;
+
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const pubDate = new Date(data.date + 'T09:00:00+09:00').toUTCString();
+  const newItem = `\n    <item>
+      <title>${esc(data.title)}</title>
+      <link>https://bloginfo360.com/posts/${data.slug}/</link>
+      <guid>https://bloginfo360.com/posts/${data.slug}/</guid>
+      <pubDate>${pubDate}</pubDate>
+      <description>${esc((data.description || '').substring(0, 200))}</description>
+    </item>`;
+
+  // 첫 번째 <item> 바로 앞에 새 아이템 삽입
+  xml = xml.replace(/(\s*<item>)/, newItem + '$1');
+
+  // 최대 20개 초과 시 마지막 아이템 제거
+  const itemMatches = [...xml.matchAll(/<item>[\s\S]*?<\/item>/g)];
+  if (itemMatches.length > 20) {
+    const last = itemMatches[itemMatches.length - 1];
+    xml = xml.slice(0, last.index) + xml.slice(last.index + last[0].length);
+  }
+
+  writeFileSync(feedPath, xml, 'utf-8');
+  console.log(`✅ feed.xml 업데이트 완료`);
+}
+
+// ─────────────────────────────────────────
 // 8. 파일 저장
 // ─────────────────────────────────────────
 function savePost(data, html) {
@@ -2017,6 +2052,7 @@ async function main() {
           savePost(data, html);
           updateIndexHTML(data);
           updateSitemap(data);
+          updateFeedXML(data);
           console.log(`\n✅ [${category}] 완료: ${data.title}`);
           success = true;
           break;
@@ -2060,6 +2096,7 @@ async function main() {
         savePost(data, html);
         updateIndexHTML(data);
         updateSitemap(data);
+        updateFeedXML(data);
         console.log(`\n✅ [제품리뷰] 완료: ${data.title}`);
         await sleep(3000);
       } catch (e) {

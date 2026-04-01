@@ -109,4 +109,4 @@ jobs:
           commit_message: "auto: 새 글 자동 생성 🤖"
           commit_user_name: "Auto Post Bot"
           commit_user_email: "bot@bloginfo360.com"
-          file_pattern: "posts/*.html index.html sitemap.xml topics-history.json"
+          file_pattern: "posts/*.html index.html sitemap.xml feed.xml topics-history.json"
