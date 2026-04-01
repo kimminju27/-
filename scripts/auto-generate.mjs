@@ -565,28 +565,97 @@ ${trendingContext || `${base} 관련 최신 뉴스`}
     markTopicUsed(fallback.id);
   }
 
-  const prompt = `You are a professional Korean economic blogger with 10 years of experience. Write a detailed, data-rich blog post in KOREAN ONLY.
+  const SYSTEM_MSG = `당신은 '나만 모르는 요즘 소식(bloginfo360.com)' 블로그 운영자 김민주입니다.
+경제·보험·세금·복지 분야를 10년째 다루는 전문 블로거로, 공식 자료를 바탕으로 독자가 바로 써먹을 수 있는 정보를 씁니다.
 
-Date: ${today}
-Category: ${base}
-Topic (MUST write about THIS specific subject — based on TODAY's real news): ${chosenTopic.topic}
+【글쓰기 스타일 — 이것이 당신의 정체성】
+- 독자 옆에 앉아 설명하는 말투: "솔직히", "사실은요", "이게 헷갈리는 분들이 많은데", "생각보다 간단해요"
+- 수치는 반드시 생활 맥락으로 환산: "연 0.25%p 인상 → 1억 대출 시 월 2만 원 추가 부담"
+- 섹션마다 첫 문장 유형을 다르게: 수치 직격/독자 질문/반전 사실/직접 행동 제안 중 선택
+- 중간에 독자에게 말 걸기: "혹시 이런 상황이신가요?", "이 부분이 핵심이에요.", "생각보다 많죠?"
+- 예시는 구체적 인물 설정: "30대 직장인이라면", "1인 가구 기준으로 보면"
 
-TODAY's real news headlines (use these as factual backbone — cite actual figures):
+【절대 금지 — AI 감지 패턴】
+- "알아보겠습니다", "살펴보겠습니다", "이번 글에서는", "함께 알아볼게요", "모색해보겠습니다"
+- 모든 문장을 ~어요/~입니다로 끝내기 → ~죠, ~네요, ~군요, ~거든요, ~셨나요 등 다양하게
+- 매 섹션 첫 문장에서 섹션 제목 단어 반복 금지
+- 첫째/둘째/셋째 번호 반복 → 자연스러운 접속사(그런데/또한/특히/반면에) 사용
+- 합니다/입니다/됩니다/드립니다 어미 사용 금지`;
+
+  const prompt = `오늘 날짜: ${today}
+카테고리: ${base}
+주제 (반드시 이 주제로 작성): ${chosenTopic.topic}
+
+【실시간 수집 뉴스 — 이 데이터만 사실로 사용, 뉴스에 없는 내용 창작 절대 금지】:
 ${newsContext}
 
-STRICT RULES — VIOLATIONS WILL MAKE THE ARTICLE USELESS:
-1. Write ONLY in Korean (한국어만 사용). ZERO foreign words — no Japanese, no Chinese characters, no English words, no Vietnamese, no French. Every single word must be pure Korean. Use "있음/없음" instead of ○/×.
-2. TONE: Use ONLY "요/어요"체 conversational style throughout ALL text. ABSOLUTELY FORBIDDEN: "합니다", "입니다", "됩니다", "드립니다" sentence endings. WRONG: "금리가 인상되었습니다." RIGHT: "금리가 인상됐어요." / "금리가 올랐어요."
-3. SHORT PARAGRAPHS: Each <p> tag must contain maximum 3 sentences (1~3줄). Break into new <p> after every 3 sentences. Never write a wall of text.
-4. NEVER use AI-tic phrases: "알아보겠습니다", "살펴보겠습니다", "모색해보겠습니다", "분석해보겠습니다", "이번 글에서는", "함께 알아볼게요". Start with the actual content immediately.
-5. Every section MUST contain at least 3 REAL specific numbers from the actual news (실제 뉴스에 나온 수치만 사용). NEVER copy example numbers. Use actual figures like real percentages, real prices, real dates from the news context above.
-6. Include at least one HTML table with real comparison data.
-7. Last main section MUST be a practical checklist of "지금 당장 할 수 있는 것 3가지".
-8. NO placeholder images, NO graph references, NO "그래프 참조" — use tables and text only.
-9. Total content length: aim for 3,000~5,000 Korean characters across intro + all sections.
-10. CRITICAL: NEVER write placeholder text. Every field must contain REAL, COMPLETE content.
-11. sections[].content must be FULLY WRITTEN prose — minimum 3 short paragraphs per section. No stub sentences.
-12. FAQ section REQUIRED: include 3~5 questions readers actually ask, with practical answers in "요/어요"체.
+【작성 규칙】
+- 한국어 100% (외국어·한자·영단어 삽입 절대 금지)
+- 각 <p>는 최대 3문장
+- 실제 뉴스 수치 최소 3개 인용 (예시 수치 그대로 복사 금지)
+- HTML 비교 표(<table>) 최소 1개 포함
+- 섹션당 최소 500자 (HTML 태그 제외 순수 텍스트 기준)
+- 마지막 섹션은 반드시 id="checklist", "지금 당장 할 수 있는 것 3가지" 체크리스트
+- FAQ 3~5개: 독자가 진짜 궁금해할 질문 + 실용적 답변
+- references 배열에 공식기관명 + 날짜 형식 출처 2개 이상
+
+아래 JSON 형식으로만 응답 (마크다운 코드블록 없이 JSON만):
+{
+  "title": "제목 (50자 이내, 연도+핵심키워드+숫자/혜택+총정리 공식 활용)",
+  "slug": "영문-소문자-하이픈 (날짜 제외, 주제 기반 3-5단어)",
+  "metaDescription": "메타설명 (80~120자, 핵심키워드 자연 포함)",
+  "heroGradient": "linear-gradient(135deg, #색상1, #색상2)",
+  "heroEmoji": "카테고리에 맞는 이모지 1개",
+  "heroTag": "${base} · ${today}",
+  "heroStats": [
+    {"label": "핵심지표명", "value": "실제수치", "color": "#색상코드"},
+    {"label": "지표명2",   "value": "실제수치", "color": "#색상코드"},
+    {"label": "지표명3",   "value": "실제수치", "color": "#색상코드"}
+  ],
+  "heroSubtext": "이 글 읽으면 얻는 것 (20자 이내, 구체적으로)",
+  "intro": "<p>[첫 문장: 실제 수치나 독자 공감으로 즉시 시작 — '오늘은~' '알아보겠습니다' 절대 금지]</p><p>[이 글에서 다룰 핵심 3가지 간단히]</p>",
+  "cards": [
+    {"num": "01", "badge": "핵심 이슈", "title": "실제수치 포함 제목", "body": "4-5문장, 실제수치, 내 생활 영향 중심 (요/어요체)", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"},
+    {"num": "02", "badge": "영향 분석", "title": "실제수치 포함 제목", "body": "4-5문장", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"},
+    {"num": "03", "badge": "실전 대응", "title": "실제수치 포함 제목", "body": "4-5문장", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"},
+    {"num": "04", "badge": "전망",      "title": "실제수치 포함 제목", "body": "4-5문장", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"}
+  ],
+  "sections": [
+    {
+      "id": "section1",
+      "heading": "실제 섹션1 제목 (수치 포함 권장)",
+      "content": "<p>[첫 문장: 수치 직격 — 예: '지난달 기준금리가 0.25%p 오르면서 변동금리 대출자는 월 2만 원 더 내게 됐어요.'] 500자 이상 실제 내용. 수치 3개 이상.</p><table><thead><tr><th>항목</th><th>A</th><th>B</th></tr></thead><tbody><tr><td>항목1</td><td>실제값</td><td>실제값</td></tr><tr><td>항목2</td><td>실제값</td><td>실제값</td></tr></tbody></table><p>표 해석 + 독자에게 말 걸기 포함. (예: '이 표에서 특히 눈에 띄는 건~')</p>"
+    },
+    {
+      "id": "section2",
+      "heading": "실제 섹션2 제목",
+      "content": "<p>[첫 문장: 독자 질문 형식 — 예: '그런데 이게 나한테도 해당되는 걸까요?'] 500자 이상.</p><blockquote>핵심 인사이트나 중요 수치 강조</blockquote><p>추가 분석.</p><ul><li><strong>포인트1:</strong> 구체적 설명 2-3문장</li><li><strong>포인트2:</strong> 구체적 설명 2-3문장</li><li><strong>포인트3:</strong> 구체적 설명 2-3문장</li></ul>"
+    },
+    {
+      "id": "section3",
+      "heading": "실제 섹션3 제목",
+      "content": "<p>[첫 문장: 반전/놀라운 사실 — 예: '실은 이 방법을 모르는 분들이 생각보다 많아요.'] 500자 이상. 수치 포함.</p><p>추가 분석 200자 이상.</p>"
+    },
+    {
+      "id": "section4",
+      "heading": "실제 섹션4 제목",
+      "content": "<p>[첫 문장: 직접 행동 제안 — 예: '지금 당장 네이버에서 ~을 검색해보세요.'] 500자 이상.</p><p>구체적 사례와 수치.</p>"
+    },
+    {
+      "id": "checklist",
+      "heading": "✅ 지금 당장 할 수 있는 것 3가지",
+      "content": "<p>읽고 나서 바로 실행할 수 있는 것들이에요.</p><ul><li><strong>1. [구체적 행동 제목]:</strong> 언제, 어떻게, 얼마나 — 2-3문장 (요/어요체)</li><li><strong>2. [구체적 행동 제목]:</strong> 2-3문장</li><li><strong>3. [구체적 행동 제목]:</strong> 2-3문장</li></ul><blockquote>핵심 한 줄 요약 (요/어요체)</blockquote>"
+    }
+  ],
+  "faq": [
+    {"question": "독자가 진짜 궁금해하는 질문 1?", "answer": "구체적·실용적 답변, 요/어요체, 2~3문장"},
+    {"question": "질문 2?", "answer": "답변"},
+    {"question": "질문 3?", "answer": "답변"}
+  ],
+  "summary": ["✅ 오늘 당장: 실제 행동 내용", "📌 핵심 팩트: 수치 포함 요약", "🔮 앞으로: 주목할 날짜/지표"],
+  "references": ["출처기관명 — 문서제목 (YYYY.MM)", "출처기관명2 — 문서제목 (YYYY.MM)"],
+  "readMinutes": 7
+}`;
 
 Respond with ONLY valid JSON (no code blocks, no markdown):
 {
@@ -688,7 +757,7 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
   "readMinutes": 7
 }`;
 
-  const text = await callGroq(prompt, { maxTokens: 8000 });
+  const text = await callGroq(prompt, { maxTokens: 8000, systemMsg: SYSTEM_MSG });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
@@ -703,7 +772,7 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
     for (const sec of data.sections) {
       const text = (sec.content || '').replace(/<[^>]*>/g, '');
       const hasPlaceholder = PLACEHOLDER_PATTERNS.some(p => text.includes(p));
-      const tooShort = text.length < 150;
+      const tooShort = text.length < 300;
       if (hasPlaceholder || tooShort) {
         console.warn(`   ⚠️ 섹션 "${sec.heading}" 콘텐츠 품질 미달 (${text.length}자, placeholder: ${hasPlaceholder}) — 재생성 필요`);
         throw new Error(`콘텐츠 품질 미달: 섹션 "${sec.heading}"`);
