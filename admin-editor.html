@@ -624,7 +624,7 @@
       if (!sm) return;
       const slugName = slug.replace(/\.html$/, '');
       if (sm.content.includes(`/posts/${slugName}`)) return; // 이미 있음
-      const entry = `\n  <url>\n    <loc>https://bloginfo360.com/posts/${slugName}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`;
+      const entry = `\n  <url>\n    <loc>https://bloginfo360.com/posts/${slugName}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`;
       const newXml = sm.content.replace('</urlset>', entry + '\n</urlset>');
       await putGhFile('sitemap.xml', newXml, sm.sha, `admin: sitemap 추가 (${slug})`);
     } catch (e) { console.warn('sitemap.xml 동기화 오류:', e.message); }
@@ -643,8 +643,10 @@
   <script src="/analytics.js"><\/script>
   <title>${escHtml(title)} - 나만 모르는 요즘 소식</title>
   <meta name="description" content="${escAttrHtml(desc)}">
-  <meta name="robots" content="noindex, nofollow">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://bloginfo360.com/posts/${slug}">
+  <meta name="google-adsense-account" content="ca-pub-1954893264438671">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954893264438671" crossorigin="anonymous"><\/script>
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escAttrHtml(title)}">
   <meta property="og:description" content="${escAttrHtml(desc)}">
@@ -746,8 +748,30 @@
           ${getCategoryEmoji(category)}
         </div>
 
+        <!-- 광고: 본문 상단 -->
+        <div class="my-6">
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-1954893264438671"
+               data-ad-slot="2954893265"
+               data-ad-format="auto"
+               data-full-width-responsive="true"><\/ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
+        </div>
+
         <div class="prose">
 ${bodyHtml}
+        </div>
+
+        <!-- 광고: 본문 하단 -->
+        <div class="my-8">
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-1954893264438671"
+               data-ad-slot="2954893265"
+               data-ad-format="auto"
+               data-full-width-responsive="true"><\/ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
         </div>
 
         <div class="mt-10 pt-8 border-t border-ink-100 flex flex-wrap gap-3">
@@ -783,6 +807,17 @@ ${bodyHtml}
               <li><a href="../index.html#category" class="hover:text-brand-600 transition-colors">주식</a></li>
               <li><a href="../index.html#category" class="hover:text-brand-600 transition-colors">복지정책</a></li>
             </ul>
+          </div>
+
+          <!-- 광고: 사이드바 -->
+          <div>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-1954893264438671"
+                 data-ad-slot="2954893265"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"><\/ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
           </div>
 
         </div>

@@ -1187,6 +1187,17 @@ function buildNewsHTML(data) {
 
         ${bodyHTML}
 
+        <!-- AdSense 인콘텐츠 광고 -->
+        <div class="my-8">
+          <ins class="adsbygoogle"
+               style="display:block; text-align:center;"
+               data-ad-layout="in-article"
+               data-ad-format="fluid"
+               data-ad-client="ca-pub-1954893264438671"
+               data-ad-slot="2954893264"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
+        </div>
+
         <!-- 핵심 요약 -->
         <div class="mt-10 bg-brand-50 border border-brand-100 rounded-2xl p-6">
           <h3 class="font-bold text-brand-700 mb-3 text-base">📌 핵심 요약</h3>
@@ -1207,6 +1218,17 @@ function buildNewsHTML(data) {
             </div>`).join('')}
           </div>
         </div>` : ''}
+
+        <!-- AdSense 디스플레이 광고 (하단) -->
+        <div class="my-8">
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-1954893264438671"
+               data-ad-slot="2954893265"
+               data-ad-format="auto"
+               data-full-width-responsive="true"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
+        </div>
 
         ${buildSourcesHTML(data)}
         ${authorBox()}

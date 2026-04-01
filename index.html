@@ -172,7 +172,7 @@
   <!-- 히어로 -->
   <section class="bg-gradient-to-br from-brand-50 to-white border-b border-ink-100">
     <div class="max-w-5xl mx-auto px-4 py-14 text-center">
-      <span class="inline-block bg-gold-400 text-ink-900 text-xs font-bold px-3 py-1 rounded-full mb-4">경제 · 연예 · 생활 · 제품리뷰</span>
+      <span class="inline-block bg-gold-400 text-ink-900 text-xs font-bold px-3 py-1 rounded-full mb-4">보험 · 세금 · 부동산 · 재테크</span>
       <h1 class="text-3xl sm:text-4xl font-black text-ink-900 mb-3 leading-tight">
         나만 모르고 있던<br>요즘 진짜 소식
       </h1>
@@ -185,7 +185,7 @@
         <input
           id="searchInput"
           type="text"
-          placeholder="궁금한 키워드를 검색하세요 (예: ETF, 배당주, 아이패드)"
+          placeholder="궁금한 키워드를 검색하세요 (예: 청년도약계좌, 양도세, 실손보험)"
           class="search-input w-full border border-ink-100 rounded-xl py-3.5 px-5 pr-14 text-sm bg-white shadow-card transition-all"
           oninput="filterPosts()"
         >
@@ -202,14 +202,25 @@
   <section id="category" class="max-w-5xl mx-auto px-4 pt-10 pb-4">
     <div class="flex flex-wrap gap-2">
       <button class="cat-btn active" onclick="filterCategory('전체', this)">전체</button>
-      <button class="cat-btn" onclick="filterCategory('경제', this)">💰 경제</button>
+      <button class="cat-btn" onclick="filterCategory('보험', this)">💼 보험</button>
+      <button class="cat-btn" onclick="filterCategory('세금', this)">💸 세금/절세</button>
       <button class="cat-btn" onclick="filterCategory('부동산', this)">🏠 부동산</button>
-      <button class="cat-btn" onclick="filterCategory('주식', this)">📈 주식</button>
       <button class="cat-btn" onclick="filterCategory('복지', this)">🏛️ 복지정책</button>
+      <button class="cat-btn" onclick="filterCategory('주식', this)">📈 주식·재테크</button>
       <button class="cat-btn" onclick="filterCategory('제품리뷰', this)">📦 제품리뷰</button>
-      <button class="cat-btn" onclick="filterCategory('연예계', this)">🎬 연예계</button>
     </div>
   </section>
+
+  <!-- 광고: 포스트 목록 상단 -->
+  <div class="max-w-5xl mx-auto px-4 pt-4">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1954893264438671"
+         data-ad-slot="AUTO"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
 
   <!-- 포스트 목록 -->
   <main class="max-w-5xl mx-auto px-4 py-6">
@@ -217,34 +228,6 @@
 
       <!-- POSTS_START -->
 
-      <!-- AUTO: '21세기 대군부인' 화제성 1위, 2026년 드라마 라인업 -->
-      <a href="posts/2026-drama-lineup-2026-03-31-1945" class="block no-underline"><article class="post-item post-card rounded-2xl border border-ink-100 overflow-hidden bg-white shadow-card cursor-pointer"
-               data-category="연예계" data-title="&#39;21세기 대군부인&#39; 화제성 1위, 2026년 드라마 라인업">
-        <div class="h-44 relative overflow-hidden" style="background:linear-gradient(135deg,#4a044e,#86198f);">
-          <div class="absolute inset-0 flex flex-col justify-between p-4">
-            <div class="flex items-center justify-between">
-              <span style="background:rgba(244,114,182,0.15);color:#f472b6;" class="text-xs font-bold px-2 py-0.5 rounded-full border border-white/10">🎬 연예계</span>
-              <span class="text-xs text-white/40">2026.03.31</span>
-            </div>
-            
-            <div>
-              <p class="text-white/60 text-xs mb-0.5">21세기 대군부인</p>
-              <p style="color:#f472b6;" class="font-black text-3xl leading-tight">화제성 1위</p>
-              <p class="text-white/50 text-xs mt-1 line-clamp-1">2026년 드라마 라인업과 '21세기 대군부인'의 화제성</p>
-            </div>
-          </div>
-          <div class="absolute -right-3 -top-3 text-8xl opacity-5">🎬</div>
-        </div>
-        <div class="p-5">
-          <span class="text-xs font-bold text-gold-500 bg-yellow-50 px-2 py-0.5 rounded-full">연예계</span>
-          <h2 class="mt-2 font-bold text-ink-900 text-base leading-snug">'21세기 대군부인' 화제성 1위, 2026년 드라마 라인업</h2>
-          <p class="mt-1.5 text-xs text-ink-500 line-clamp-2">방영 전인데 벌써 뜨겁다…'21세기 대군부인' 화제성 1위,  2026 역대급 드라마 라인업,  드라마 3편, 화제성 TOP10 싹쓸이…‘언더커...</p>
-          <div class="mt-4 flex items-center justify-between text-xs text-ink-300">
-            <span>2026.03.31</span>
-            <span class="flex items-center gap-1 text-brand-600 font-bold">🆕 NEW</span>
-          </div>
-        </div>
-      </article></a>
 
 
     </div>

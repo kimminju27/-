@@ -717,6 +717,250 @@ DNS 설정:
 
 ---
 
+# 💰 수익화 사이트 운영 가이드 (bloginfo360.com 전용)
+
+> **목표:** Google AdSense + 네이버/구글 SEO 최적화를 통한 광고 수익 극대화
+
+---
+
+## AdSense 계정 정보
+
+- **Publisher ID:** `ca-pub-1954893264438671`
+- **광고 슬롯:** AdSense 대시보드에서 발급받은 실제 슬롯 ID로 `data-ad-slot="AUTO"` 교체 필요
+
+---
+
+## 새 글 작성 규칙 (필수 준수)
+
+### 1. robots 태그 — 반드시 `index, follow`
+
+```html
+<!-- ✅ 올바른 설정 -->
+<meta name="robots" content="index, follow">
+
+<!-- ❌ 절대 금지 -->
+<meta name="robots" content="noindex, nofollow">
+```
+
+### 2. AdSense 광고 유닛 4곳 필수 포함
+
+모든 포스트 HTML에 아래 4개 광고 위치를 반드시 포함할 것:
+
+| 위치 | 형식 | 효과 |
+|------|------|------|
+| 본문 시작 직전 | `data-ad-format="auto"` | 높은 노출 |
+| 두 번째 H2 위 (글 중간) | `data-ad-format="fluid" data-ad-layout="in-article"` | 최고 CTR |
+| 본문 끝 (태그 위) | `data-ad-format="auto"` | 이탈 전 노출 |
+| 사이드바 (sticky) | `data-ad-format="auto"` | 스크롤 중 노출 |
+
+```html
+<!-- 표준 광고 유닛 코드 (슬롯 ID는 AdSense에서 발급 후 교체) -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1954893264438671"
+     data-ad-slot="[슬롯ID]"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+```
+
+### 3. 고수익 카테고리 우선 작성
+
+CPC(클릭당 광고 단가)가 높은 순서:
+
+| 순위 | 카테고리 | CPC 단가 | 권장 비중 |
+|------|---------|---------|---------|
+| 1 | 보험 (실손보험·암보험·자동차보험 비교) | 최상 | 25% |
+| 2 | 세금/절세 (연말정산·종합소득세·양도세·절세) | 최상 | 25% |
+| 3 | 복지정책 (청년·노인·장애인 지원금·신청방법) | 높음 | 20% |
+| 4 | 주식·재테크 (ETF·배당·ISA·연금저축) | 중-높음 | 15% |
+| 5 | 부동산 (청약·대출·취득세·전세) | 중 | 10% |
+| 6 | 제품리뷰 (쿠팡 파트너스 링크 포함) | 중 | 5% |
+
+> 연예계 카테고리는 운영하지 않음 — AdSense CPC 최하위, 에드센스 심사에도 불리.
+
+### 4. SEO 최적화 글 작성 기준
+
+| 항목 | 기준 |
+|------|------|
+| 글 길이 | 최소 1,500자 (3,000자 이상 권장) |
+| H2 소제목 | 4~6개 (키워드 자연 포함) |
+| 내부 링크 | 관련 글 2개 이상 링크 |
+| 메타 description | 80~120자, 핵심 키워드 포함 |
+| 이미지 alt 텍스트 | 모든 이미지에 한국어 alt 작성 |
+| FAQ 섹션 | 최소 3개 (Featured Snippet 노출 유도) |
+| 발행 빈도 | 주 3~5회 (구글 크롤링 빈도 증가) |
+
+### 5. 제목(Title) 작성 공식
+
+검색 클릭률 높은 제목 패턴:
+
+```
+[연도] + [키워드] + [혜택/숫자] + 총정리/완벽정리/한방에
+
+예시:
+- "2026년 청년도약계좌 신청방법 총정리 (조건·혜택 한눈에)"
+- "2026 ETF 투자 초보 가이드: 수익률 TOP 10 비교"
+- "기초생활수급자 지원금 2026년 인상분 완벽 정리"
+```
+
+### 6. 포스트 내 수익화 요소
+
+#### 제품리뷰 글: 쿠팡 파트너스 링크 필수
+
+```html
+<!-- 쿠팡 파트너스 제휴 링크 (가입: https://partners.coupang.com) -->
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 my-6">
+  <p class="text-xs text-amber-700 font-bold mb-2">💡 이 포스팅은 쿠팡 파트너스 활동의 일환으로 일정액의 수수료를 제공받습니다.</p>
+  <a href="https://link.coupang.com/[파트너스링크]"
+     target="_blank" rel="noopener sponsored"
+     class="inline-block bg-amber-400 hover:bg-amber-500 text-white font-bold px-6 py-2 rounded-lg transition-colors">
+    쿠팡에서 최저가 확인하기
+  </a>
+</div>
+```
+
+---
+
+## 새 글 추가 체크리스트
+
+```
+글 발행 전 반드시 확인:
+
+□ robots: index, follow 설정됨
+□ canonical URL 실제 주소로 입력됨
+□ og:title / og:description / og:image 입력됨
+□ Article 구조화 데이터 (JSON-LD) 날짜 정확히 입력됨
+□ Google AdSense 스크립트 포함됨
+□ 광고 유닛 4곳 (상단/중간/하단/사이드바) 모두 있음
+□ 글 길이 1,500자 이상
+□ H2 소제목 4개 이상, 키워드 자연 포함
+□ 내부 링크 2개 이상
+□ FAQ 3개 이상
+□ 메타 description 80~120자
+□ index.html 포스트 카드에 추가됨
+□ sitemap.xml에 추가됨
+□ git push → Vercel 자동 배포 확인
+```
+
+---
+
+## sitemap.xml 관리 규칙
+
+```xml
+<!-- changefreq는 weekly로 설정 (monthly 금지) -->
+<changefreq>weekly</changefreq>
+
+<!-- 새 글 우선순위 -->
+<priority>0.8</priority>
+
+<!-- 홈페이지 우선순위 -->
+<priority>1.0</priority>
+```
+
+---
+
+## 네이버 SEO 추가 최적화
+
+- **네이버 서치어드바이저:** `8d911d2c19b710aba3ada77284691b9beee6e358` (이미 등록됨)
+- 네이버 블로그와 콘텐츠 중복 금지 (사이트 불이익)
+- 네이버 인기검색어 기반 키워드 보완
+- 모바일 최적화 필수 (네이버 모바일 검색 비중 70%)
+
+---
+
+## 콘텐츠 품질 기준 — AI처럼 안 보이게 쓰는 법
+
+> **목표:** 사람이 직접 조사하고 경험을 담아 쓴 것처럼 읽혀야 한다.
+
+### 절대 쓰지 말 것 (AI 감지 패턴)
+
+| 금지 표현 | 대체 표현 |
+|---------|---------|
+| "~에 대해 알아보겠습니다" | "오늘은 ~를 정리했습니다" / 바로 본론 시작 |
+| "첫째, 둘째, 셋째로" | "가장 큰 문제는" / "그 다음으로 중요한 건" |
+| "중요합니다", "필수입니다" (반복) | 이유와 함께 구체적 수치로 설명 |
+| "포괄적으로", "다양한 측면에서" | 구체적 항목 나열 |
+| 매 문단 마지막 "~할 수 있습니다" 반복 | 문장 종결 다양하게 변환 |
+| "본 글에서는" | 삭제 또는 자연스러운 도입 |
+
+### 반드시 포함할 것 (사람 글의 특징)
+
+1. **실제 숫자/날짜**: "2026년 4월 기준", "월 최대 30만 원", "4월 15일 마감"
+2. **공식 출처 인용**: "국세청 발표(2026.03)", "보건복지부 고시 제2026-xx호"
+3. **독자 입장의 질문**: "그런데 이게 나한테도 해당될까요?"
+4. **비교 표**: 복잡한 내용은 반드시 표로 정리
+5. **주의사항/예외**: "단, 이런 경우에는 적용되지 않습니다"
+6. **마무리에 행동 유도**: "신청은 복지로(bokjiro.go.kr)에서 가능합니다"
+
+### 팩트체크 필수 항목
+
+글 발행 전 반드시 확인:
+- [ ] 수치·날짜·금액이 최신 공식 자료와 일치하는가?
+- [ ] 출처 링크가 실제 접속 가능한가?
+- [ ] "예정", "알려진 바에 따르면" 등 불확실한 내용에 유보 표현을 썼는가?
+- [ ] 법령·제도명은 정확한 공식 명칭을 사용했는가?
+
+---
+
+## 자동포스팅 워크플로우 (bloginfo360.com 독립 운영)
+
+> **이 사이트는 tistory-blog-team과 완전히 독립 운영된다. 콘텐츠 교차 발행 금지.**
+
+### 새 글 발행 순서
+
+```
+1. 주제 선정 (아래 주제 선정 기준 참고)
+2. 자료 수집 (공식 사이트, 정부 발표 자료)
+3. posts/_template.html 복사 → 새 파일명으로 저장
+   파일명 규칙: 영문 소문자 + 하이픈 (예: losury-tax-2026.html)
+   ❌ 날짜 파일명 금지: post-2026-04-01.html
+4. 수정 번호(수정 1~14) 순서대로 내용 채우기
+5. 본문 작성 (2,000~4,000자 목표, 위 품질 기준 준수)
+6. sitemap.xml에 새 URL 추가 (lastmod = 오늘 날짜)
+7. index.html POSTS_START 섹션에 포스트 카드 추가
+8. 발행 전 체크리스트 확인
+9. git add posts/파일명.html sitemap.xml index.html
+   git commit -m "글 추가: 제목"
+   git push
+```
+
+### index.html 포스트 카드 추가 형식
+
+```html
+<!-- POSTS_START 아래에 추가 -->
+<article class="post-item" data-category="보험" data-title="글제목">
+  <a href="posts/파일명.html" class="block bg-white rounded-2xl border border-ink-100 shadow-card hover:shadow-card-hover post-card overflow-hidden">
+    <div class="w-full h-44 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center text-5xl">💼</div>
+    <div class="p-5">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">보험</span>
+        <span class="text-xs text-ink-300">2026.04.01</span>
+      </div>
+      <h2 class="font-black text-ink-900 text-base leading-snug mb-2 line-clamp-2">글 제목</h2>
+      <p class="text-xs text-ink-500 line-clamp-2 leading-relaxed">글 설명 (80자 이내)</p>
+    </div>
+  </a>
+</article>
+```
+
+### 주제 선정 기준
+
+좋은 주제의 3가지 조건:
+1. **검색량**: 월 1,000회 이상 (네이버 키워드 도구 / 구글 키워드 플래너)
+2. **시의성**: 법 개정, 정책 변경, 시즌 이슈 (연말정산 시즌 등)
+3. **CPC 단가**: 보험·세금 계열 우선
+
+추천 주제 패턴:
+```
+[연도] [키워드] 총정리 / 신청방법 / 조건 / 변경사항
+예: "2026 실손보험 개편 완벽 정리"
+    "2026 연말정산 공제 항목 총정리"
+    "청년도약계좌 신청 조건·방법·혜택 한눈에"
+```
+
+---
+
 # 🔒 보안 체크리스트
 
 | 영역 | 항목 |
