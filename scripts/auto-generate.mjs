@@ -163,17 +163,17 @@ const TOPIC_POOL = [
   { id: 'fin-004', category: '금융', label: '신용점수 올리는 방법', query: '신용점수 신용등급 올리기 관리 방법' },
   { id: 'fin-005', category: '금융', label: '청년 우대형 청약통장', query: '청년 우대형 청약통장 금리 가입 조건' },
   { id: 'fin-006', category: '금융', label: '소액 투자 재테크 시작법', query: '소액 투자 재테크 시작 초보 방법 추천' },
-  // 연예계 — 방영 중 드라마/예능 중심
-  { id: 'ent-001', category: '연예계', label: '방영중 드라마 화제 장면', query: '방영중 드라마 2026 화제 장면 시청률' },
-  { id: 'ent-002', category: '연예계', label: '주말 드라마 최신 줄거리', query: '주말드라마 최신화 줄거리 예고 시청률' },
-  { id: 'ent-003', category: '연예계', label: '넷플릭스 신작 드라마', query: '넷플릭스 드라마 신작 2026 공개' },
-  { id: 'ent-004', category: '연예계', label: '월화 드라마 화제', query: '월화드라마 2026 방영 화제 출연진' },
-  { id: 'ent-005', category: '연예계', label: '수목 드라마 줄거리 반응', query: '수목드라마 2026 최신 화제 반응' },
-  { id: 'ent-006', category: '연예계', label: '예능 최신화 화제 장면', query: '예능 프로그램 최신화 2026 화제 클립 출연진' },
-  { id: 'ent-007', category: '연예계', label: '주말 예능 시청률 화제', query: '주말예능 시청률 화제 장면 2026' },
-  { id: 'ent-008', category: '연예계', label: '드라마 OST 화제', query: '드라마 OST 2026 음원차트 화제' },
-  { id: 'ent-009', category: '연예계', label: 'OTT 드라마 공개 순위', query: '넷플릭스 왓챠 티빙 드라마 2026 순위 화제' },
-  { id: 'ent-010', category: '연예계', label: '예능 신규 출연진 화제', query: '예능 새 시즌 출연진 2026 화제' },
+  // 보험 — 고CPC 카테고리
+  { id: 'ins-001', category: '보험', label: '실손보험 개편 핵심 정리', query: '실손보험 개편 보험료 청구 방법 2026' },
+  { id: 'ins-002', category: '보험', label: '자동차보험 비교 절약법', query: '자동차보험 비교 보험료 절감 방법 추천' },
+  { id: 'ins-003', category: '보험', label: '암보험 가입 주의사항', query: '암보험 가입 주의사항 보장내용 비교 추천' },
+  { id: 'ins-004', category: '보험', label: '생명보험 종신보험 차이', query: '생명보험 종신보험 정기보험 비교 추천' },
+  { id: 'ins-005', category: '보험', label: '치아보험 임플란트 보장', query: '치아보험 임플란트 보장 가성비 비교 추천' },
+  { id: 'ins-006', category: '보험', label: '건강보험 실비 청구 방법', query: '건강보험 실비 보험금 청구 방법 절차' },
+  { id: 'ins-007', category: '보험', label: '태아보험 어린이보험 차이', query: '태아보험 어린이보험 가입 시기 비교 추천' },
+  { id: 'ins-008', category: '보험', label: '환급형 순수보장형 보험 비교', query: '환급형 순수보장형 보험 차이 비교 추천' },
+  { id: 'ins-009', category: '보험', label: '운전자보험 필요성 보장', query: '운전자보험 필요성 보장내용 추천 비교' },
+  { id: 'ins-010', category: '보험', label: '노후 간병보험 준비', query: '간병보험 노후 의료비 준비 추천 비교' },
 ];
 
 // 사용한 주제 추적 (topics-history.json)
@@ -222,7 +222,7 @@ async function fetchTrendingNews(category) {
     '복지정책': '복지 정책 지원',
     '세금': '세금 절세',
     '금융': '금융 재테크',
-    '연예계': '연예계 연예인 이슈',
+    '보험': '보험 실손 가입 비교',
   };
   const q = encodeURIComponent(queries[base] || base);
   const url = `https://news.google.com/rss/search?q=${q}&hl=ko&gl=KR&ceid=KR:ko`;
@@ -1486,7 +1486,7 @@ const CAT_CONFIG = {
   '주식':   { emoji: '📈', tagColor: '#60a5fa', tagBg: 'rgba(96,165,250,0.15)', cardBg: 'linear-gradient(135deg,#1e3a5f,#1d4ed8)' },
   '복지정책': { emoji: '🏛️', tagColor: '#c084fc', tagBg: 'rgba(192,132,252,0.15)', cardBg: 'linear-gradient(135deg,#3b0764,#6b21a8)' },
   '제품리뷰': { emoji: '📦', tagColor: '#fb923c', tagBg: 'rgba(251,146,60,0.15)', cardBg: 'linear-gradient(135deg,#7c2d12,#9a3412)' },
-  '연예계':  { emoji: '🎬', tagColor: '#f472b6', tagBg: 'rgba(244,114,182,0.15)', cardBg: 'linear-gradient(135deg,#4a044e,#86198f)' },
+  '보험':    { emoji: '💼', tagColor: '#3b82f6', tagBg: 'rgba(59,130,246,0.15)',  cardBg: 'linear-gradient(135deg,#1e3a8a,#1d4ed8)' },
 };
 
 function buildPostCard(data) {
@@ -1841,7 +1841,7 @@ function getCategoryOgImage(category) {
     '부동산':   'https://bloginfo360.com/og-realestate.svg',
     '복지정책': 'https://bloginfo360.com/og-welfare.svg',
     '제품리뷰': 'https://bloginfo360.com/og-review.svg',
-    '연예계':   'https://bloginfo360.com/og-entertainment.svg',
+    '보험':     'https://bloginfo360.com/og-default.svg',
   };
   return map[category] || 'https://bloginfo360.com/og-default.svg';
 }

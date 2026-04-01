@@ -81,15 +81,15 @@ jobs:
               *) echo "CATS=경제_금리,복지_기초연금" >> $GITHUB_OUTPUT ;;
             esac
           else
-            # 슬롯 C — 오후 7시 KST 목표 (UTC 10:00 등록) — 매일 연예계 1개 포함
+            # 슬롯 C — 오후 7시 KST 목표 (UTC 10:00 등록) — 보험·세금 고CPC 카테고리
             case $DOW in
-              1) echo "CATS=연예계,세금_양도세" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=연예계,금융_예금" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=연예계,세금_종소세" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=연예계,금융_신용" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=연예계,세금_근로소득" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=연예계,경제_관세" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=연예계,금융_연금" >> $GITHUB_OUTPUT ;;
+              1) echo "CATS=보험,세금_양도세" >> $GITHUB_OUTPUT ;;
+              2) echo "CATS=보험,금융_예금" >> $GITHUB_OUTPUT ;;
+              3) echo "CATS=보험,세금_종소세" >> $GITHUB_OUTPUT ;;
+              4) echo "CATS=보험,금융_신용" >> $GITHUB_OUTPUT ;;
+              5) echo "CATS=보험,세금_근로소득" >> $GITHUB_OUTPUT ;;
+              6) echo "CATS=보험,경제_관세" >> $GITHUB_OUTPUT ;;
+              *) echo "CATS=보험,금융_연금" >> $GITHUB_OUTPUT ;;
             esac
           fi
 
