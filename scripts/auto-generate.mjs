@@ -1268,7 +1268,7 @@ function buildNewsHTML(data) {
                data-ad-layout="in-article"
                data-ad-format="fluid"
                data-ad-client="ca-pub-1954893264438671"
-               data-ad-slot="2954893264"></ins>
+               data-ad-slot="4667480307"></ins>
           <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
         </div>
 
@@ -1298,7 +1298,7 @@ function buildNewsHTML(data) {
           <ins class="adsbygoogle"
                style="display:block"
                data-ad-client="ca-pub-1954893264438671"
-               data-ad-slot="2954893265"
+               data-ad-slot="4667480307"
                data-ad-format="auto"
                data-full-width-responsive="true"></ins>
           <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
