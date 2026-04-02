@@ -516,26 +516,24 @@ async function generateNewsArticle(category) {
   // 1단계: 실시간 트렌딩 뉴스 수집
   console.log(`\n📡 실시간 뉴스 탐색 중: [${base}]`);
   const trendingItems = await fetchTrendingNews(category);
+  // topic pick용: 제목만, 5개 이하, desc 없음 (토큰 절약)
   const trendingContext = trendingItems.length > 0
-    ? trendingItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
+    ? trendingItems.slice(0, 5).map((n, i) => `${i + 1}. ${n.title}`).join('\n')
     : '';
 
-  // 2단계: 이미 다룬 주제 목록 (중복 방지)
+  // 2단계: 이미 다룬 주제 목록 — 최근 5개만 (토큰 절약)
   const usedTitles = getExistingPostTitles();
-  const avoidList = usedTitles.length > 0
-    ? `\nALREADY PUBLISHED (MUST NOT repeat):\n${usedTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
+  const recentTitles = usedTitles.slice(0, 5);
+  const avoidList = recentTitles.length > 0
+    ? `금지 주제: ${recentTitles.join(' / ')}`
     : '';
 
-  // 3단계: AI가 오늘의 핫이슈에서 주제 선정 + 상세 RSS 추가 수집
-  const topicPickPrompt = `당신은 한국 경제 뉴스 에디터입니다. 오늘의 트렌딩 뉴스 중 "${base}" 카테고리에 맞는 가장 흥미롭고 시의성 있는 주제 하나를 선정하세요.
-
-오늘 날짜: ${today}
-카테고리: ${base}
-${avoidList ? `\n⛔ 아래 주제들은 오늘 이미 발행했으므로 절대 선택하지 마세요. 비슷한 주제도 금지입니다:\n${usedTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n` : ''}
-오늘의 실시간 트렌딩 뉴스:
-${trendingContext || `${base} 관련 최신 뉴스`}
-
-위 금지 목록과 완전히 다른 새로운 주제를 선택하세요. JSON으로만 응답: {"topic": "구체적 주제 (한국어, 30자 이내)", "query": "RSS 검색 키워드 (한국어, 10-20자)", "reason": "이 주제가 오늘 화제인 이유"}`;
+  // 3단계: AI가 오늘의 핫이슈에서 주제 선정
+  const topicPickPrompt = `${base} 카테고리 블로그 주제 선정. 날짜:${today}
+${avoidList}
+뉴스:
+${trendingContext || `${base} 최신 뉴스`}
+JSON만 응답: {"topic":"주제(30자이내)","query":"검색키워드(20자이내)","reason":"선정이유(50자이내)"}`;
 
   let chosenTopic = { topic: '', query: '', reason: '' };
   try {
@@ -559,9 +557,9 @@ ${trendingContext || `${base} 관련 최신 뉴스`}
   const detailItems = await fetchNewsRSS(chosenTopic.query);
   const allNewsItems = [...trendingItems, ...detailItems]
     .filter((v, i, a) => a.findIndex(x => x.title === v.title) === i) // 중복 제거
-    .slice(0, 8);
+    .slice(0, 5);
   const newsContext = allNewsItems.length > 0
-    ? allNewsItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc}`).join('\n\n')
+    ? allNewsItems.map((n, i) => `${i + 1}. ${n.title}\n   ${n.desc.substring(0, 100)}`).join('\n\n')
     : `${chosenTopic.topic} 관련 최신 동향`;
 
   // 사용 주제 기록 (TOPIC_POOL 기반 폴백일 때)
@@ -571,19 +569,19 @@ ${trendingContext || `${base} 관련 최신 뉴스`}
   }
 
   const SYSTEM_MSG = `블로그 운영자 김민주(bloginfo360.com). 경제·보험·세금·복지 전문 블로거.
-스타일: "솔직히", "사실은요", "이게 핵심이에요" 같은 독자 옆 말투. 수치는 생활 맥락으로 환산.
-금지: "알아보겠습니다" "살펴보겠습니다" "이번 글에서는" / 합니다·입니다·됩니다 어미 반복.
-필수: sections[].content 각각 300자 이상 실제 한국어 HTML (지시문 그대로 출력 절대 금지). section1에 <table> 비교표 필수.`;
+스타일: 독자 옆 말투("솔직히","사실은요"). 수치는 생활 맥락으로 환산.
+금지: "알아보겠습니다" "살펴보겠습니다" "이번 글에서는".
+content 필드: 반드시 실제 한국어 HTML 작성(100자+). section1은 <table> 비교표 필수. <p><ul><blockquote><table> 활용.`;
 
   const prompt = `날짜:${today} 카테고리:${base} 주제:${chosenTopic.topic}
 
-뉴스(이 데이터만 사실로 사용):
+뉴스:
 ${newsContext}
 
-순수 JSON만 출력(코드블록금지, 한국어100%, 수치3개+인용):
-{"title":"[50자제목]","description":"[80-120자설명]","keywords":["키1","키2","키3","키4","키5"],"slug":"[영문-slug]","heroGradient":"linear-gradient(135deg,#0f172a,#1e3a5f)","heroEmoji":"[이모지]","heroTag":"${base} · ${today}","heroStats":[{"label":"[지표]","value":"[수치]","color":"#f87171"},{"label":"[지표]","value":"[수치]","color":"#fbbf24"},{"label":"[지표]","value":"[수치]","color":"#34d399"}],"heroSubtext":"[20자혜택]","intro":"<p>[실제내용2-3문장]</p><p>[핵심3가지]</p>","cards":[{"num":"01","badge":"핵심 이슈","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#f87171","bg":"linear-gradient(135deg,#0f172a,#1e3a5f)"},{"num":"02","badge":"영향 분석","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#fbbf24","bg":"linear-gradient(135deg,#7f1d1d,#991b1b)"},{"num":"03","badge":"실전 대응","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#34d399","bg":"linear-gradient(135deg,#14532d,#166534)"},{"num":"04","badge":"전망","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#60a5fa","bg":"linear-gradient(135deg,#1e3a5f,#1d4ed8)"}],"sections":[{"id":"section1","heading":"[제목]","content":"[300자+HTML:<p>내용</p><table><thead><tr><th>항목</th><th>A</th><th>B</th></tr></thead><tbody><tr><td>행1</td><td>값</td><td>값</td></tr></tbody></table><p>해석</p>]"},{"id":"section2","heading":"[제목]","content":"[300자+HTML:<p>내용</p><blockquote>핵심</blockquote><ul><li>포인트1</li><li>포인트2</li></ul>]"},{"id":"section3","heading":"[제목]","content":"[300자+HTML:<p>내용</p><p>분석</p>]"},{"id":"section4","heading":"[제목]","content":"[300자+HTML:<p>내용</p><p>실천방법</p>]"},{"id":"checklist","heading":"✅ 지금 당장 할 수 있는 것 3가지","content":"<ul><li><strong>[행동1]:</strong>[설명]</li><li><strong>[행동2]:</strong>[설명]</li><li><strong>[행동3]:</strong>[설명]</li></ul><blockquote>[요약]</blockquote>"}],"faq":[{"question":"[질문?]","answer":"[2-3문장답변]"},{"question":"[질문?]","answer":"[답변]"},{"question":"[질문?]","answer":"[답변]"}],"summary":["✅[행동]","📌[수치팩트]","🔮[전망]"],"references":["[기관—제목(YYYY.MM)]","[기관—제목(YYYY.MM)]"],"readMinutes":7}`;
+JSON만 출력(코드블록금지):
+{"title":"제목","description":"설명","keywords":["k1","k2","k3","k4","k5"],"slug":"slug","heroGradient":"linear-gradient(135deg,#0f172a,#1e3a5f)","heroEmoji":"이모지","heroTag":"${base} · ${today}","heroStats":[{"label":"지표","value":"수치","color":"#f87171"},{"label":"지표","value":"수치","color":"#fbbf24"},{"label":"지표","value":"수치","color":"#34d399"}],"heroSubtext":"20자","intro":"<p>내용</p><p>내용</p>","cards":[{"num":"01","badge":"핵심 이슈","title":"제목","body":"4-5문장","stat":"수치","statColor":"#f87171","bg":"linear-gradient(135deg,#0f172a,#1e3a5f)"},{"num":"02","badge":"영향 분석","title":"제목","body":"4-5문장","stat":"수치","statColor":"#fbbf24","bg":"linear-gradient(135deg,#7f1d1d,#991b1b)"},{"num":"03","badge":"실전 대응","title":"제목","body":"4-5문장","stat":"수치","statColor":"#34d399","bg":"linear-gradient(135deg,#14532d,#166534)"},{"num":"04","badge":"전망","title":"제목","body":"4-5문장","stat":"수치","statColor":"#60a5fa","bg":"linear-gradient(135deg,#1e3a5f,#1d4ed8)"}],"sections":[{"id":"section1","heading":"소제목","content":"HTML(table포함)"},{"id":"section2","heading":"소제목","content":"HTML"},{"id":"section3","heading":"소제목","content":"HTML"},{"id":"section4","heading":"소제목","content":"HTML"},{"id":"checklist","heading":"✅ 지금 당장 할 수 있는 것 3가지","content":"HTML"}],"faq":[{"question":"질문?","answer":"답변"},{"question":"질문?","answer":"답변"},{"question":"질문?","answer":"답변"}],"summary":["✅행동","📌팩트","🔮전망"],"references":["기관—제목(YYYY.MM)","기관—제목(YYYY.MM)"],"readMinutes":7}`;
 
-  const text = await callGroq(prompt, { maxTokens: 8000, systemMsg: SYSTEM_MSG });
+  const text = await callGroq(prompt, { maxTokens: 4500, systemMsg: SYSTEM_MSG });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
@@ -593,14 +591,18 @@ ${newsContext}
   data.date = today;
 
   // 콘텐츠 품질 검증 — placeholder 텍스트 감지
-  const PLACEHOLDER_PATTERNS = ['추가 설명', '구체적 설명', 'WRITE ACTUAL', '뉴스 기반 실제 내용', '실제 내용. 수치', '[행동제목]', '[포인트1]'];
+  const PLACEHOLDER_PATTERNS = ['추가 설명', '구체적 설명', 'WRITE ACTUAL', '뉴스 기반 실제 내용', '실제 내용. 수치', '[행동제목]', '[포인트1]', '[300자+HTML', '[제목]', '[내용]', '[포인트', '[행동', '[설명]', '[수치]', '[지표]'];
   if (data.sections) {
     for (const sec of data.sections) {
-      const text = (sec.content || '').replace(/<[^>]*>/g, '');
-      const hasPlaceholder = PLACEHOLDER_PATTERNS.some(p => text.includes(p));
-      const tooShort = text.length < 300;
+      const rawHtml = sec.content || '';
+      const strippedText = rawHtml.replace(/<[^>]*>/g, '');
+      const hasPlaceholder = PLACEHOLDER_PATTERNS.some(p => strippedText.includes(p));
+      // HTML 태그 제거 후 텍스트 기준: 테이블/리스트 포함 시 태그가 많아 100자, 일반 섹션은 150자
+      const hasTable = rawHtml.includes('<table');
+      const minLength = hasTable ? 80 : 100;
+      const tooShort = strippedText.length < minLength;
       if (hasPlaceholder || tooShort) {
-        console.warn(`   ⚠️ 섹션 "${sec.heading}" 콘텐츠 품질 미달 (${text.length}자, placeholder: ${hasPlaceholder}) — 재생성 필요`);
+        console.warn(`   ⚠️ 섹션 "${sec.heading}" 콘텐츠 품질 미달 (${strippedText.length}자, placeholder: ${hasPlaceholder}) — 재생성 필요`);
         throw new Error(`콘텐츠 품질 미달: 섹션 "${sec.heading}"`);
       }
     }
@@ -1896,7 +1898,7 @@ async function main() {
         }
       }
       if (!success) console.error(`\n🚫 [${category}] 3회 재시도 후 최종 실패`);
-      await sleep(3000); // API rate limit 방지
+      await sleep(20000); // API rate limit 방지 (TPM 버킷 회복용 20초 대기)
     }
   } else if (MODE === 'product_review') {
     const links = PRODUCT_LINKS_RAW
