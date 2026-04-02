@@ -660,7 +660,7 @@ ${newsContext}
   "summary": ["✅ 오늘 당장: 실제 행동 내용", "📌 핵심 팩트: 수치 포함 요약", "🔮 앞으로: 주목할 날짜/지표"],
   "references": ["출처기관명 — 문서제목 (YYYY.MM)", "출처기관명2 — 문서제목 (YYYY.MM)"],
   "readMinutes": 7
-}`;
+}
 
 Respond with ONLY valid JSON (no code blocks, no markdown):
 {
@@ -1649,7 +1649,7 @@ function updateSitemap(data) {
   <url>
     <loc>https://bloginfo360.com/posts/${data.slug}/</loc>
     <lastmod>${data.date}</lastmod>
-    <changefreq>monthly</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`;
 
