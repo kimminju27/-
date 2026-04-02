@@ -604,165 +604,46 @@ ${newsContext}
 - FAQ 3~5개: 독자가 진짜 궁금해할 질문 + 실용적 답변
 - references 배열에 공식기관명 + 날짜 형식 출처 2개 이상
 
-아래 JSON 형식으로만 응답 (마크다운 코드블록 없이 JSON만):
+아래 JSON 형식으로만 응답 (코드블록·마크다운 없이 순수 JSON):
 {
-  "title": "제목 (50자 이내, 연도+핵심키워드+숫자/혜택+총정리 공식 활용)",
-  "slug": "영문-소문자-하이픈 (날짜 제외, 주제 기반 3-5단어)",
-  "metaDescription": "메타설명 (80~120자, 핵심키워드 자연 포함)",
+  "title": "50자 이내 제목 (연도+핵심키워드+숫자+총정리 공식)",
+  "description": "80-120자 메타설명 (핵심키워드 포함, 독자가 얻을 것 명시)",
+  "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+  "slug": "영문-소문자-하이픈 3-5단어",
   "heroGradient": "linear-gradient(135deg, #색상1, #색상2)",
-  "heroEmoji": "카테고리에 맞는 이모지 1개",
+  "heroEmoji": "이모지 1개",
   "heroTag": "${base} · ${today}",
   "heroStats": [
-    {"label": "핵심지표명", "value": "실제수치", "color": "#색상코드"},
-    {"label": "지표명2",   "value": "실제수치", "color": "#색상코드"},
-    {"label": "지표명3",   "value": "실제수치", "color": "#색상코드"}
+    {"label": "지표명", "value": "실제수치", "color": "#f87171"},
+    {"label": "지표명", "value": "실제수치", "color": "#fbbf24"},
+    {"label": "지표명", "value": "실제수치", "color": "#34d399"}
   ],
-  "heroSubtext": "이 글 읽으면 얻는 것 (20자 이내, 구체적으로)",
-  "intro": "<p>[첫 문장: 실제 수치나 독자 공감으로 즉시 시작 — '오늘은~' '알아보겠습니다' 절대 금지]</p><p>[이 글에서 다룰 핵심 3가지 간단히]</p>",
+  "heroSubtext": "20자 이내 구체적 혜택",
+  "intro": "<p>실제 수치로 즉시 시작. 독자 공감 2-3문장.</p><p>다룰 핵심 3가지 요약.</p>",
   "cards": [
-    {"num": "01", "badge": "핵심 이슈", "title": "실제수치 포함 제목", "body": "4-5문장, 실제수치, 내 생활 영향 중심 (요/어요체)", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"},
-    {"num": "02", "badge": "영향 분석", "title": "실제수치 포함 제목", "body": "4-5문장", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"},
-    {"num": "03", "badge": "실전 대응", "title": "실제수치 포함 제목", "body": "4-5문장", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"},
-    {"num": "04", "badge": "전망",      "title": "실제수치 포함 제목", "body": "4-5문장", "stat": "실제수치", "statColor": "#색상", "bg": "linear-gradient(135deg, #색상1, #색상2)"}
+    {"num": "01", "badge": "핵심 이슈", "title": "수치 포함 제목", "body": "실제수치 중심 4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#f87171", "bg": "linear-gradient(135deg, #0f172a, #1e3a5f)"},
+    {"num": "02", "badge": "영향 분석", "title": "수치 포함 제목", "body": "4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#fbbf24", "bg": "linear-gradient(135deg, #7f1d1d, #991b1b)"},
+    {"num": "03", "badge": "실전 대응", "title": "수치 포함 제목", "body": "4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#34d399", "bg": "linear-gradient(135deg, #14532d, #166534)"},
+    {"num": "04", "badge": "전망", "title": "수치 포함 제목", "body": "4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#60a5fa", "bg": "linear-gradient(135deg, #1e3a5f, #1d4ed8)"}
   ],
   "sections": [
-    {
-      "id": "section1",
-      "heading": "실제 섹션1 제목 (수치 포함 권장)",
-      "content": "<p>[첫 문장: 수치 직격 — 예: '지난달 기준금리가 0.25%p 오르면서 변동금리 대출자는 월 2만 원 더 내게 됐어요.'] 500자 이상 실제 내용. 수치 3개 이상.</p><table><thead><tr><th>항목</th><th>A</th><th>B</th></tr></thead><tbody><tr><td>항목1</td><td>실제값</td><td>실제값</td></tr><tr><td>항목2</td><td>실제값</td><td>실제값</td></tr></tbody></table><p>표 해석 + 독자에게 말 걸기 포함. (예: '이 표에서 특히 눈에 띄는 건~')</p>"
-    },
-    {
-      "id": "section2",
-      "heading": "실제 섹션2 제목",
-      "content": "<p>[첫 문장: 독자 질문 형식 — 예: '그런데 이게 나한테도 해당되는 걸까요?'] 500자 이상.</p><blockquote>핵심 인사이트나 중요 수치 강조</blockquote><p>추가 분석.</p><ul><li><strong>포인트1:</strong> 구체적 설명 2-3문장</li><li><strong>포인트2:</strong> 구체적 설명 2-3문장</li><li><strong>포인트3:</strong> 구체적 설명 2-3문장</li></ul>"
-    },
-    {
-      "id": "section3",
-      "heading": "실제 섹션3 제목",
-      "content": "<p>[첫 문장: 반전/놀라운 사실 — 예: '실은 이 방법을 모르는 분들이 생각보다 많아요.'] 500자 이상. 수치 포함.</p><p>추가 분석 200자 이상.</p>"
-    },
-    {
-      "id": "section4",
-      "heading": "실제 섹션4 제목",
-      "content": "<p>[첫 문장: 직접 행동 제안 — 예: '지금 당장 네이버에서 ~을 검색해보세요.'] 500자 이상.</p><p>구체적 사례와 수치.</p>"
-    },
-    {
-      "id": "checklist",
-      "heading": "✅ 지금 당장 할 수 있는 것 3가지",
-      "content": "<p>읽고 나서 바로 실행할 수 있는 것들이에요.</p><ul><li><strong>1. [구체적 행동 제목]:</strong> 언제, 어떻게, 얼마나 — 2-3문장 (요/어요체)</li><li><strong>2. [구체적 행동 제목]:</strong> 2-3문장</li><li><strong>3. [구체적 행동 제목]:</strong> 2-3문장</li></ul><blockquote>핵심 한 줄 요약 (요/어요체)</blockquote>"
-    }
+    {"id": "section1", "heading": "섹션1 제목 (수치 포함)", "content": "실제 HTML 본문 500자 이상. <p>단락, <table>비교표 1개 필수, 수치 3개+."},
+    {"id": "section2", "heading": "섹션2 제목", "content": "실제 HTML 본문 500자 이상. <p>/<blockquote>/<ul> 활용."},
+    {"id": "section3", "heading": "섹션3 제목", "content": "실제 HTML 본문 500자 이상. 수치 포함."},
+    {"id": "section4", "heading": "섹션4 제목", "content": "실제 HTML 본문 500자 이상. 실천 방법 포함."},
+    {"id": "checklist", "heading": "✅ 지금 당장 할 수 있는 것 3가지", "content": "<ul><li><strong>1. 행동제목:</strong> 2-3문장</li><li><strong>2. 행동제목:</strong> 2-3문장</li><li><strong>3. 행동제목:</strong> 2-3문장</li></ul><blockquote>핵심 한 줄 요약</blockquote>"}
   ],
   "faq": [
-    {"question": "독자가 진짜 궁금해하는 질문 1?", "answer": "구체적·실용적 답변, 요/어요체, 2~3문장"},
+    {"question": "독자 실제 질문 1?", "answer": "2-3문장 실용적 답변 (요/어요체)"},
     {"question": "질문 2?", "answer": "답변"},
     {"question": "질문 3?", "answer": "답변"}
   ],
-  "summary": ["✅ 오늘 당장: 실제 행동 내용", "📌 핵심 팩트: 수치 포함 요약", "🔮 앞으로: 주목할 날짜/지표"],
-  "references": ["출처기관명 — 문서제목 (YYYY.MM)", "출처기관명2 — 문서제목 (YYYY.MM)"],
-  "readMinutes": 7
-}
-
-Respond with ONLY valid JSON (no code blocks, no markdown):
-{
-  "title": "구체적 수치 포함한 SEO 제목 (45-65자)",
-  "description": "독자가 얻을 것을 명시한 메타 설명 (반드시 150-160자, 핵심 수치·날짜·키워드 포함)",
-  "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
-  "slug": "short-english-slug",
-  "heroGradient": "linear-gradient(135deg, #0f172a, #1e3a5f)",
-  "heroEmoji": "💰",
-  "heroTag": "${category} · ${today}",
-  "heroStats": [
-    {"label": "핵심 지표명", "value": "+X.X%", "color": "#f87171"},
-    {"label": "다른 지표명", "value": "X,XXX원", "color": "#fbbf24"},
-    {"label": "세번째 지표", "value": "X위", "color": "#34d399"}
-  ],
-  "heroSubtext": "이 글을 읽으면 얻게 되는 것 (구체적으로)",
-  "intro": "<p>[첫 문장: 충격적인 수치로 시작] 예: 지난주 원/달러 환율이 1,450원을 돌파했습니다. [독자 상황 공감 2-3문장]</p><p>[이 글에서 다룰 핵심 3가지를 구체적으로 나열]</p>",
-  "cards": [
-    {
-      "num": "01",
-      "badge": "핵심 이슈",
-      "title": "구체적 수치 포함 카드 제목",
-      "body": "수치와 날짜 포함한 구체적 설명. 내 지갑에 미치는 영향. 구체적 금액 예시. (4-5문장)",
-      "stat": "+X.X% 또는 X만원↑",
-      "statColor": "#f87171",
-      "bg": "linear-gradient(135deg, #0f172a, #1e3a5f)"
-    },
-    {
-      "num": "02",
-      "badge": "영향 분석",
-      "title": "두번째 카드 제목",
-      "body": "구체적 내용 (4-5문장)",
-      "stat": "핵심 수치",
-      "statColor": "#fbbf24",
-      "bg": "linear-gradient(135deg, #7f1d1d, #991b1b)"
-    },
-    {
-      "num": "03",
-      "badge": "실전 대응",
-      "title": "세번째 카드 제목",
-      "body": "구체적 내용 (4-5문장)",
-      "stat": "핵심 수치",
-      "statColor": "#34d399",
-      "bg": "linear-gradient(135deg, #14532d, #166534)"
-    },
-    {
-      "num": "04",
-      "badge": "전망",
-      "title": "네번째 카드 제목",
-      "body": "구체적 내용 (4-5문장)",
-      "stat": "핵심 수치",
-      "statColor": "#60a5fa",
-      "bg": "linear-gradient(135deg, #1e3a5f, #1d4ed8)"
-    }
-  ],
-  "sections": [
-    {
-      "id": "section1",
-      "heading": "🔍 실제 섹션 제목을 여기에 (수치 포함, 예: 기준금리 0.25%p 인상이 대출이자에 미치는 영향)",
-      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자. 수치 3개 이상 포함. 예시: 2026년 3월 한국은행이 기준금리를 0.25%p 인상하여 연 3.75%로 결정했다. 이에 따라 은행권 주택담보대출 금리는 평균 0.3%p 오른 연 5.2% 수준으로 상승할 전망이다. 대출 1억 원 기준 연간 이자 부담은 약 30만 원 증가한다.</p><table><thead><tr><th>대출 종류</th><th>인상 전</th><th>인상 후</th><th>월 이자 변화</th></tr></thead><tbody><tr><td>주택담보대출(변동)</td><td>연 4.9%</td><td>연 5.2%</td><td>+2.5만원</td></tr><tr><td>신용대출</td><td>연 6.1%</td><td>연 6.4%</td><td>+2.5만원</td></tr></tbody></table><p>이 표에서 알 수 있듯이, 변동금리 대출자라면 지금 당장 고정금리 전환을 검토해야 한다. 특히 대출 잔액이 2억 원 이상인 경우 연간 60만 원 이상의 추가 부담이 발생한다.</p>"
-    },
-    {
-      "id": "section2",
-      "heading": "💸 실제 두번째 섹션 제목",
-      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자. 수치 포함.</p><blockquote>실제 핵심 인사이트나 중요 수치를 여기 작성</blockquote><p>실제 추가 분석 내용.</p><ul><li><strong>실제 포인트1:</strong> 구체적 수치와 함께 실제 설명 2-3문장</li><li><strong>실제 포인트2:</strong> 구체적 수치와 함께 실제 설명 2-3문장</li><li><strong>실제 포인트3:</strong> 구체적 수치와 함께 실제 설명 2-3문장</li></ul>"
-    },
-    {
-      "id": "section3",
-      "heading": "📊 실제 세번째 섹션 제목",
-      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자. 반드시 수치 포함.</p><p>실제 추가 분석. 최소 150자 이상.</p>"
-    },
-    {
-      "id": "section4",
-      "heading": "🏦 실제 네번째 섹션 제목",
-      "content": "<p>WRITE ACTUAL CONTENT HERE. 최소 300자.</p><p>실제 구체적 사례와 수치. 최소 150자 이상.</p>"
-    },
-    {
-      "id": "checklist",
-      "heading": "✅ 지금 당장 할 수 있는 것 3가지",
-      "content": "<p>이 상황에서 오늘 바로 실행할 수 있는 행동이에요.</p><ul><li><strong>1. 실제 행동 제목:</strong> 언제, 어떻게, 얼마나 — 실제 구체적 설명 2-3문장 (요/어요체)</li><li><strong>2. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장 (요/어요체)</li><li><strong>3. 실제 행동 제목:</strong> 실제 구체적 설명 2-3문장 (요/어요체)</li></ul><blockquote>실제 핵심 한 줄 요약 (요/어요체)</blockquote>"
-    }
-  ],
-  "faq": [
-    {
-      "question": "독자들이 실제로 궁금해하는 질문 1?",
-      "answer": "구체적이고 실용적인 답변을 요/어요체로 2~3문장으로 작성해요."
-    },
-    {
-      "question": "독자들이 실제로 궁금해하는 질문 2?",
-      "answer": "구체적이고 실용적인 답변을 요/어요체로 2~3문장으로 작성해요."
-    },
-    {
-      "question": "독자들이 실제로 궁금해하는 질문 3?",
-      "answer": "구체적이고 실용적인 답변을 요/어요체로 2~3문장으로 작성해요."
-    }
-  ],
-  "summary": ["✅ 오늘 당장: 실제 행동 내용", "📌 핵심 팩트: 실제 수치 포함 요약", "🔮 앞으로: 실제 주목할 날짜/지표"],
-  "references": ["출처 이름 1 (예: 한국은행 보도자료 2026.03, 기획재정부 경제정책브리핑, 연합뉴스 2026.03.30 보도 등)", "출처 이름 2"],
+  "summary": ["✅ 오늘 당장 행동", "📌 핵심 팩트 수치포함", "🔮 주목할 날짜/지표"],
+  "references": ["기관명 — 문서제목 (YYYY.MM)", "기관명2 — 문서제목 (YYYY.MM)"],
   "readMinutes": 7
 }`;
 
-  const text = await callGroq(prompt, { maxTokens: 8000, systemMsg: SYSTEM_MSG });
+  const text = await callGroq(prompt, { maxTokens: 6500, systemMsg: SYSTEM_MSG });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
@@ -772,7 +653,7 @@ Respond with ONLY valid JSON (no code blocks, no markdown):
   data.date = today;
 
   // 콘텐츠 품질 검증 — placeholder 텍스트 감지
-  const PLACEHOLDER_PATTERNS = ['추가 설명', '구체적 설명', '표 해석 및 독자', '항목1', '항목2', 'WRITE ACTUAL', '300자 이상 본문', '포인트1', '포인트2'];
+  const PLACEHOLDER_PATTERNS = ['추가 설명', '구체적 설명', 'WRITE ACTUAL', '실제 HTML 본문', '행동제목', '수치 포함 제목', '섹션1 제목', '섹션2 제목'];
   if (data.sections) {
     for (const sec of data.sections) {
       const text = (sec.content || '').replace(/<[^>]*>/g, '');
