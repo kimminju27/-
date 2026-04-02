@@ -1268,7 +1268,7 @@ function buildNewsHTML(data) {
                data-ad-layout="in-article"
                data-ad-format="fluid"
                data-ad-client="ca-pub-1954893264438671"
-               data-ad-slot="4667480307"></ins>
+               data-ad-slot="4402487501"></ins>
           <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
         </div>
 
@@ -1298,9 +1298,8 @@ function buildNewsHTML(data) {
           <ins class="adsbygoogle"
                style="display:block"
                data-ad-client="ca-pub-1954893264438671"
-               data-ad-slot="4667480307"
-               data-ad-format="auto"
-               data-full-width-responsive="true"></ins>
+               data-ad-slot="7573679395"
+               data-ad-format="autorelaxed"></ins>
           <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
         </div>
 
@@ -1335,6 +1334,15 @@ function buildNewsHTML(data) {
             <p class="font-bold text-brand-700 text-sm mb-2">✉️ 뉴스레터</p>
             <p class="text-xs text-ink-500 mb-3">새 글 알림을 받아보세요</p>
             <a href="../index.html#newsletter" class="inline-block bg-brand-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors">구독하기</a>
+          </div>
+          <div>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-format="fluid"
+                 data-ad-layout-key="-6t+ed+2i-1n-4w"
+                 data-ad-client="ca-pub-1954893264438671"
+                 data-ad-slot="8738587259"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script>
           </div>
         </div>
       </aside>
