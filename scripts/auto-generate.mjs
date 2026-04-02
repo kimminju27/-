@@ -570,78 +570,18 @@ ${trendingContext || `${base} 관련 최신 뉴스`}
     markTopicUsed(fallback.id);
   }
 
-  const SYSTEM_MSG = `당신은 '나만 모르는 요즘 소식(bloginfo360.com)' 블로그 운영자 김민주입니다.
-경제·보험·세금·복지 분야를 10년째 다루는 전문 블로거로, 공식 자료를 바탕으로 독자가 바로 써먹을 수 있는 정보를 씁니다.
+  const SYSTEM_MSG = `블로그 운영자 김민주(bloginfo360.com). 경제·보험·세금·복지 전문 블로거.
+스타일: "솔직히", "사실은요", "이게 핵심이에요" 같은 독자 옆 말투. 수치는 생활 맥락으로 환산.
+금지: "알아보겠습니다" "살펴보겠습니다" "이번 글에서는" / 합니다·입니다·됩니다 어미 반복.
+필수: sections[].content 각각 300자 이상 실제 한국어 HTML (지시문 그대로 출력 절대 금지). section1에 <table> 비교표 필수.`;
 
-【글쓰기 스타일 — 이것이 당신의 정체성】
-- 독자 옆에 앉아 설명하는 말투: "솔직히", "사실은요", "이게 헷갈리는 분들이 많은데", "생각보다 간단해요"
-- 수치는 반드시 생활 맥락으로 환산: "연 0.25%p 인상 → 1억 대출 시 월 2만 원 추가 부담"
-- 섹션마다 첫 문장 유형을 다르게: 수치 직격/독자 질문/반전 사실/직접 행동 제안 중 선택
-- 중간에 독자에게 말 걸기: "혹시 이런 상황이신가요?", "이 부분이 핵심이에요.", "생각보다 많죠?"
-- 예시는 구체적 인물 설정: "30대 직장인이라면", "1인 가구 기준으로 보면"
+  const prompt = `날짜:${today} 카테고리:${base} 주제:${chosenTopic.topic}
 
-【절대 금지 — AI 감지 패턴】
-- "알아보겠습니다", "살펴보겠습니다", "이번 글에서는", "함께 알아볼게요", "모색해보겠습니다"
-- 모든 문장을 ~어요/~입니다로 끝내기 → ~죠, ~네요, ~군요, ~거든요, ~셨나요 등 다양하게
-- 매 섹션 첫 문장에서 섹션 제목 단어 반복 금지
-- 첫째/둘째/셋째 번호 반복 → 자연스러운 접속사(그런데/또한/특히/반면에) 사용
-- 합니다/입니다/됩니다/드립니다 어미 사용 금지`;
-
-  const prompt = `오늘 날짜: ${today}
-카테고리: ${base}
-주제 (반드시 이 주제로 작성): ${chosenTopic.topic}
-
-【실시간 수집 뉴스 — 이 데이터만 사실로 사용, 뉴스에 없는 내용 창작 절대 금지】:
+뉴스(이 데이터만 사실로 사용):
 ${newsContext}
 
-【작성 규칙】
-- 한국어 100% (외국어·한자·영단어 삽입 절대 금지)
-- 각 <p>는 최대 3문장
-- 실제 뉴스 수치 최소 3개 인용 (예시 수치 그대로 복사 금지)
-- HTML 비교 표(<table>) 최소 1개 포함
-- 섹션당 최소 500자 (HTML 태그 제외 순수 텍스트 기준)
-- 마지막 섹션은 반드시 id="checklist", "지금 당장 할 수 있는 것 3가지" 체크리스트
-- FAQ 3~5개: 독자가 진짜 궁금해할 질문 + 실용적 답변
-- references 배열에 공식기관명 + 날짜 형식 출처 2개 이상
-
-아래 형식으로 순수 JSON만 출력 (코드블록 금지). [...]로 표시된 모든 곳은 반드시 뉴스 기반 실제 한국어 내용으로 채워주세요. sections[].content는 각각 300자 이상의 HTML을 직접 작성하세요.
-{
-  "title": "[50자 이내 제목: 연도+핵심키워드+숫자+총정리]",
-  "description": "[80-120자 메타설명: 핵심키워드+독자 혜택 명시]",
-  "keywords": ["[키워드1]", "[키워드2]", "[키워드3]", "[키워드4]", "[키워드5]"],
-  "slug": "[영문-소문자-하이픈 3-5단어]",
-  "heroGradient": "linear-gradient(135deg, #0f172a, #1e3a5f)",
-  "heroEmoji": "[이모지]",
-  "heroTag": "${base} · ${today}",
-  "heroStats": [
-    {"label": "[지표명]", "value": "[실제수치]", "color": "#f87171"},
-    {"label": "[지표명]", "value": "[실제수치]", "color": "#fbbf24"},
-    {"label": "[지표명]", "value": "[실제수치]", "color": "#34d399"}
-  ],
-  "heroSubtext": "[20자 이내 구체적 혜택]",
-  "intro": "<p>[실제 수치로 즉시 시작. 독자 공감 2-3문장.]</p><p>[다룰 핵심 3가지 요약.]</p>",
-  "cards": [
-    {"num": "01", "badge": "핵심 이슈", "title": "[수치 포함 제목]", "body": "[실제수치 중심 4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#f87171", "bg": "linear-gradient(135deg, #0f172a, #1e3a5f)"},
-    {"num": "02", "badge": "영향 분석", "title": "[수치 포함 제목]", "body": "[4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#fbbf24", "bg": "linear-gradient(135deg, #7f1d1d, #991b1b)"},
-    {"num": "03", "badge": "실전 대응", "title": "[수치 포함 제목]", "body": "[4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#34d399", "bg": "linear-gradient(135deg, #14532d, #166534)"},
-    {"num": "04", "badge": "전망", "title": "[수치 포함 제목]", "body": "[4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#60a5fa", "bg": "linear-gradient(135deg, #1e3a5f, #1d4ed8)"}
-  ],
-  "sections": [
-    {"id": "section1", "heading": "[섹션1 실제 제목 수치포함]", "content": "<p>[뉴스 기반 실제 내용. 수치 3개 이상. 300자 이상.]</p><table><thead><tr><th>[항목]</th><th>[A]</th><th>[B]</th></tr></thead><tbody><tr><td>[항목1]</td><td>[값]</td><td>[값]</td></tr><tr><td>[항목2]</td><td>[값]</td><td>[값]</td></tr></tbody></table><p>[표 해석. 독자 영향.]</p>"},
-    {"id": "section2", "heading": "[섹션2 실제 제목]", "content": "<p>[뉴스 기반 실제 내용. 300자 이상.]</p><blockquote>[핵심 수치 강조]</blockquote><ul><li><strong>[포인트1]:</strong> [2-3문장]</li><li><strong>[포인트2]:</strong> [2-3문장]</li><li><strong>[포인트3]:</strong> [2-3문장]</li></ul>"},
-    {"id": "section3", "heading": "[섹션3 실제 제목]", "content": "<p>[뉴스 기반 실제 내용. 300자 이상. 수치 포함.]</p><p>[추가 분석.]</p>"},
-    {"id": "section4", "heading": "[섹션4 실제 제목]", "content": "<p>[뉴스 기반 실제 내용. 300자 이상. 실천 방법.]</p><p>[구체적 사례와 수치.]</p>"},
-    {"id": "checklist", "heading": "✅ 지금 당장 할 수 있는 것 3가지", "content": "<ul><li><strong>1. [행동제목]:</strong> [2-3문장]</li><li><strong>2. [행동제목]:</strong> [2-3문장]</li><li><strong>3. [행동제목]:</strong> [2-3문장]</li></ul><blockquote>[핵심 한 줄 요약]</blockquote>"}
-  ],
-  "faq": [
-    {"question": "[독자 실제 질문 1?]", "answer": "[2-3문장 실용적 답변 요/어요체]"},
-    {"question": "[질문 2?]", "answer": "[답변]"},
-    {"question": "[질문 3?]", "answer": "[답변]"}
-  ],
-  "summary": ["✅ [오늘 당장 행동]", "📌 [핵심 팩트 수치포함]", "🔮 [주목할 날짜/지표]"],
-  "references": ["[기관명 — 문서제목 (YYYY.MM)]", "[기관명2 — 문서제목 (YYYY.MM)]"],
-  "readMinutes": 7
-}`;
+순수 JSON만 출력(코드블록금지, 한국어100%, 수치3개+인용):
+{"title":"[50자제목]","description":"[80-120자설명]","keywords":["키1","키2","키3","키4","키5"],"slug":"[영문-slug]","heroGradient":"linear-gradient(135deg,#0f172a,#1e3a5f)","heroEmoji":"[이모지]","heroTag":"${base} · ${today}","heroStats":[{"label":"[지표]","value":"[수치]","color":"#f87171"},{"label":"[지표]","value":"[수치]","color":"#fbbf24"},{"label":"[지표]","value":"[수치]","color":"#34d399"}],"heroSubtext":"[20자혜택]","intro":"<p>[실제내용2-3문장]</p><p>[핵심3가지]</p>","cards":[{"num":"01","badge":"핵심 이슈","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#f87171","bg":"linear-gradient(135deg,#0f172a,#1e3a5f)"},{"num":"02","badge":"영향 분석","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#fbbf24","bg":"linear-gradient(135deg,#7f1d1d,#991b1b)"},{"num":"03","badge":"실전 대응","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#34d399","bg":"linear-gradient(135deg,#14532d,#166534)"},{"num":"04","badge":"전망","title":"[제목]","body":"[4-5문장]","stat":"[수치]","statColor":"#60a5fa","bg":"linear-gradient(135deg,#1e3a5f,#1d4ed8)"}],"sections":[{"id":"section1","heading":"[제목]","content":"[300자+HTML:<p>내용</p><table><thead><tr><th>항목</th><th>A</th><th>B</th></tr></thead><tbody><tr><td>행1</td><td>값</td><td>값</td></tr></tbody></table><p>해석</p>]"},{"id":"section2","heading":"[제목]","content":"[300자+HTML:<p>내용</p><blockquote>핵심</blockquote><ul><li>포인트1</li><li>포인트2</li></ul>]"},{"id":"section3","heading":"[제목]","content":"[300자+HTML:<p>내용</p><p>분석</p>]"},{"id":"section4","heading":"[제목]","content":"[300자+HTML:<p>내용</p><p>실천방법</p>]"},{"id":"checklist","heading":"✅ 지금 당장 할 수 있는 것 3가지","content":"<ul><li><strong>[행동1]:</strong>[설명]</li><li><strong>[행동2]:</strong>[설명]</li><li><strong>[행동3]:</strong>[설명]</li></ul><blockquote>[요약]</blockquote>"}],"faq":[{"question":"[질문?]","answer":"[2-3문장답변]"},{"question":"[질문?]","answer":"[답변]"},{"question":"[질문?]","answer":"[답변]"}],"summary":["✅[행동]","📌[수치팩트]","🔮[전망]"],"references":["[기관—제목(YYYY.MM)]","[기관—제목(YYYY.MM)]"],"readMinutes":7}`;
 
   const text = await callGroq(prompt, { maxTokens: 8000, systemMsg: SYSTEM_MSG });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
