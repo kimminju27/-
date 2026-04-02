@@ -604,46 +604,46 @@ ${newsContext}
 - FAQ 3~5개: 독자가 진짜 궁금해할 질문 + 실용적 답변
 - references 배열에 공식기관명 + 날짜 형식 출처 2개 이상
 
-아래 JSON 형식으로만 응답 (코드블록·마크다운 없이 순수 JSON):
+아래 형식으로 순수 JSON만 출력 (코드블록 금지). [...]로 표시된 모든 곳은 반드시 뉴스 기반 실제 한국어 내용으로 채워주세요. sections[].content는 각각 300자 이상의 HTML을 직접 작성하세요.
 {
-  "title": "50자 이내 제목 (연도+핵심키워드+숫자+총정리 공식)",
-  "description": "80-120자 메타설명 (핵심키워드 포함, 독자가 얻을 것 명시)",
-  "keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
-  "slug": "영문-소문자-하이픈 3-5단어",
-  "heroGradient": "linear-gradient(135deg, #색상1, #색상2)",
-  "heroEmoji": "이모지 1개",
+  "title": "[50자 이내 제목: 연도+핵심키워드+숫자+총정리]",
+  "description": "[80-120자 메타설명: 핵심키워드+독자 혜택 명시]",
+  "keywords": ["[키워드1]", "[키워드2]", "[키워드3]", "[키워드4]", "[키워드5]"],
+  "slug": "[영문-소문자-하이픈 3-5단어]",
+  "heroGradient": "linear-gradient(135deg, #0f172a, #1e3a5f)",
+  "heroEmoji": "[이모지]",
   "heroTag": "${base} · ${today}",
   "heroStats": [
-    {"label": "지표명", "value": "실제수치", "color": "#f87171"},
-    {"label": "지표명", "value": "실제수치", "color": "#fbbf24"},
-    {"label": "지표명", "value": "실제수치", "color": "#34d399"}
+    {"label": "[지표명]", "value": "[실제수치]", "color": "#f87171"},
+    {"label": "[지표명]", "value": "[실제수치]", "color": "#fbbf24"},
+    {"label": "[지표명]", "value": "[실제수치]", "color": "#34d399"}
   ],
-  "heroSubtext": "20자 이내 구체적 혜택",
-  "intro": "<p>실제 수치로 즉시 시작. 독자 공감 2-3문장.</p><p>다룰 핵심 3가지 요약.</p>",
+  "heroSubtext": "[20자 이내 구체적 혜택]",
+  "intro": "<p>[실제 수치로 즉시 시작. 독자 공감 2-3문장.]</p><p>[다룰 핵심 3가지 요약.]</p>",
   "cards": [
-    {"num": "01", "badge": "핵심 이슈", "title": "수치 포함 제목", "body": "실제수치 중심 4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#f87171", "bg": "linear-gradient(135deg, #0f172a, #1e3a5f)"},
-    {"num": "02", "badge": "영향 분석", "title": "수치 포함 제목", "body": "4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#fbbf24", "bg": "linear-gradient(135deg, #7f1d1d, #991b1b)"},
-    {"num": "03", "badge": "실전 대응", "title": "수치 포함 제목", "body": "4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#34d399", "bg": "linear-gradient(135deg, #14532d, #166534)"},
-    {"num": "04", "badge": "전망", "title": "수치 포함 제목", "body": "4-5문장 (요/어요체)", "stat": "실제수치", "statColor": "#60a5fa", "bg": "linear-gradient(135deg, #1e3a5f, #1d4ed8)"}
+    {"num": "01", "badge": "핵심 이슈", "title": "[수치 포함 제목]", "body": "[실제수치 중심 4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#f87171", "bg": "linear-gradient(135deg, #0f172a, #1e3a5f)"},
+    {"num": "02", "badge": "영향 분석", "title": "[수치 포함 제목]", "body": "[4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#fbbf24", "bg": "linear-gradient(135deg, #7f1d1d, #991b1b)"},
+    {"num": "03", "badge": "실전 대응", "title": "[수치 포함 제목]", "body": "[4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#34d399", "bg": "linear-gradient(135deg, #14532d, #166534)"},
+    {"num": "04", "badge": "전망", "title": "[수치 포함 제목]", "body": "[4-5문장 요/어요체]", "stat": "[실제수치]", "statColor": "#60a5fa", "bg": "linear-gradient(135deg, #1e3a5f, #1d4ed8)"}
   ],
   "sections": [
-    {"id": "section1", "heading": "섹션1 제목 (수치 포함)", "content": "실제 HTML 본문 500자 이상. <p>단락, <table>비교표 1개 필수, 수치 3개+."},
-    {"id": "section2", "heading": "섹션2 제목", "content": "실제 HTML 본문 500자 이상. <p>/<blockquote>/<ul> 활용."},
-    {"id": "section3", "heading": "섹션3 제목", "content": "실제 HTML 본문 500자 이상. 수치 포함."},
-    {"id": "section4", "heading": "섹션4 제목", "content": "실제 HTML 본문 500자 이상. 실천 방법 포함."},
-    {"id": "checklist", "heading": "✅ 지금 당장 할 수 있는 것 3가지", "content": "<ul><li><strong>1. 행동제목:</strong> 2-3문장</li><li><strong>2. 행동제목:</strong> 2-3문장</li><li><strong>3. 행동제목:</strong> 2-3문장</li></ul><blockquote>핵심 한 줄 요약</blockquote>"}
+    {"id": "section1", "heading": "[섹션1 실제 제목 수치포함]", "content": "<p>[뉴스 기반 실제 내용. 수치 3개 이상. 300자 이상.]</p><table><thead><tr><th>[항목]</th><th>[A]</th><th>[B]</th></tr></thead><tbody><tr><td>[항목1]</td><td>[값]</td><td>[값]</td></tr><tr><td>[항목2]</td><td>[값]</td><td>[값]</td></tr></tbody></table><p>[표 해석. 독자 영향.]</p>"},
+    {"id": "section2", "heading": "[섹션2 실제 제목]", "content": "<p>[뉴스 기반 실제 내용. 300자 이상.]</p><blockquote>[핵심 수치 강조]</blockquote><ul><li><strong>[포인트1]:</strong> [2-3문장]</li><li><strong>[포인트2]:</strong> [2-3문장]</li><li><strong>[포인트3]:</strong> [2-3문장]</li></ul>"},
+    {"id": "section3", "heading": "[섹션3 실제 제목]", "content": "<p>[뉴스 기반 실제 내용. 300자 이상. 수치 포함.]</p><p>[추가 분석.]</p>"},
+    {"id": "section4", "heading": "[섹션4 실제 제목]", "content": "<p>[뉴스 기반 실제 내용. 300자 이상. 실천 방법.]</p><p>[구체적 사례와 수치.]</p>"},
+    {"id": "checklist", "heading": "✅ 지금 당장 할 수 있는 것 3가지", "content": "<ul><li><strong>1. [행동제목]:</strong> [2-3문장]</li><li><strong>2. [행동제목]:</strong> [2-3문장]</li><li><strong>3. [행동제목]:</strong> [2-3문장]</li></ul><blockquote>[핵심 한 줄 요약]</blockquote>"}
   ],
   "faq": [
-    {"question": "독자 실제 질문 1?", "answer": "2-3문장 실용적 답변 (요/어요체)"},
-    {"question": "질문 2?", "answer": "답변"},
-    {"question": "질문 3?", "answer": "답변"}
+    {"question": "[독자 실제 질문 1?]", "answer": "[2-3문장 실용적 답변 요/어요체]"},
+    {"question": "[질문 2?]", "answer": "[답변]"},
+    {"question": "[질문 3?]", "answer": "[답변]"}
   ],
-  "summary": ["✅ 오늘 당장 행동", "📌 핵심 팩트 수치포함", "🔮 주목할 날짜/지표"],
-  "references": ["기관명 — 문서제목 (YYYY.MM)", "기관명2 — 문서제목 (YYYY.MM)"],
+  "summary": ["✅ [오늘 당장 행동]", "📌 [핵심 팩트 수치포함]", "🔮 [주목할 날짜/지표]"],
+  "references": ["[기관명 — 문서제목 (YYYY.MM)]", "[기관명2 — 문서제목 (YYYY.MM)]"],
   "readMinutes": 7
 }`;
 
-  const text = await callGroq(prompt, { maxTokens: 6500, systemMsg: SYSTEM_MSG });
+  const text = await callGroq(prompt, { maxTokens: 8000, systemMsg: SYSTEM_MSG });
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON을 찾을 수 없습니다');
 
@@ -653,7 +653,7 @@ ${newsContext}
   data.date = today;
 
   // 콘텐츠 품질 검증 — placeholder 텍스트 감지
-  const PLACEHOLDER_PATTERNS = ['추가 설명', '구체적 설명', 'WRITE ACTUAL', '실제 HTML 본문', '행동제목', '수치 포함 제목', '섹션1 제목', '섹션2 제목'];
+  const PLACEHOLDER_PATTERNS = ['추가 설명', '구체적 설명', 'WRITE ACTUAL', '뉴스 기반 실제 내용', '실제 내용. 수치', '[행동제목]', '[포인트1]'];
   if (data.sections) {
     for (const sec of data.sections) {
       const text = (sec.content || '').replace(/<[^>]*>/g, '');
@@ -1947,7 +1947,12 @@ async function main() {
           break;
         } catch (e) {
           console.error(`\n❌ [${category}] 시도 ${attempt} 실패:`, e.message);
-          if (attempt < 3) await sleep(5000);
+          if (attempt < 3) {
+            const retryMatch = e.message.match(/try again in ([\d.]+)s/i);
+            const waitSec = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) + 5 : 10;
+            console.log(`   ⏳ ${waitSec}초 대기 중...`);
+            await sleep(waitSec * 1000);
+          }
         }
       }
       if (!success) console.error(`\n🚫 [${category}] 3회 재시도 후 최종 실패`);
