@@ -1,4 +1,327 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><title>bloginfo360</title></head>
-    <body><h1>최신 포스팅</h1><ul>
-    <li>[2026-04-03] <a href="posts/세금/2026-04-03-d52x4.html">2024년 세금 개편: 신용카드 할부 구매 세액계산법</a></li>
-    </ul></body></html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나만 모르는 요즘 소식</title>
+  <meta name="description" content="보험, 세금, 부동산, 복지정책, 주식·재테크 — 나만 모르던 요즘 핵심 정보를 쉽고 명확하게 전달합니다.">
+  <meta name="robots" content="index, follow">
+  <meta name="naver-site-verification" content="8d911d2c19b710aba3ada77284691b9beee6e358" />
+  <link rel="canonical" href="https://bloginfo360.com/">
+  <script src="/analytics.js" async></script>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="나만 모르는 요즘 소식">
+  <meta property="og:description" content="경제, 주식, 재테크 정보를 쉽고 명확하게 전달합니다.">
+  <meta property="og:url" content="https://bloginfo360.com/">
+  <meta property="og:site_name" content="나만 모르는 요즘 소식">
+  <meta property="og:image" content="https://bloginfo360.com/og-default.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://bloginfo360.com/og-default.svg">
+  <meta name="twitter:title" content="나만 모르는 요즘 소식">
+  <meta name="twitter:description" content="경제, 주식, 재테크 정보를 쉽고 명확하게 전달합니다.">
+  <!-- Google Search Console -->
+  <meta name="google-site-verification" content="8eCrGynyuC7aVMKk7w1XrzbuVWffcjBzdeAIIlE4Cog">
+  <!-- Google AdSense -->
+  <meta name="google-adsense-account" content="ca-pub-1954893264438671">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954893264438671" crossorigin="anonymous"></script>
+  <!-- JSON-LD: WebSite 구조화 데이터 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "나만 모르는 요즘 소식",
+    "url": "https://bloginfo360.com",
+    "description": "보험, 세금/절세, 부동산, 복지정책, 주식·재테크 — 나만 모르던 요즘 핵심 정보를 쉽고 명확하게 전달합니다.",
+    "inLanguage": "ko-KR",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://bloginfo360.com/?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "나만 모르는 요즘 소식",
+      "url": "https://bloginfo360.com",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "mju427@naver.com",
+        "contactType": "customer service"
+      }
+    }
+  }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+            },
+            gold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+            },
+            ink: {
+              900: '#0f172a',
+              700: '#1e293b',
+              500: '#475569',
+              300: '#94a3b8',
+              100: '#f1f5f9',
+            }
+          },
+          fontFamily: {
+            sans: ['Noto Sans KR', 'sans-serif'],
+          },
+          boxShadow: {
+            'card': '0 2px 8px 0 rgba(15,23,42,0.08), 0 1px 2px 0 rgba(15,23,42,0.04)',
+            'card-hover': '0 8px 24px 0 rgba(22,163,74,0.12), 0 2px 8px 0 rgba(15,23,42,0.08)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; }
+
+    /* 카테고리 탭 */
+    .cat-btn {
+      padding: 6px 18px;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: 1.5px solid #e2e8f0;
+      color: #475569;
+      background: #fff;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .cat-btn:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .cat-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,0.2); }
+    .cat-btn:active { transform: scale(0.97); }
+    .cat-btn.active { background: #16a34a; color: #fff; border-color: #16a34a; }
+
+    /* 포스트 카드 */
+    .post-card { transition: transform 0.18s, box-shadow 0.18s; }
+    .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px 0 rgba(22,163,74,0.12), 0 2px 8px 0 rgba(15,23,42,0.08); }
+
+    /* 뉴스레터 버튼 */
+    .btn-subscribe {
+      background: #16a34a;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 4px 12px rgba(22,163,74,0.25);
+    }
+    .btn-subscribe:hover { background: #15803d; transform: scale(1.02); box-shadow: 0 6px 16px rgba(22,163,74,0.35); }
+    .btn-subscribe:focus { outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,0.3); }
+    .btn-subscribe:active { transform: scale(0.98); }
+    .btn-subscribe:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* 검색 */
+    .search-input:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
+
+    /* 숨김 */
+    .post-item.hidden { display: none; }
+  </style>
+</head>
+<body class="bg-white text-ink-900">
+
+  <!-- 헤더 -->
+  <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2">
+        <span class="text-2xl font-black text-brand-600 tracking-tight leading-tight">
+          나만 모르는<br class="sm:hidden"> 요즘 소식
+        </span>
+      </a>
+      <nav class="hidden sm:flex items-center gap-6 text-sm font-medium text-ink-500">
+        <a href="index.html" class="hover:text-brand-600 transition-colors">홈</a>
+        <a href="#category" class="hover:text-brand-600 transition-colors">카테고리</a>
+        <a href="#newsletter" class="hover:text-brand-600 transition-colors">뉴스레터</a>
+        <a href="about.html" class="hover:text-brand-600 transition-colors">소개</a>
+        <a href="privacy.html" class="hover:text-brand-600 transition-colors">개인정보처리방침</a>
+      </nav>
+      <!-- 모바일 메뉴 (간단) -->
+      <div class="sm:hidden flex gap-4 text-sm font-medium text-ink-500">
+        <a href="#category" class="hover:text-brand-600">카테고리</a>
+        <a href="#newsletter" class="hover:text-brand-600">뉴스레터</a>
+        <a href="about.html" class="hover:text-brand-600">소개</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 히어로 -->
+  <section class="bg-gradient-to-br from-brand-50 to-white border-b border-ink-100">
+    <div class="max-w-5xl mx-auto px-4 py-14 text-center">
+      <span class="inline-block bg-gold-400 text-ink-900 text-xs font-bold px-3 py-1 rounded-full mb-4">보험 · 세금 · 부동산 · 재테크</span>
+      <h1 class="text-3xl sm:text-4xl font-black text-ink-900 mb-3 leading-tight">
+        나만 모르고 있던<br>요즘 진짜 소식
+      </h1>
+      <p class="text-ink-500 text-base mb-8 max-w-md mx-auto">
+        남들은 다 아는데 나만 몰랐던 정보, 여기서 다 찾으세요.
+      </p>
+
+      <!-- 검색창 -->
+      <div class="relative max-w-lg mx-auto">
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="궁금한 키워드를 검색하세요 (예: 청년도약계좌, 양도세, 실손보험)"
+          class="search-input w-full border border-ink-100 rounded-xl py-3.5 px-5 pr-14 text-sm bg-white shadow-card transition-all"
+          oninput="filterPosts()"
+        >
+        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-ink-300">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 카테고리 탭 -->
+  <section id="category" class="max-w-5xl mx-auto px-4 pt-10 pb-4">
+    <div class="flex flex-wrap gap-2">
+      <button class="cat-btn active" onclick="filterCategory('전체', this)">전체</button>
+      <button class="cat-btn" onclick="filterCategory('보험', this)">💼 보험</button>
+      <button class="cat-btn" onclick="filterCategory('세금', this)">💸 세금/절세</button>
+      <button class="cat-btn" onclick="filterCategory('부동산', this)">🏠 부동산</button>
+      <button class="cat-btn" onclick="filterCategory('복지', this)">🏛️ 복지정책</button>
+      <button class="cat-btn" onclick="filterCategory('주식', this)">📈 주식·재테크</button>
+      <button class="cat-btn" onclick="filterCategory('제품리뷰', this)">📦 제품리뷰</button>
+    </div>
+  </section>
+
+  <!-- 광고: 포스트 목록 상단 -->
+  <div class="max-w-5xl mx-auto px-4 pt-4">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1954893264438671"
+         data-ad-slot="4667480307"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <!-- 포스트 목록 -->
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <div id="postGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- POSTS_START -->
+
+
+
+    </div>
+
+    <!-- 검색 결과 없음 -->
+    <div id="noResult" class="hidden text-center py-20 text-ink-300">
+      <div class="text-5xl mb-4">🔍</div>
+      <p class="text-base">검색 결과가 없습니다.</p>
+    </div>
+  </main>
+
+  <!-- 뉴스레터 -->
+  <section id="newsletter" class="bg-gradient-to-br from-brand-600 to-brand-700 mt-12">
+    <div class="max-w-2xl mx-auto px-4 py-16 text-center">
+      <span class="text-gold-400 text-2xl">✉️</span>
+      <h2 class="mt-3 text-2xl sm:text-3xl font-black text-white leading-tight">
+        새 글이 올라오면<br>바로 알려드릴게요
+      </h2>
+      <p class="mt-3 text-brand-200 text-sm">경제·주식·리뷰 인사이트를 이메일로 받아보세요. 스팸 없이, 언제든 해지 가능.</p>
+
+      <!-- Mailchimp 폼 — 아래 action URL을 Mailchimp 발급 URL로 교체하세요 -->
+      <form class="mt-8 flex flex-col sm:flex-row gap-3 justify-center" onsubmit="handleSubscribe(event)">
+        <input
+          type="email"
+          id="emailInput"
+          placeholder="이메일 주소를 입력하세요"
+          required
+          class="flex-1 max-w-sm px-5 py-3.5 rounded-xl text-sm text-ink-900 border-0 focus:outline-none focus:ring-2 focus:ring-gold-400"
+        >
+        <button type="submit" class="btn-subscribe whitespace-nowrap">무료 구독하기</button>
+      </form>
+      <p id="subscribeMsg" class="mt-4 text-brand-200 text-xs hidden">✅ 구독 신청이 완료되었습니다!</p>
+    </div>
+  </section>
+
+  <!-- 푸터 -->
+  <footer class="border-t border-ink-100 bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
+      <span class="font-bold text-ink-500">나만 모르는 요즘 소식</span>
+      <div class="flex items-center gap-4">
+        <a href="about.html" class="hover:text-brand-600 transition-colors">소개</a>
+        <a href="privacy.html" class="hover:text-brand-600 transition-colors">개인정보처리방침</a>
+        <a href="mailto:mju427@naver.com" class="hover:text-brand-600 transition-colors">mju427@naver.com</a>
+      </div>
+      <span>© 2026. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+    let currentCategory = '전체';
+
+    // 카테고리 필터
+    function filterCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    }
+
+    // 검색 필터
+    function filterPosts() {
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+      const items = document.querySelectorAll('.post-item');
+      let visible = 0;
+
+      items.forEach(item => {
+        const cat = item.dataset.category;
+        const title = item.dataset.title.toLowerCase();
+        const catMatch = currentCategory === '전체' || cat === currentCategory;
+        const searchMatch = keyword === '' || title.includes(keyword);
+
+        if (catMatch && searchMatch) {
+          item.classList.remove('hidden');
+          visible++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+
+      document.getElementById('noResult').classList.toggle('hidden', visible > 0);
+    }
+
+    // 뉴스레터 구독
+    function handleSubscribe(e) {
+      e.preventDefault();
+      const msg = document.getElementById('subscribeMsg');
+      msg.classList.remove('hidden');
+      document.getElementById('emailInput').value = '';
+      // TODO: Mailchimp API 연동 시 여기에 fetch 요청 추가
+    }
+  </script>
+</body>
+</html>
