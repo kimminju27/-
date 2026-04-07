@@ -4,7 +4,7 @@
   <!-- 정적 페이지 -->
   <url>
     <loc>https://bloginfo360.com/</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -22,114 +22,5 @@
   </url>
 
   <!-- 포스트 목록 (새 글 추가 시 아래 형식으로 추가) -->
-
-  <url>
-    <loc>https://bloginfo360.com/posts/korea-economy-2026-2026-03-22-2242</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/24-hours-stock-trading-2026-03-22-2242</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/2026-03-22-budongsan-trend-2026-03-22-2244</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/벤딕트-차량용-청소기-에어건-후기-2026-03-23</loc>
-    <lastmod>2026-03-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/2026-청년-복지-정책-2026-03-25-1417</loc>
-    <lastmod>2026-03-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/korea-economy-crisis-2026-03-26-0656</loc>
-    <lastmod>2026-03-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/global-stock-market-outlook-2026-03-26-1451</loc>
-    <lastmod>2026-03-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/bodong-san-tugi-sin-go-je-do-2026-03-27-0605</loc>
-    <lastmod>2026-03-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/digital-financial-security-2026-03-27-1452</loc>
-    <lastmod>2026-03-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/korea-digital-economy-2026-03-28-0652</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/seongeo-2026-03-28-1050</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/foreigner-stock-selling-2026-03-29-0528</loc>
-    <lastmod>2026-03-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/korea-economy-crisis-2026-03-29-1102</loc>
-    <lastmod>2026-03-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/no-in-bok-ji-jeong-chae-2026-2026-03-29-1102</loc>
-    <lastmod>2026-03-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/korean-stock-market-2026-03-30-1104</loc>
-    <lastmod>2026-03-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/haesang-pungryeok-mirae-2026-03-31-0542</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/2026-budongsan-tuja-tamheom-2026-03-31-0542</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloginfo360.com/posts/tesla-stock-forecast-2026-03-31-1100</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
 
 </urlset>
