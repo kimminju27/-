@@ -104,9 +104,14 @@ jobs:
         run: node scripts/auto-generate.mjs
 
       - name: 변경사항 커밋 & 푸시
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "auto: 새 글 자동 생성 🤖"
-          commit_user_name: "Auto Post Bot"
-          commit_user_email: "bot@bloginfo360.com"
-          file_pattern: "posts/*.html index.html sitemap.xml feed.xml topics-history.json"
+        run: |
+          git config user.name "Auto Post Bot"
+          git config user.email "bot@bloginfo360.com"
+          git add posts/ index.html sitemap.xml feed.xml topics-history.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "변경사항 없음 — 스킵"
+            exit 0
+          fi
+          git commit -m "auto: 새 글 자동 생성 🤖"
+          git pull --rebase origin main
+          git push origin main

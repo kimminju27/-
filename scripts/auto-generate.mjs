@@ -84,6 +84,16 @@ function sanitizeData(data) {
   return data;
 }
 
+// Groq 에러 메시지에서 대기 시간(ms) 파싱
+// "try again in 1h19m18.048s" 또는 "try again in 45.5s" 형식 지원
+function parseGroqWaitMs(errText) {
+  const m = errText.match(/try again in (?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?/);
+  if (m && (m[1] || m[2] || m[3])) {
+    return ((parseInt(m[1] || 0) * 3600) + (parseInt(m[2] || 0) * 60) + parseFloat(m[3] || 0)) * 1000;
+  }
+  return 40000;
+}
+
 // ─── Groq API ─────────────────────────────────────────────────
 async function callGroq(prompt, retryCount = 0) {
   const systemMsg = `당신은 대한민국 최고의 SEO 정보 블로그 작가입니다. 반드시 아래 JSON 형식으로만 응답하세요.
@@ -185,10 +195,14 @@ async function callGroq(prompt, retryCount = 0) {
       await new Promise(r => setTimeout(r, 36000));
       return callGroq(prompt + '\n\n[경고] JSON 안에 일본어(ルピア 등), 한자, 외국어 절대 금지. 오직 한국어·영어만 사용하세요!', retryCount + 1);
     }
-    // 429 Rate limit — 에러 메시지에서 대기 시간 파싱 후 재시도
+    // 429 Rate limit — 대기 시간 파싱 후 재시도 (일일 한도 초과 시 즉시 포기)
     if (res.status === 429 && retryCount < 2) {
-      const waitMatch = errText.match(/try again in ([\d.]+)s/);
-      const waitMs = waitMatch ? Math.ceil(parseFloat(waitMatch[1]) * 1000) + 2000 : 40000;
+      const waitMs = parseGroqWaitMs(errText);
+      // 5분 이상 = 일일/시간당 한도 초과 → 재시도 무의미, 즉시 실패
+      if (waitMs > 5 * 60 * 1000) {
+        const waitMin = Math.ceil(waitMs / 60000);
+        throw new Error(`Groq 일일 토큰 한도 초과 (TPD). ${waitMin}분 후 재시도 가능.`);
+      }
       console.warn(`⚠️ Rate limit (429), ${Math.ceil(waitMs/1000)}초 대기 후 재시도...`);
       await new Promise(r => setTimeout(r, waitMs));
       return callGroq(prompt, retryCount + 1);
