@@ -25,15 +25,30 @@ function getCategoryMeta(category) {
   return CATEGORY_META[category] || CATEGORY_META['경제'];
 }
 
-// ─── 텍스트 정제 (한자·일본어 제거) ──────────────────────────
+// ─── 텍스트 정제 ──────────────────────────────────────────────
+// 한자·일본어 + 독일어·프랑스어 등 비영어 유럽어 단어 제거
+const FOREIGN_WORD_PATTERN = /\b(unterschied[e]?|voil[àa]|[ée]galement|cependant|jedoch|daher|ainsi|donc|depuis|lequel|obwohl|trotzdem|eigentlich|bereits|welche[rns]?|warum|woher|wobei|während|zwischen|durch|gegen|ohne|unter|neben|nach|über|beim|vom|zur|zum|auf|die|der|das|und|für)\b/gi;
+
 function sanitizeText(text) {
   if (!text) return '';
   return text
+    // 한자(CJK) · 일본어 히라가나 · 가타카나 제거
     .replace(/[\u4E00-\u9FFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF]/g, '')
+    // 독일어·프랑스어 등 알려진 외래어 패턴 제거
+    .replace(FOREIGN_WORD_PATTERN, '')
+    // 한글·영문·숫자·기본 특수문자·이모지 외 모든 문자 제거
+    .replace(/[^\uAC00-\uD7A3\u1100-\u11FF\u3130-\u318Fa-zA-Z0-9\s.,!?'"()\-:;%₩+\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]/g, '')
     .replace(/\s{3,}/g, ' ')
     .replace(/^\d+\.\s*/gm, '')
     .replace(/^[-•]\s*/gm, '')
     .trim();
+}
+
+// 텍스트에 외국어가 있는지 검사
+function hasForEignLanguage(text) {
+  if (!text) return false;
+  return FOREIGN_WORD_PATTERN.test(text) ||
+    /[\u4E00-\u9FFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF]/.test(text);
 }
 
 function sanitizeData(data) {
@@ -51,7 +66,14 @@ function sanitizeData(data) {
 // ─── Groq API ─────────────────────────────────────────────────
 async function callGroq(prompt, retryCount = 0) {
   const systemMsg = `당신은 대한민국 최고의 정보 블로그 작가입니다.
-반드시 아래 JSON 형식으로만 응답하세요. 절대 한자(漢字)나 일본어를 사용하지 마세요. 순수 한국어와 영문만 사용하세요.
+반드시 아래 JSON 형식으로만 응답하세요.
+
+[언어 규칙 — 절대 준수]
+- 한국어(한글)와 영문만 사용하세요
+- 한자(漢字) 사용 절대 금지: 民間 → 민간, 供給 → 공급, 不動産 → 부동산
+- 독일어 절대 금지: unterschied, jedoch, daher, während 등
+- 프랑스어 절대 금지: voilà, donc, depuis, ainsi 등
+- 다른 외국어도 모두 금지 — 오직 한국어와 영어만 허용합니다
 
 {
   "title": "글 제목 (60자 이내, 2026년 키워드 포함)",
@@ -157,6 +179,7 @@ async function callGroq(prompt, retryCount = 0) {
 
   content = sanitizeData(content);
 
+  // sections 검증
   if (!Array.isArray(content.sections) || content.sections.length < 2) {
     if (retryCount < 2) {
       console.warn(`⚠️ sections 부족 (${content.sections?.length || 0}개), 재시도 ${retryCount + 1}/2...`);
@@ -165,10 +188,18 @@ async function callGroq(prompt, retryCount = 0) {
     throw new Error('sections 배열이 없거나 부족합니다.');
   }
 
+  // 내용 길이 검증
   const shortSection = content.sections.some(s => (s.content || '').length < 200);
   if (shortSection && retryCount < 1) {
     console.warn(`⚠️ 섹션 내용 너무 짧음, 재시도...`);
     return callGroq(prompt + '\n\n[필수] 각 섹션 content는 반드시 700자 이상 작성하세요!', retryCount + 1);
+  }
+
+  // 외국어 혼입 검증
+  const allText = (content.sections || []).map(s => s.content || '').join(' ') + (content.intro || '');
+  if (hasForEignLanguage(allText) && retryCount < 1) {
+    console.warn(`⚠️ 외국어(독일어/한자 등) 감지, 재시도...`);
+    return callGroq(prompt + '\n\n[경고] 독일어(unterschied, jedoch 등), 한자(民間 등) 등 외국어가 감지됐습니다. 오직 한국어와 영어만 사용하세요!', retryCount + 1);
   }
 
   return content;
