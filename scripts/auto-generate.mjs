@@ -411,7 +411,6 @@ function buildPostHTML(data, slug, dateStr) {
         ${highlightBox}
         ${statCards}
         ${imageCards}
-        ${midAd}
         ${cmpTable}`;
   }).join('\n');
 
