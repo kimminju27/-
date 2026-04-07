@@ -153,8 +153,17 @@ async function callGroq(prompt, retryCount = 0) {
     const errText = await res.text();
     // json_validate_failed는 외국어 혼입 등이 원인 — 재시도
     if (res.status === 400 && errText.includes('json_validate_failed') && retryCount < 2) {
-      console.warn(`⚠️ Groq JSON 검증 실패, 재시도 ${retryCount + 1}/2...`);
+      console.warn(`⚠️ Groq JSON 검증 실패, 35초 대기 후 재시도...`);
+      await new Promise(r => setTimeout(r, 36000));
       return callGroq(prompt + '\n\n[경고] JSON 안에 일본어(ルピア 등), 한자, 외국어 절대 금지. 오직 한국어·영어만 사용하세요!', retryCount + 1);
+    }
+    // 429 Rate limit — 에러 메시지에서 대기 시간 파싱 후 재시도
+    if (res.status === 429 && retryCount < 2) {
+      const waitMatch = errText.match(/try again in ([\d.]+)s/);
+      const waitMs = waitMatch ? Math.ceil(parseFloat(waitMatch[1]) * 1000) + 2000 : 40000;
+      console.warn(`⚠️ Rate limit (429), ${Math.ceil(waitMs/1000)}초 대기 후 재시도...`);
+      await new Promise(r => setTimeout(r, waitMs));
+      return callGroq(prompt, retryCount + 1);
     }
     throw new Error(`Groq API 오류 ${res.status}: ${errText.slice(0, 300)}`);
   }
@@ -174,7 +183,8 @@ async function callGroq(prompt, retryCount = 0) {
   // sections 검증
   if (!Array.isArray(content.sections) || content.sections.length < 2) {
     if (retryCount < 2) {
-      console.warn(`⚠️ sections 부족 (${content.sections?.length || 0}개), 재시도 ${retryCount + 1}/2...`);
+      console.warn(`⚠️ sections 부족 (${content.sections?.length || 0}개), 35초 대기 후 재시도...`);
+      await new Promise(r => setTimeout(r, 36000));
       return callGroq(prompt + '\n\n[필수] sections 배열 4개를 반드시 포함하고 각 content는 700자 이상으로 작성하세요!', retryCount + 1);
     }
     throw new Error('sections 배열이 없거나 부족합니다.');
@@ -183,14 +193,16 @@ async function callGroq(prompt, retryCount = 0) {
   // 내용 길이 검증
   const shortSection = content.sections.some(s => (s.content || '').length < 200);
   if (shortSection && retryCount < 1) {
-    console.warn(`⚠️ 섹션 내용 너무 짧음, 재시도...`);
+    console.warn(`⚠️ 섹션 내용 너무 짧음, 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
     return callGroq(prompt + '\n\n[필수] 각 섹션 content는 반드시 700자 이상 작성하세요!', retryCount + 1);
   }
 
   // 외국어 혼입 검증
   const allText = (content.sections || []).map(s => s.content || '').join(' ') + (content.intro || '');
   if (hasForEignLanguage(allText) && retryCount < 1) {
-    console.warn(`⚠️ 외국어 감지, 재시도...`);
+    console.warn(`⚠️ 외국어 감지, 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
     return callGroq(prompt + '\n\n[경고] 외국어(독일어·한자 등) 감지됨. 오직 한국어와 영어만 사용하세요!', retryCount + 1);
   }
 
