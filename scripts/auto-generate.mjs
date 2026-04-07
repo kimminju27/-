@@ -98,57 +98,33 @@ async function callGroq(prompt, retryCount = 0) {
     {"label": "통계 항목명", "value": "숫자/금액", "unit": "단위"}
   ],
   "imageCards": [
-    {"icon": "📊", "title": "카드1 제목", "type": "stat", "items": ["수치1: 값", "수치2: 값", "수치3: 값"]},
-    {"icon": "📋", "title": "카드2 제목", "type": "checklist", "items": ["체크항목1", "체크항목2", "체크항목3", "체크항목4"]},
-    {"icon": "🔄", "title": "카드3 제목", "type": "process", "items": ["1단계: 내용", "2단계: 내용", "3단계: 내용", "4단계: 내용"]},
-    {"icon": "⚖️", "title": "카드4 제목", "type": "comparison", "items": ["A vs B 비교1", "A vs B 비교2", "A vs B 비교3"]},
-    {"icon": "💡", "title": "카드5 제목", "type": "tips", "items": ["핵심 팁1", "핵심 팁2", "핵심 팁3", "핵심 팁4"]}
+    {"icon":"📊","title":"제목","type":"stat","items":["항목1","항목2","항목3"]},
+    {"icon":"📋","title":"제목","type":"checklist","items":["항목1","항목2","항목3","항목4"]},
+    {"icon":"🔄","title":"제목","type":"process","items":["1단계","2단계","3단계","4단계"]},
+    {"icon":"⚖️","title":"제목","type":"comparison","items":["비교1","비교2","비교3"]},
+    {"icon":"💡","title":"제목","type":"tips","items":["팁1","팁2","팁3","팁4"]}
   ],
   "intro": "도입부 — 독자의 실생활과 연결되는 구체적 상황 묘사로 시작. 수치/날짜 포함. 3문단 이상, 600자 이상.",
   "sections": [
-    {
-      "id": "section1",
-      "title": "첫 번째 소제목 (숫자/핵심어 포함)",
-      "content": "700자 이상. 공식 수치·날짜 인용. 독자 바로 활용 가능한 정보. 구어체.",
-      "tip": "섹션 핵심 팁 1줄",
-      "highlight": "강조 수치나 문구"
-    },
-    {
-      "id": "section2",
-      "title": "두 번째 소제목",
-      "content": "700자 이상. 단계별/방법 설명.",
-      "tip": "주의사항",
-      "highlight": "마감일 또는 기관명"
-    },
-    {
-      "id": "section3",
-      "title": "세 번째 소제목",
-      "content": "700자 이상. 금액/조건/비교.",
-      "tip": "최대 혜택 방법",
-      "highlight": "핵심 금액이나 조건"
-    },
-    {
-      "id": "section4",
-      "title": "네 번째 소제목 — 정리 및 행동 유도",
-      "content": "700자 이상. 주의사항, 지금 바로 할 수 있는 행동.",
-      "tip": "첫 번째 행동 단계",
-      "highlight": "핵심 정리 문구"
-    }
+    {"id":"section1","title":"소제목1(숫자포함)","content":"700자이상.공식수치·날짜인용.구어체.","tip":"핵심팁","highlight":"강조수치"},
+    {"id":"section2","title":"소제목2","content":"700자이상.단계별설명.","tip":"주의사항","highlight":"기관명"},
+    {"id":"section3","title":"소제목3","content":"700자이상.금액/조건/비교.","tip":"혜택방법","highlight":"핵심금액"},
+    {"id":"section4","title":"소제목4-총정리","content":"700자이상.주의사항·행동유도.","tip":"첫행동","highlight":"정리문구"}
   ],
   "comparisonTable": {
-    "caption": "비교표 제목",
-    "headers": ["구분", "항목A", "항목B"],
-    "rows": [["비교1","내용","내용"],["비교2","내용","내용"],["비교3","내용","내용"],["비교4","내용","내용"]]
+    "caption":"비교표제목",
+    "headers":["구분","항목A","항목B"],
+    "rows":[["비교1","내용","내용"],["비교2","내용","내용"],["비교3","내용","내용"]]
   },
   "faqs": [
-    {"question": "가장 많이 묻는 질문1", "answer": "구체적 실용 답변 150자 이상"},
-    {"question": "가장 많이 묻는 질문2", "answer": "구체적 답변 150자 이상"},
-    {"question": "가장 많이 묻는 질문3", "answer": "구체적 답변 150자 이상"}
+    {"question":"질문1","answer":"150자이상답변"},
+    {"question":"질문2","answer":"150자이상답변"},
+    {"question":"질문3","answer":"150자이상답변"}
   ],
   "sources": [
-    {"name": "언론사A — 기사제목 (2026.MM)", "url": "REPLACE_WITH_REAL_URL"},
-    {"name": "언론사B — 기사제목 (2026.MM)", "url": "REPLACE_WITH_REAL_URL"},
-    {"name": "언론사C — 기사제목 (2026.MM)", "url": "REPLACE_WITH_REAL_URL"}
+    {"name":"언론사A — 기사제목(2026.MM)","url":"REPLACE_WITH_REAL_URL"},
+    {"name":"언론사B — 기사제목(2026.MM)","url":"REPLACE_WITH_REAL_URL"},
+    {"name":"언론사C — 기사제목(2026.MM)","url":"REPLACE_WITH_REAL_URL"}
   ]
 }
 
@@ -167,7 +143,7 @@ async function callGroq(prompt, retryCount = 0) {
         { role: 'system', content: systemMsg },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 12000,
+      max_tokens: 7000,
       temperature: 0.7,
       response_format: { type: 'json_object' }
     }),
