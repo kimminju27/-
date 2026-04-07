@@ -65,87 +65,98 @@ function sanitizeData(data) {
 
 // ─── Groq API ─────────────────────────────────────────────────
 async function callGroq(prompt, retryCount = 0) {
-  const systemMsg = `당신은 대한민국 최고의 정보 블로그 작가입니다.
-반드시 아래 JSON 형식으로만 응답하세요.
+  const systemMsg = `당신은 대한민국 최고의 SEO 정보 블로그 작가입니다. 반드시 아래 JSON 형식으로만 응답하세요.
 
 [언어 규칙 — 절대 준수]
-- 한국어(한글)와 영문만 사용하세요
-- 한자(漢字) 사용 절대 금지: 民間 → 민간, 供給 → 공급, 不動産 → 부동산
-- 독일어 절대 금지: unterschied, jedoch, daher, während 등
-- 프랑스어 절대 금지: voilà, donc, depuis, ainsi 등
-- 다른 외국어도 모두 금지 — 오직 한국어와 영어만 허용합니다
+- 오직 한국어(한글)와 영어만 사용
+- 한자(漢字) 절대 금지: 民間→민간, 供給→공급, 不動産→부동산
+- 독일어 절대 금지: unterschied, jedoch, daher, während, nemli, voilà 등
+- 모든 비한글·비영어 문자 금지 — 위반 시 재생성됩니다
+
+[글쓰기 규칙]
+- "~에 대해 알아보겠습니다" 금지 → 바로 본론 시작
+- "중요합니다" 단순 반복 금지 → 구체적 수치/날짜로 설명
+- "첫째, 둘째, 셋째" 나열 최소화 → 자연스러운 구어체로
+- 모든 수치는 실제 한국 공식 자료 기반으로 작성
+- 독자가 "오늘 당장 쓸 수 있는" 실용 정보 위주
 
 {
-  "title": "글 제목 (60자 이내, 2026년 키워드 포함)",
-  "description": "메타 설명 (100자 이내, 핵심 키워드 자연스럽게 포함)",
+  "title": "글 제목 (50자 이내, 연도+키워드+숫자/혜택 포함, 클릭 유발)",
+  "description": "메타 설명 (80-120자, 핵심 키워드+수치 포함)",
   "category": "카테고리명",
-  "slug": "english-hyphen-slug-max30chars",
-  "tags": ["태그1", "태그2", "태그3", "태그4"],
+  "slug": "korean-topic-english-slug",
+  "hashtags": ["#키워드1", "#키워드2", "#키워드3", "#키워드4", "#키워드5", "#키워드6", "#키워드7", "#키워드8", "#키워드9", "#키워드10", "#키워드11", "#키워드12"],
   "keyPoints": [
-    "핵심 포인트 1 — 반드시 구체적 숫자나 날짜 포함",
+    "핵심 포인트 1 — 구체적 숫자나 날짜 반드시 포함",
     "핵심 포인트 2 — 독자의 가장 큰 궁금증 해소",
     "핵심 포인트 3 — 실행 가능한 정보로 마무리"
   ],
   "stats": [
     {"label": "통계 항목명", "value": "숫자/금액", "unit": "단위(원/%)"},
     {"label": "통계 항목명", "value": "숫자/금액", "unit": "단위"},
+    {"label": "통계 항목명", "value": "숫자/금액", "unit": "단위"},
     {"label": "통계 항목명", "value": "숫자/금액", "unit": "단위"}
   ],
-  "intro": "도입부 스토리텔링 — 독자의 일상과 연결되는 개인적 에피소드로 시작. 가계부, 물가 체감, 주변 사람들 이야기 등. 반드시 3문단 이상, 총 600자 이상 작성.",
+  "imageCards": [
+    {"icon": "📊", "title": "카드1 제목", "type": "stat", "items": ["수치1: 값", "수치2: 값", "수치3: 값"]},
+    {"icon": "📋", "title": "카드2 제목", "type": "checklist", "items": ["체크항목1", "체크항목2", "체크항목3", "체크항목4"]},
+    {"icon": "🔄", "title": "카드3 제목", "type": "process", "items": ["1단계: 내용", "2단계: 내용", "3단계: 내용", "4단계: 내용"]},
+    {"icon": "⚖️", "title": "카드4 제목", "type": "comparison", "items": ["A vs B 비교1", "A vs B 비교2", "A vs B 비교3"]},
+    {"icon": "💡", "title": "카드5 제목", "type": "tips", "items": ["핵심 팁1", "핵심 팁2", "핵심 팁3", "핵심 팁4"]}
+  ],
+  "intro": "도입부 — 독자의 실생활과 연결되는 구체적 상황 묘사로 시작. 수치/날짜 포함. 3문단 이상, 600자 이상.",
   "sections": [
     {
       "id": "section1",
-      "title": "첫 번째 소제목 — 무엇인가?",
-      "content": "본문 내용 — 최소 700자. 공식 자료 인용(출처 명시). 독자가 바로 활용 가능한 정보. 구어체로 친근하게.",
-      "tip": "이 섹션의 핵심 팁 1줄",
-      "highlight": "강조할 핵심 수치나 문구"
+      "title": "첫 번째 소제목 (숫자/핵심어 포함)",
+      "content": "700자 이상. 공식 수치·날짜 인용. 독자 바로 활용 가능한 정보. 구어체.",
+      "tip": "섹션 핵심 팁 1줄",
+      "highlight": "강조 수치나 문구"
     },
     {
       "id": "section2",
-      "title": "두 번째 소제목 — 어떻게 신청하나?",
-      "content": "본문 내용 — 최소 700자. 단계별 절차나 방법 설명.",
-      "tip": "실수하기 쉬운 주의사항",
-      "highlight": "마감일 또는 신청 링크/기관명"
+      "title": "두 번째 소제목",
+      "content": "700자 이상. 단계별/방법 설명.",
+      "tip": "주의사항",
+      "highlight": "마감일 또는 기관명"
     },
     {
       "id": "section3",
-      "title": "세 번째 소제목 — 얼마나 받을 수 있나?",
-      "content": "본문 내용 — 최소 700자. 금액/조건/비교 정보.",
-      "tip": "최대 혜택을 받는 방법",
+      "title": "세 번째 소제목",
+      "content": "700자 이상. 금액/조건/비교.",
+      "tip": "최대 혜택 방법",
       "highlight": "핵심 금액이나 조건"
     },
     {
       "id": "section4",
-      "title": "네 번째 소제목 — 주의사항과 총정리",
-      "content": "본문 내용 — 최소 700자. 흔한 실수, 주의사항, 마무리 행동 유도.",
-      "tip": "지금 바로 할 수 있는 첫 번째 행동",
+      "title": "네 번째 소제목 — 정리 및 행동 유도",
+      "content": "700자 이상. 주의사항, 지금 바로 할 수 있는 행동.",
+      "tip": "첫 번째 행동 단계",
       "highlight": "핵심 정리 문구"
     }
   ],
   "comparisonTable": {
     "caption": "비교표 제목",
     "headers": ["구분", "항목A", "항목B"],
-    "rows": [
-      ["비교 1", "내용", "내용"],
-      ["비교 2", "내용", "내용"],
-      ["비교 3", "내용", "내용"]
-    ]
+    "rows": [["비교1","내용","내용"],["비교2","내용","내용"],["비교3","내용","내용"],["비교4","내용","내용"]]
   },
   "faqs": [
-    {"question": "가장 많이 묻는 질문 1", "answer": "구체적이고 실용적인 답변 (150자 이상)"},
-    {"question": "가장 많이 묻는 질문 2", "answer": "구체적인 답변 (150자 이상)"},
-    {"question": "가장 많이 묻는 질문 3", "answer": "구체적인 답변 (150자 이상)"}
+    {"question": "가장 많이 묻는 질문1", "answer": "구체적 실용 답변 150자 이상"},
+    {"question": "가장 많이 묻는 질문2", "answer": "구체적 답변 150자 이상"},
+    {"question": "가장 많이 묻는 질문3", "answer": "구체적 답변 150자 이상"}
   ],
   "sources": [
-    {"name": "기관명 — 문서 제목 (2026.MM)", "url": "#"}
+    {"name": "언론사A — 기사제목 (2026.MM)", "url": "REPLACE_WITH_REAL_URL"},
+    {"name": "언론사B — 기사제목 (2026.MM)", "url": "REPLACE_WITH_REAL_URL"},
+    {"name": "언론사C — 기사제목 (2026.MM)", "url": "REPLACE_WITH_REAL_URL"}
   ]
 }
 
-[절대 규칙]
-- 한자(민간을 民間으로 쓰는 등) 사용 금지 — 모두 한글로 작성
-- sections는 반드시 4개, 각 content 700자 이상
-- 실제 존재하는 한국 정책/제도만 다룰 것
-- 2026년 기준 최신 정보 반영`;
+[필수 규칙]
+- hashtags: 반드시 12개 이상, #으로 시작, 구글/네이버 검색 최적화
+- imageCards: 반드시 5개, 각기 다른 type 사용
+- sections: 반드시 4개, 각 content 700자 이상
+- sources: 반드시 3개, 서로 다른 언론사/기관`;
 
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -198,28 +209,63 @@ async function callGroq(prompt, retryCount = 0) {
   // 외국어 혼입 검증
   const allText = (content.sections || []).map(s => s.content || '').join(' ') + (content.intro || '');
   if (hasForEignLanguage(allText) && retryCount < 1) {
-    console.warn(`⚠️ 외국어(독일어/한자 등) 감지, 재시도...`);
-    return callGroq(prompt + '\n\n[경고] 독일어(unterschied, jedoch 등), 한자(民間 등) 등 외국어가 감지됐습니다. 오직 한국어와 영어만 사용하세요!', retryCount + 1);
+    console.warn(`⚠️ 외국어 감지, 재시도...`);
+    return callGroq(prompt + '\n\n[경고] 외국어(독일어·한자 등) 감지됨. 오직 한국어와 영어만 사용하세요!', retryCount + 1);
+  }
+
+  // imageCards 기본값 보장
+  if (!Array.isArray(content.imageCards) || content.imageCards.length < 3) {
+    content.imageCards = [
+      { icon: '📊', title: '핵심 수치', type: 'stat', items: (content.stats || []).slice(0, 3).map(s => `${s.label}: ${s.value}${s.unit || ''}`) },
+      { icon: '📋', title: '확인 체크리스트', type: 'checklist', items: (content.keyPoints || ['확인사항1','확인사항2','확인사항3']) },
+      { icon: '💡', title: '핵심 팁 정리', type: 'tips', items: (content.sections || []).slice(0, 4).map(s => s.tip).filter(Boolean) },
+      { icon: '🔄', title: '진행 단계', type: 'process', items: ['1단계: 정보 확인', '2단계: 자격 검토', '3단계: 서류 준비', '4단계: 신청 완료'] },
+      { icon: '🎯', title: '이것만 기억하세요', type: 'summary', items: (content.sections || []).slice(0, 4).map(s => s.highlight).filter(Boolean) }
+    ];
+  }
+
+  // hashtags 기본값 보장
+  if (!Array.isArray(content.hashtags) || content.hashtags.length < 5) {
+    content.hashtags = (content.tags || []).map(t => t.startsWith('#') ? t : `#${t}`);
   }
 
   return content;
 }
 
-// ─── 뉴스 수집 ────────────────────────────────────────────────
-async function fetchNewsData(category) {
+// ─── 뉴스 수집 (실제 URL 포함 최대 5개) ─────────────────────────
+async function fetchNewsContext(category) {
   try {
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(category)}+when:2d&hl=ko&gl=KR&ceid=KR:ko`;
-    const res = await fetch(url);
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(category)}+when:3d&hl=ko&gl=KR&ceid=KR:ko`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const xml = await res.text();
     const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
     if (items.length === 0) return null;
-    const item = items[Math.floor(Math.random() * Math.min(items.length, 5))];
-    const titleMatch = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || item.match(/<title>([\s\S]*?)<\/title>/);
-    const descMatch = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) || item.match(/<description>([\s\S]*?)<\/description>/);
-    const title = sanitizeText((titleMatch?.[1] || '').replace(/ - .*$/, '').trim());
-    const description = sanitizeText((descMatch?.[1] || '').trim());
-    if (!title) return null;
-    return { title, description };
+
+    const parsed = items.slice(0, 8).map(item => {
+      const titleMatch = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || item.match(/<title>([\s\S]*?)<\/title>/);
+      const linkMatch  = item.match(/<link>([\s\S]*?)<\/link>/);
+      const srcMatch   = item.match(/<source[^>]*>([\s\S]*?)<\/source>/) || item.match(/<source[^>]*\/>/);
+      const descMatch  = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) || item.match(/<description>([\s\S]*?)<\/description>/);
+      const dateMatch  = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+
+      const rawTitle = (titleMatch?.[1] || '').replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+      const title  = sanitizeText(rawTitle.replace(/ - [^-]+$/, '').trim());
+      const link   = (linkMatch?.[1] || '').trim();
+      const source = (srcMatch?.[1] || '').replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+      const desc   = sanitizeText((descMatch?.[1] || '').replace(/<[^>]+>/g, '').trim().slice(0, 200));
+      const pubDate = (dateMatch?.[1] || '').trim();
+
+      return { title, link, source, desc, pubDate };
+    }).filter(i => i.title && i.link && i.link.startsWith('http'));
+
+    if (parsed.length === 0) return null;
+
+    // 상위 5개에서 랜덤 1개를 메인 뉴스로, 나머지는 출처 후보로
+    const shuffled = parsed.sort(() => Math.random() - 0.5);
+    return {
+      main: shuffled[0],
+      all: shuffled.slice(0, 5)
+    };
   } catch (e) {
     console.warn(`⚠️ 뉴스 수집 실패 (${category}): ${e.message}`);
     return null;
@@ -304,6 +350,40 @@ function buildFaqSection(faqs) {
           </details>`).join('\n');
 }
 
+function buildImageCards(cards) {
+  if (!cards || cards.length === 0) return '';
+  const colorMap = {
+    stat:       { bg: 'from-blue-500 to-blue-700',    light: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200' },
+    checklist:  { bg: 'from-green-500 to-green-700',  light: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200' },
+    process:    { bg: 'from-purple-500 to-purple-700',light: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    comparison: { bg: 'from-orange-500 to-orange-600',light: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    tips:       { bg: 'from-teal-500 to-teal-700',    light: 'bg-teal-50',   text: 'text-teal-700',   border: 'border-teal-200' },
+    summary:    { bg: 'from-rose-500 to-rose-700',    light: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200' },
+  };
+  const cardHTML = cards.slice(0, 5).map(card => {
+    const c = colorMap[card.type] || colorMap.tips;
+    const items = (card.items || []).map((item, i) => {
+      if (card.type === 'process') return `<div class="flex items-start gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br ${c.bg} text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">${i+1}</span><span class="text-xs ${c.text} leading-relaxed">${item}</span></div>`;
+      if (card.type === 'checklist') return `<div class="flex items-start gap-2"><span class="text-xs font-black ${c.text} shrink-0 mt-0.5">✓</span><span class="text-xs ${c.text} leading-relaxed">${item}</span></div>`;
+      return `<div class="text-xs ${c.text} leading-relaxed border-b ${c.border} pb-1.5 last:border-0 last:pb-0">${item}</div>`;
+    }).join('');
+    return `
+      <div class="${c.light} border ${c.border} rounded-2xl overflow-hidden shadow-sm">
+        <div class="bg-gradient-to-r ${c.bg} px-4 py-3 flex items-center gap-2">
+          <span class="text-lg">${card.icon || '📌'}</span>
+          <p class="text-white font-bold text-sm leading-tight">${card.title}</p>
+        </div>
+        <div class="p-4 space-y-2">${items}</div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="not-prose my-10">
+      <p class="text-xs font-bold text-ink-400 uppercase tracking-widest mb-4">🖼️ 핵심 인포그래픽</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${cardHTML}
+      </div>
+    </div>`;
+}
+
 // ─── 포스트 HTML 빌드 ──────────────────────────────────────────
 function buildPostHTML(data, slug, dateStr) {
   const meta = getCategoryMeta(data.category);
@@ -320,10 +400,9 @@ function buildPostHTML(data, slug, dateStr) {
 
     const tipBox       = s.tip       ? buildHighlightBox(s.tip,       idx % 2 === 0 ? 'tip' : 'point') : '';
     const highlightBox = s.highlight ? buildHighlightBox(s.highlight, 'info')  : '';
-    const statCards    = idx === 0   ? buildStatCards(data.stats)               : '';
-    const cmpTable     = idx === 2   ? buildComparisonTable(data.comparisonTable) : '';
-
-    const midAd = '';
+    const statCards    = idx === 0   ? buildStatCards(data.stats)                  : '';
+    const imageCards   = idx === 1   ? buildImageCards(data.imageCards)             : '';
+    const cmpTable     = idx === 2   ? buildComparisonTable(data.comparisonTable)   : '';
 
     return `
         ${buildSectionHeader(s, idx, meta)}
@@ -332,6 +411,7 @@ function buildPostHTML(data, slug, dateStr) {
         ${tipBox}
         ${highlightBox}
         ${statCards}
+        ${imageCards}
         ${midAd}
         ${cmpTable}`;
   }).join('\n');
@@ -348,8 +428,12 @@ function buildPostHTML(data, slug, dateStr) {
               <span>${p}</span>
             </li>`).join('\n');
 
-  const tagsHTML = (data.tags || []).map(t =>
-    `<a href="../index.html" class="text-xs text-ink-500 bg-ink-100 hover:bg-brand-100 hover:text-brand-700 px-2.5 py-1 rounded-full transition-colors">#${t}</a>`
+  // hashtags: data.hashtags 우선, 없으면 data.tags 폴백
+  const hashtagList = (data.hashtags && data.hashtags.length >= 5)
+    ? data.hashtags
+    : (data.tags || []).map(t => t.startsWith('#') ? t : `#${t}`);
+  const tagsHTML = hashtagList.map(t =>
+    `<a href="../index.html" class="text-xs text-ink-500 bg-ink-100 hover:bg-brand-100 hover:text-brand-700 px-2.5 py-1 rounded-full transition-colors">${t.startsWith('#') ? t : '#'+t}</a>`
   ).join('\n          ');
 
   const sourcesHTML = (data.sources || [{ name: '공식 자료 기반 작성', url: '#' }]).map(s =>
@@ -376,7 +460,7 @@ function buildPostHTML(data, slug, dateStr) {
   <script src="/analytics.js" async></script>
   <title>${data.title} | 나만 모르는 요즘 소식</title>
   <meta name="description" content="${data.description}">
-  <meta name="keywords" content="${(data.tags || []).join(', ')}">
+  <meta name="keywords" content="${hashtagList.map(t => t.replace(/^#/, '')).join(', ')}">
   <meta name="robots" content="index, follow">
   <meta name="author" content="김민주">
   <link rel="canonical" href="${postUrl}">
@@ -623,12 +707,15 @@ function updateIndex(data, slug, dateStr) {
   if (!existsSync(indexPath)) return;
   const meta = getCategoryMeta(data.category);
   const dateFormatted = dateStr.replace(/-/g, '.');
+  const firstStat = (data.stats && data.stats[0]) ? `${data.stats[0].value}${data.stats[0].unit || ''}` : '';
   const card = `
       <article class="post-item" data-category="${data.category}" data-title="${data.title}">
         <a href="posts/${slug}.html" class="block bg-white rounded-2xl border border-ink-100 shadow-card hover:shadow-card-hover post-card overflow-hidden transition-shadow">
-          <div class="w-full h-44 bg-gradient-to-br ${meta.gradient} flex items-center justify-center text-5xl relative overflow-hidden">
+          <div class="w-full h-44 bg-gradient-to-br ${meta.gradient} flex flex-col items-center justify-center relative overflow-hidden px-4">
             <div class="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle_at_30%_50%,#000_1px,transparent_1px)] bg-[length:20px_20px]"></div>
-            <span class="relative">${meta.emoji}</span>
+            <span class="relative text-4xl mb-1">${meta.emoji}</span>
+            ${firstStat ? `<span class="relative text-lg font-black" style="color:${meta.color}">${firstStat}</span>` : ''}
+            <p class="relative text-center text-xs font-bold text-ink-700 mt-1 line-clamp-2 max-w-[180px] leading-tight">${data.title.slice(0, 28)}${data.title.length > 28 ? '…' : ''}</p>
           </div>
           <div class="p-5">
             <div class="flex items-center gap-2 mb-2">
@@ -714,13 +801,54 @@ async function run() {
     for (const category of CATEGORIES) {
       try {
         console.log(`\n📰 [${category}] 처리 중...`);
-        const topic = await fetchNewsData(category);
-        const prompt = topic
-          ? `카테고리: ${category}\n뉴스 제목: ${topic.title}\n뉴스 내용: ${topic.description}\n\n위 뉴스를 바탕으로 "${category}" 카테고리의 정보성 블로그 포스팅을 작성해주세요. 2026년 최신 기준. 각 섹션 700자 이상, 도입부 600자 이상.`
-          : `카테고리: ${category}\n\n"${category}" 주제로 2026년 한국 독자에게 유용한 정보성 블로그 포스팅을 작성해주세요. 각 섹션 700자 이상, 도입부 600자 이상.`;
+        const newsCtx = await fetchNewsContext(category);
+
+        // 출처 후보 URL 목록 (실제 뉴스에서 가져온 것)
+        const realSources = newsCtx ? newsCtx.all.map(n => ({
+          name: `${n.source || '언론사'} — ${n.title.slice(0, 40)} (${new Date(n.pubDate || Date.now()).toISOString().slice(0,7).replace('-','.')})`,
+          url: n.link
+        })) : [];
+
+        const newsContext = newsCtx
+          ? newsCtx.all.slice(0, 5).map((n, i) => `[뉴스${i+1}] ${n.title} (출처: ${n.source || '언론'})`).join('\n')
+          : '';
+
+        const prompt = newsCtx
+          ? `카테고리: ${category}
+
+[오늘의 실제 뉴스 — 아래 내용을 반드시 참고해서 작성]
+${newsContext}
+
+위 실제 뉴스를 바탕으로 "${category}" 카테고리의 정보성 블로그 포스팅을 작성하세요.
+- 뉴스에 나온 실제 수치·날짜·기관명을 글에 반영할 것
+- 각 섹션 700자 이상, 도입부 600자 이상
+- hashtags 12개 이상 (#으로 시작, 구글/네이버 SEO 최적화)
+- imageCards 5개 (stat, checklist, process, comparison, tips 각 1개씩)
+- sources는 서로 다른 언론사 3개 (URL은 "REPLACE_WITH_REAL_URL"로 설정)`
+          : `카테고리: ${category}
+
+"${category}" 주제로 2026년 한국 독자에게 유용한 정보성 블로그 포스팅을 작성하세요.
+- 실제 한국 정책·제도·수치 기반 작성
+- 각 섹션 700자 이상, 도입부 600자 이상
+- hashtags 12개 이상 (#으로 시작, 구글/네이버 SEO 최적화)
+- imageCards 5개 (stat, checklist, process, comparison, tips 각 1개씩)`;
 
         console.log(`🤖 AI 생성 중...`);
         const result = await callGroq(prompt);
+
+        // 실제 뉴스 URL로 sources 교체 (할루시네이션 URL 방지)
+        if (realSources.length >= 2) {
+          result.sources = realSources.slice(0, 3);
+          // 부족하면 기존 생성분으로 채움
+          while (result.sources.length < 3 && (result.sources?.length || 0) < 3) {
+            result.sources.push({ name: '공식 자료 기반 작성', url: `https://www.google.com/search?q=${encodeURIComponent(category)}+2026` });
+          }
+        } else if (realSources.length === 1) {
+          result.sources = [realSources[0],
+            { name: '공식 자료 기반 작성', url: `https://www.google.com/search?q=${encodeURIComponent(category)}+2026` },
+            { name: `${category} 관련 정책 정보`, url: `https://www.google.com/search?q=${encodeURIComponent(category)}+정책+2026` }
+          ];
+        }
 
         const slug = result.slug
           ? result.slug.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 40)
