@@ -324,7 +324,7 @@ function buildPostHTML(data, slug, dateStr) {
     const cmpTable     = idx === 2   ? buildComparisonTable(data.comparisonTable) : '';
 
     const midAd = idx === 1 ? `
-        <div class="not-prose my-8">
+        <div class="ad-wrap not-prose my-8">
           <ins class="adsbygoogle"
                style="display:block; text-align:center;"
                data-ad-client="ca-pub-1954893264438671"
@@ -527,7 +527,7 @@ function buildPostHTML(data, slug, dateStr) {
         </div>
 
         <!-- 광고: 글 상단 -->
-        <div class="my-6">
+        <div class="ad-wrap my-6">
           <ins class="adsbygoogle" style="display:block"
                data-ad-client="ca-pub-1954893264438671" data-ad-slot="4667480307"
                data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -552,7 +552,7 @@ function buildPostHTML(data, slug, dateStr) {
         </div>
 
         <!-- 광고: 글 하단 -->
-        <div class="my-8">
+        <div class="ad-wrap my-8">
           <ins class="adsbygoogle" style="display:block"
                data-ad-client="ca-pub-1954893264438671" data-ad-slot="7573679395"
                data-ad-format="autorelaxed"></ins>
@@ -591,7 +591,7 @@ function buildPostHTML(data, slug, dateStr) {
             <p class="text-brand-200 text-xs mb-3 leading-relaxed">보험·세금·복지 핵심 정보를<br>이메일로 바로 받아보세요</p>
             <a href="../index.html#newsletter" class="block text-center bg-white text-brand-600 text-xs font-bold py-2.5 rounded-lg hover:bg-brand-50 transition-colors">무료 구독하기</a>
           </div>
-          <div>
+          <div class="ad-wrap">
             <ins class="adsbygoogle" style="display:block"
                  data-ad-format="fluid" data-ad-layout-key="-6t+ed+2i-1n-4w"
                  data-ad-client="ca-pub-1954893264438671" data-ad-slot="8738587259"></ins>
@@ -637,6 +637,18 @@ function buildPostHTML(data, slug, dateStr) {
       if(fb)fb.href='https://www.facebook.com/sharer/sharer.php?u='+url;
     })();
     function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const m=document.getElementById('copyMsg');if(m){m.classList.remove('hidden');setTimeout(()=>m.classList.add('hidden'),2500);}});}
+    (function hideEmptyAds(){
+      function check(){
+        document.querySelectorAll('.ad-wrap').forEach(function(wrap){
+          var ins=wrap.querySelector('ins.adsbygoogle');
+          if(ins && ins.offsetHeight===0){wrap.style.cssText='display:none!important;margin:0!important;padding:0!important';}
+        });
+      }
+      if(document.readyState==='complete'){setTimeout(check,1500);}
+      else{window.addEventListener('load',function(){setTimeout(check,1500);});}
+      setTimeout(check,3000);
+      setTimeout(check,5000);
+    })();
   </script>
 </body>
 </html>`;
