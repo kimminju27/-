@@ -167,15 +167,20 @@ async function callGroq(prompt, retryCount = 0) {
         { role: 'system', content: systemMsg },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 8000,
-      temperature: 0.75,
+      max_tokens: 12000,
+      temperature: 0.7,
       response_format: { type: 'json_object' }
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Groq API 오류 ${res.status}: ${errText}`);
+    // json_validate_failed는 외국어 혼입 등이 원인 — 재시도
+    if (res.status === 400 && errText.includes('json_validate_failed') && retryCount < 2) {
+      console.warn(`⚠️ Groq JSON 검증 실패, 재시도 ${retryCount + 1}/2...`);
+      return callGroq(prompt + '\n\n[경고] JSON 안에 일본어(ルピア 등), 한자, 외국어 절대 금지. 오직 한국어·영어만 사용하세요!', retryCount + 1);
+    }
+    throw new Error(`Groq API 오류 ${res.status}: ${errText.slice(0, 300)}`);
   }
 
   const data = await res.json();
@@ -235,7 +240,8 @@ async function callGroq(prompt, retryCount = 0) {
 // ─── 뉴스 수집 (실제 URL 포함 최대 5개) ─────────────────────────
 async function fetchNewsContext(category) {
   try {
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(category)}+when:3d&hl=ko&gl=KR&ceid=KR:ko`;
+    // 한국 뉴스만 — "한국" 키워드 추가로 인도네시아 등 해외 기사 배제
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(category)}+한국&hl=ko&gl=KR&ceid=KR:ko`;
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const xml = await res.text();
     const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
@@ -256,7 +262,12 @@ async function fetchNewsContext(category) {
       const pubDate = (dateMatch?.[1] || '').trim();
 
       return { title, link, source, desc, pubDate };
-    }).filter(i => i.title && i.link && i.link.startsWith('http'));
+    }).filter(i => {
+      if (!i.title || !i.link || !i.link.startsWith('http')) return false;
+      // 해외 기사 필터 — 루피아·외국 통화·일본어·한자가 제목에 있으면 제외
+      const foreign = /루피아|rupiah|ルピア|元|€|peso|baht|ringgit|[\u4E00-\u9FFF\u3040-\u30FF]/i;
+      return !foreign.test(i.title);
+    });
 
     if (parsed.length === 0) return null;
 
