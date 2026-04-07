@@ -51,6 +51,27 @@ function hasForEignLanguage(text) {
     /[\u4E00-\u9FFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF]/.test(text);
 }
 
+// 유효하지 않은 날짜 감지 (3월 36일 등)
+function hasInvalidDate(text) {
+  const matches = [...(text || '').matchAll(/([0-9]{1,2})월\s*([0-9]{1,2})일/g)];
+  for (const m of matches) {
+    const month = parseInt(m[1]), day = parseInt(m[2]);
+    const maxDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (month < 1 || month > 12 || day < 1 || day > (maxDays[month - 1] || 31)) {
+      return m[0];
+    }
+  }
+  return null;
+}
+
+// 4자리 이상 숫자에 천단위 콤마 추가 (1000000 → 1,000,000)
+function formatNumbers(text) {
+  if (!text || typeof text !== 'string') return text;
+  return text.replace(/(?<![,\d])(\d{4,})(?!\d)/g, (n) => {
+    return parseInt(n, 10).toLocaleString('ko-KR');
+  });
+}
+
 function sanitizeData(data) {
   if (!data) return data;
   if (typeof data === 'string') return sanitizeText(data);
@@ -73,12 +94,19 @@ async function callGroq(prompt, retryCount = 0) {
 - 독일어 절대 금지: unterschied, jedoch, daher, während, nemli, voilà 등
 - 모든 비한글·비영어 문자 금지 — 위반 시 재생성됩니다
 
+[팩트 규칙 — 절대 준수]
+- 날짜: 반드시 실제 존재하는 날짜만 (3월은 1~31일, 2월은 1~28일, 4/6/9/11월은 1~30일)
+- 절대 금지: "3월 36일", "2월 30일", "4월 31일" 같은 존재하지 않는 날짜
+- 수치: 합리적인 범위 내에서만 작성 (예: "종부세 15배 증가" 같은 비현실적 수치 금지)
+- 정책명: 실제 한국 정책명만 사용, 임의로 정책명 조어 금지
+
 [글쓰기 규칙]
 - "~에 대해 알아보겠습니다" 금지 → 바로 본론 시작
 - "중요합니다" 단순 반복 금지 → 구체적 수치/날짜로 설명
 - "첫째, 둘째, 셋째" 나열 최소화 → 자연스러운 구어체로
-- 모든 수치는 실제 한국 공식 자료 기반으로 작성
+- 모든 수치는 실제 한국 공식 자료 기반으로 작성 (뉴스에 없는 수치는 쓰지 말 것)
 - 독자가 "오늘 당장 쓸 수 있는" 실용 정보 위주
+- 금액 표기는 반드시 천단위 콤마 포함: 1,000원 / 10,000원 / 1,000,000원
 
 {
   "title": "글 제목 (50자 이내, 연도+키워드+숫자/혜택 포함, 클릭 유발)",
@@ -144,7 +172,7 @@ async function callGroq(prompt, retryCount = 0) {
         { role: 'user', content: prompt }
       ],
       max_tokens: 7000,
-      temperature: 0.7,
+      temperature: 0.4,
       response_format: { type: 'json_object' }
     }),
   });
@@ -191,7 +219,7 @@ async function callGroq(prompt, retryCount = 0) {
   }
 
   // 내용 길이 검증
-  const shortSection = content.sections.some(s => (s.content || '').length < 200);
+  const shortSection = content.sections.some(s => (s.content || '').length < 400);
   if (shortSection && retryCount < 1) {
     console.warn(`⚠️ 섹션 내용 너무 짧음, 35초 대기 후 재시도...`);
     await new Promise(r => setTimeout(r, 36000));
@@ -204,6 +232,14 @@ async function callGroq(prompt, retryCount = 0) {
     console.warn(`⚠️ 외국어 감지, 35초 대기 후 재시도...`);
     await new Promise(r => setTimeout(r, 36000));
     return callGroq(prompt + '\n\n[경고] 외국어(독일어·한자 등) 감지됨. 오직 한국어와 영어만 사용하세요!', retryCount + 1);
+  }
+
+  // 유효하지 않은 날짜 검증 (3월 36일 등)
+  const badDate = hasInvalidDate(JSON.stringify(content));
+  if (badDate && retryCount < 2) {
+    console.warn(`⚠️ 유효하지 않은 날짜 감지: "${badDate}", 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
+    return callGroq(prompt + `\n\n[경고] "${badDate}" 같은 실제로 존재하지 않는 날짜 감지됨! 3월은 1~31일, 2월은 1~28일, 4/6/9/11월은 1~30일까지만 유효합니다!`, retryCount + 1);
   }
 
   // imageCards 기본값 보장
@@ -352,35 +388,81 @@ function buildFaqSection(faqs) {
 function buildImageCards(cards) {
   if (!cards || cards.length === 0) return '';
   const colorMap = {
-    stat:       { bg: 'from-blue-500 to-blue-700',    light: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200' },
-    checklist:  { bg: 'from-green-500 to-green-700',  light: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200' },
-    process:    { bg: 'from-purple-500 to-purple-700',light: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-    comparison: { bg: 'from-orange-500 to-orange-600',light: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
-    tips:       { bg: 'from-teal-500 to-teal-700',    light: 'bg-teal-50',   text: 'text-teal-700',   border: 'border-teal-200' },
-    summary:    { bg: 'from-rose-500 to-rose-700',    light: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200' },
+    stat:       { grad: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', light: '#eff6ff', text: '#1e40af', border: '#bfdbfe' },
+    checklist:  { grad: 'linear-gradient(135deg,#22c55e,#15803d)', light: '#f0fdf4', text: '#166534', border: '#bbf7d0' },
+    process:    { grad: 'linear-gradient(135deg,#a855f7,#7e22ce)', light: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' },
+    comparison: { grad: 'linear-gradient(135deg,#f97316,#c2410c)', light: '#fff7ed', text: '#c2410c', border: '#fed7aa' },
+    tips:       { grad: 'linear-gradient(135deg,#14b8a6,#0f766e)', light: '#f0fdfa', text: '#0f766e', border: '#99f6e4' },
+    summary:    { grad: 'linear-gradient(135deg,#f43f5e,#be123c)', light: '#fff1f2', text: '#be123c', border: '#fecdd3' },
   };
   const cardHTML = cards.slice(0, 5).map(card => {
     const c = colorMap[card.type] || colorMap.tips;
     const items = (card.items || []).map((item, i) => {
-      if (card.type === 'process') return `<div class="flex items-start gap-2"><span class="w-5 h-5 rounded-full bg-gradient-to-br ${c.bg} text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">${i+1}</span><span class="text-xs ${c.text} leading-relaxed">${item}</span></div>`;
-      if (card.type === 'checklist') return `<div class="flex items-start gap-2"><span class="text-xs font-black ${c.text} shrink-0 mt-0.5">✓</span><span class="text-xs ${c.text} leading-relaxed">${item}</span></div>`;
-      return `<div class="text-xs ${c.text} leading-relaxed border-b ${c.border} pb-1.5 last:border-0 last:pb-0">${item}</div>`;
+      if (card.type === 'process') {
+        return `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px"><span style="width:20px;height:20px;border-radius:50%;background:${c.grad};color:white;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px">${i+1}</span><span style="font-size:13px;color:${c.text};line-height:1.6">${item}</span></div>`;
+      }
+      if (card.type === 'checklist') {
+        return `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px"><span style="font-size:12px;font-weight:900;color:${c.text};flex-shrink:0;margin-top:2px">✓</span><span style="font-size:13px;color:${c.text};line-height:1.6">${item}</span></div>`;
+      }
+      return `<div style="font-size:13px;color:${c.text};line-height:1.6;border-bottom:1px solid ${c.border};padding-bottom:8px;margin-bottom:6px">${item}</div>`;
     }).join('');
-    return `
-      <div class="${c.light} border ${c.border} rounded-2xl overflow-hidden shadow-sm">
-        <div class="bg-gradient-to-r ${c.bg} px-4 py-3 flex items-center gap-2">
-          <span class="text-lg">${card.icon || '📌'}</span>
-          <p class="text-white font-bold text-sm leading-tight">${card.title}</p>
-        </div>
-        <div class="p-4 space-y-2">${items}</div>
-      </div>`;
-  }).join('');
-  return `
-    <div class="not-prose my-10">
-      <p class="text-xs font-bold text-ink-400 uppercase tracking-widest mb-4">🖼️ 핵심 인포그래픽</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${cardHTML}
+    return `<div style="background:${c.light};border:1px solid ${c.border};border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07)">
+      <div style="background:${c.grad};padding:12px 16px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">${card.icon || '📌'}</span>
+        <p style="color:white;font-weight:700;font-size:14px;line-height:1.3;margin:0">${card.title}</p>
       </div>
+      <div style="padding:16px">${items}</div>
     </div>`;
+  }).join('');
+  return `<div style="margin:40px 0">
+    <p style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px">🖼️ 핵심 인포그래픽</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">${cardHTML}</div>
+  </div>`;
+}
+
+// ─── 포스트별 OG 썸네일 SVG 생성 ─────────────────────────────
+function buildThumbnailSVG(data, meta, dateFormatted) {
+  const gradients = {
+    '세금':     ['#991b1b', '#dc2626'],
+    '보험':     ['#1e3a8a', '#2563eb'],
+    '부동산':   ['#312e81', '#4f46e5'],
+    '복지':     ['#5b21b6', '#7c3aed'],
+    '복지정책': ['#5b21b6', '#7c3aed'],
+    '주식':     ['#064e3b', '#059669'],
+    '경제':     ['#78350f', '#d97706'],
+    '리뷰':     ['#075985', '#0284c7'],
+  };
+  const [c1, c2] = gradients[data.category] || ['#166534', '#16a34a'];
+  const title = (data.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const stat = data.stats?.[0] ? `${data.stats[0].value}${data.stats[0].unit || ''}` : '';
+
+  // 제목 줄 나누기 (18자씩)
+  const titleWords = title.split('');
+  const line1 = titleWords.slice(0, 18).join('');
+  const line2 = titleWords.slice(18, 36).join('');
+  const line3 = titleWords.slice(36, 52).join('');
+  const fontSize = title.length <= 18 ? 58 : title.length <= 28 ? 50 : 44;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${c1}"/>
+      <stop offset="100%" stop-color="${c2}"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="45" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="980" cy="80" r="340" fill="white" fill-opacity="0.04" filter="url(#glow)"/>
+  <circle cx="150" cy="540" r="220" fill="white" fill-opacity="0.04" filter="url(#glow)"/>
+  <rect x="60" y="52" rx="20" ry="20" width="${data.category.length * 18 + 32}" height="40" fill="white" fill-opacity="0.18"/>
+  <text x="${data.category.length * 9 + 76}" y="78" font-family="'Noto Sans KR',Arial,sans-serif" font-size="17" font-weight="700" fill="white" text-anchor="middle">${data.category}</text>
+  <text x="72" y="${line2 ? 200 : 240}" font-family="'Noto Sans KR',Arial,sans-serif" font-size="${fontSize}" font-weight="900" fill="white" dominant-baseline="middle">${line1}</text>
+  ${line2 ? `<text x="72" y="${line3 ? 270 : 290}" font-family="'Noto Sans KR',Arial,sans-serif" font-size="${fontSize}" font-weight="900" fill="white" dominant-baseline="middle">${line2}</text>` : ''}
+  ${line3 ? `<text x="72" y="350" font-family="'Noto Sans KR',Arial,sans-serif" font-size="${fontSize - 6}" font-weight="900" fill="white" dominant-baseline="middle">${line3}</text>` : ''}
+  ${stat ? `<rect x="60" y="430" rx="14" ry="14" width="${stat.length * 22 + 40}" height="56" fill="white" fill-opacity="0.15"/><text x="${stat.length * 11 + 80}" y="464" font-family="'Noto Sans KR',Arial,sans-serif" font-size="30" font-weight="900" fill="white" text-anchor="middle" dominant-baseline="middle">${stat}</text>` : ''}
+  <text x="72" y="578" font-family="'Noto Sans KR',Arial,sans-serif" font-size="20" fill="white" fill-opacity="0.55">${dateFormatted} · bloginfo360.com</text>
+  <text x="1140" y="590" font-family="'Noto Sans KR',Arial,sans-serif" font-size="72" text-anchor="end">${meta.emoji}</text>
+</svg>`;
 }
 
 // ─── 포스트 HTML 빌드 ──────────────────────────────────────────
@@ -394,7 +476,7 @@ function buildPostHTML(data, slug, dateStr) {
     const paragraphs = (s.content || '')
       .split(/\n{2,}/)
       .filter(Boolean)
-      .map(p => `<p>${p.trim()}</p>`)
+      .map(p => `<p>${formatNumbers(p.trim())}</p>`)
       .join('\n          ');
 
     const tipBox       = s.tip       ? buildHighlightBox(s.tip,       idx % 2 === 0 ? 'tip' : 'point') : '';
@@ -443,7 +525,7 @@ function buildPostHTML(data, slug, dateStr) {
   const introParagraphs = (data.intro || '')
     .split(/\n{2,}/)
     .filter(Boolean)
-    .map(p => `<p>${p.trim()}</p>`)
+    .map(p => `<p>${formatNumbers(p.trim())}</p>`)
     .join('\n          ');
 
   const tocItems = (data.sections || []).map((s, i) =>
@@ -468,7 +550,7 @@ function buildPostHTML(data, slug, dateStr) {
   <meta property="og:locale" content="ko_KR">
   <meta property="og:url" content="${postUrl}">
   <meta property="og:site_name" content="나만 모르는 요즘 소식">
-  <meta property="og:image" content="https://bloginfo360.com${meta.ogImage}">
+  <meta property="og:image" content="https://bloginfo360.com/posts/${slug}-thumb.svg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="${isoDate}">
@@ -478,9 +560,9 @@ function buildPostHTML(data, slug, dateStr) {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${data.title}">
   <meta name="twitter:description" content="${data.description}">
-  <meta name="twitter:image" content="https://bloginfo360.com${meta.ogImage}">
+  <meta name="twitter:image" content="https://bloginfo360.com/posts/${slug}-thumb.svg">
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"Article","headline":"${data.title}","description":"${data.description}","datePublished":"${dateStr}","dateModified":"${dateStr}","author":{"@type":"Person","name":"김민주","url":"https://bloginfo360.com/about"},"publisher":{"@type":"Organization","name":"나만 모르는 요즘 소식","url":"https://bloginfo360.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"${postUrl}"},"image":"https://bloginfo360.com${meta.ogImage}","inLanguage":"ko-KR"}
+  {"@context":"https://schema.org","@type":"Article","headline":"${data.title}","description":"${data.description}","datePublished":"${dateStr}","dateModified":"${dateStr}","author":{"@type":"Person","name":"김민주","url":"https://bloginfo360.com/about"},"publisher":{"@type":"Organization","name":"나만 모르는 요즘 소식","url":"https://bloginfo360.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"${postUrl}"},"image":"https://bloginfo360.com/posts/${slug}-thumb.svg","inLanguage":"ko-KR"}
   </script>
   ${faqJsonLD.length > 0 ? `<script type="application/ld+json">
   {"@context":"https://schema.org","@type":"FAQPage","mainEntity":${JSON.stringify(faqJsonLD)}}
@@ -695,6 +777,13 @@ function buildPostHTML(data, slug, dateStr) {
 function savePost(data, slug, dateStr) {
   const postsDir = path.join(ROOT, 'posts');
   if (!existsSync(postsDir)) mkdirSync(postsDir, { recursive: true });
+  // 포스트별 OG 썸네일 SVG 생성
+  const meta = getCategoryMeta(data.category);
+  const dateFormatted = dateStr.replace(/-/g, '.');
+  const thumbSVG = buildThumbnailSVG(data, meta, dateFormatted);
+  writeFileSync(path.join(postsDir, `${slug}-thumb.svg`), thumbSVG, 'utf-8');
+  console.log(`✅ posts/${slug}-thumb.svg 저장`);
+  // 포스트 HTML 저장
   const html = buildPostHTML(data, slug, dateStr);
   writeFileSync(path.join(postsDir, `${slug}.html`), html, 'utf-8');
   console.log(`✅ posts/${slug}.html 저장`);
@@ -709,8 +798,8 @@ function updateIndex(data, slug, dateStr) {
   const card = `
       <article class="post-item" data-category="${data.category}" data-title="${data.title}">
         <a href="posts/${slug}.html" class="block bg-white rounded-2xl border border-ink-100 shadow-card hover:shadow-card-hover post-card overflow-hidden transition-shadow">
-          <div class="w-full h-44 bg-gradient-to-br ${meta.gradient} flex flex-col items-center justify-center relative overflow-hidden px-4">
-            <div class="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle_at_30%_50%,#000_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+          <img src="posts/${slug}-thumb.svg" alt="${data.title}" class="w-full h-44 object-cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="w-full h-44 bg-gradient-to-br ${meta.gradient} flex-col items-center justify-center relative overflow-hidden px-4" style="display:none">
             <span class="relative text-4xl mb-1">${meta.emoji}</span>
             ${firstStat ? `<span class="relative text-lg font-black" style="color:${meta.color}">${firstStat}</span>` : ''}
             <p class="relative text-center text-xs font-bold text-ink-700 mt-1 line-clamp-2 max-w-[180px] leading-tight">${data.title.slice(0, 28)}${data.title.length > 28 ? '…' : ''}</p>
@@ -808,7 +897,9 @@ async function run() {
         })) : [];
 
         const newsContext = newsCtx
-          ? newsCtx.all.slice(0, 5).map((n, i) => `[뉴스${i+1}] ${n.title} (출처: ${n.source || '언론'})`).join('\n')
+          ? newsCtx.all.slice(0, 5).map((n, i) =>
+              `[뉴스${i+1}] ${n.title}${n.desc ? `\n  요약: ${n.desc}` : ''} (출처: ${n.source || '언론'})`
+            ).join('\n')
           : '';
 
         const prompt = newsCtx
