@@ -323,16 +323,7 @@ function buildPostHTML(data, slug, dateStr) {
     const statCards    = idx === 0   ? buildStatCards(data.stats)               : '';
     const cmpTable     = idx === 2   ? buildComparisonTable(data.comparisonTable) : '';
 
-    const midAd = idx === 1 ? `
-        <div class="ad-wrap not-prose my-8">
-          <ins class="adsbygoogle"
-               style="display:block; text-align:center;"
-               data-ad-client="ca-pub-1954893264438671"
-               data-ad-slot="4402487501"
-               data-ad-format="fluid"
-               data-ad-layout="in-article"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>` : '';
+    const midAd = '';
 
     return `
         ${buildSectionHeader(s, idx, meta)}
@@ -389,8 +380,6 @@ function buildPostHTML(data, slug, dateStr) {
   <meta name="robots" content="index, follow">
   <meta name="author" content="김민주">
   <link rel="canonical" href="${postUrl}">
-  <meta name="google-adsense-account" content="ca-pub-1954893264438671">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954893264438671" crossorigin="anonymous"></script>
   <meta property="og:type" content="article">
   <meta property="og:title" content="${data.title}">
   <meta property="og:description" content="${data.description}">
@@ -526,14 +515,6 @@ function buildPostHTML(data, slug, dateStr) {
           <ul class="space-y-2.5">${keyPointsHTML}</ul>
         </div>
 
-        <!-- 광고: 글 상단 -->
-        <div class="ad-wrap my-6">
-          <ins class="adsbygoogle" style="display:block"
-               data-ad-client="ca-pub-1954893264438671" data-ad-slot="4667480307"
-               data-ad-format="auto" data-full-width-responsive="true"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-
         <!-- 본문 -->
         <div class="prose" id="article-body">
           ${introParagraphs || ''}
@@ -549,14 +530,6 @@ function buildPostHTML(data, slug, dateStr) {
             <p class="text-xs text-ink-300 mb-5">독자들이 가장 많이 물어보는 질문을 모았습니다</p>
           </div>
           ${buildFaqSection(data.faqs)}
-        </div>
-
-        <!-- 광고: 글 하단 -->
-        <div class="ad-wrap my-8">
-          <ins class="adsbygoogle" style="display:block"
-               data-ad-client="ca-pub-1954893264438671" data-ad-slot="7573679395"
-               data-ad-format="autorelaxed"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
         </div>
 
         <div class="bg-ink-100/40 rounded-2xl p-5 mb-5">
@@ -590,12 +563,6 @@ function buildPostHTML(data, slug, dateStr) {
             <p class="font-bold text-sm mb-1">🔔 새 글 알림 받기</p>
             <p class="text-brand-200 text-xs mb-3 leading-relaxed">보험·세금·복지 핵심 정보를<br>이메일로 바로 받아보세요</p>
             <a href="../index.html#newsletter" class="block text-center bg-white text-brand-600 text-xs font-bold py-2.5 rounded-lg hover:bg-brand-50 transition-colors">무료 구독하기</a>
-          </div>
-          <div class="ad-wrap">
-            <ins class="adsbygoogle" style="display:block"
-                 data-ad-format="fluid" data-ad-layout-key="-6t+ed+2i-1n-4w"
-                 data-ad-client="ca-pub-1954893264438671" data-ad-slot="8738587259"></ins>
-            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
           </div>
         </div>
       </aside>
@@ -637,18 +604,6 @@ function buildPostHTML(data, slug, dateStr) {
       if(fb)fb.href='https://www.facebook.com/sharer/sharer.php?u='+url;
     })();
     function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const m=document.getElementById('copyMsg');if(m){m.classList.remove('hidden');setTimeout(()=>m.classList.add('hidden'),2500);}});}
-    (function hideEmptyAds(){
-      function check(){
-        document.querySelectorAll('.ad-wrap').forEach(function(wrap){
-          var ins=wrap.querySelector('ins.adsbygoogle');
-          if(ins && ins.offsetHeight===0){wrap.style.cssText='display:none!important;margin:0!important;padding:0!important';}
-        });
-      }
-      if(document.readyState==='complete'){setTimeout(check,1500);}
-      else{window.addEventListener('load',function(){setTimeout(check,1500);});}
-      setTimeout(check,3000);
-      setTimeout(check,5000);
-    })();
   </script>
 </body>
 </html>`;

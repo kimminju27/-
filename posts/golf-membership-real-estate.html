@@ -10,8 +10,6 @@
   <meta name="robots" content="index, follow">
   <meta name="author" content="김민주">
   <link rel="canonical" href="https://bloginfo360.com/posts/golf-membership-real-estate">
-  <meta name="google-adsense-account" content="ca-pub-1954893264438671">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954893264438671" crossorigin="anonymous"></script>
   <meta property="og:type" content="article">
   <meta property="og:title" content="골프 회원권도 부동산처럼 '똘똘한 한 장'에 쏠린다 — 2026년 현황">
   <meta property="og:description" content="에이스피 1,415.7포인트 18년 최고치. 수도권 명문 골프장 회원권 급등 현황 총정리.">
@@ -162,14 +160,6 @@
           </ul>
         </div>
 
-        <!-- 광고: 글 상단 -->
-        <div class="ad-wrap my-6">
-          <ins class="adsbygoogle" style="display:block"
-               data-ad-client="ca-pub-1954893264438671" data-ad-slot="4667480307"
-               data-ad-format="auto" data-full-width-responsive="true"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-
         <div class="prose" id="article-body">
 
           <!-- 도입부 -->
@@ -222,14 +212,6 @@
           <div class="not-prose bg-brand-50 border border-brand-200 rounded-xl p-4 my-5 flex gap-3 items-start">
             <span class="text-xl shrink-0">💡</span>
             <p class="text-sm text-brand-700 leading-relaxed font-medium">주말 정회원권 거래 744건 vs 주중 회원권 66건 — 법인 의전용 주말 이용 수요가 시장을 이끌고 있습니다.</p>
-          </div>
-
-          <!-- 광고: 글 중간 -->
-          <div class="ad-wrap not-prose my-8">
-            <ins class="adsbygoogle" style="display:block; text-align:center;"
-                 data-ad-client="ca-pub-1954893264438671" data-ad-slot="4402487501"
-                 data-ad-format="fluid" data-ad-layout="in-article"></ins>
-            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
           </div>
 
           <h2 id="section2">남부CC 24억·신원CC 13.4% 상승 — 어떤 골프장이 오르고 있나?</h2>
@@ -360,14 +342,6 @@
 
         </div>
 
-        <!-- 광고: 글 하단 -->
-        <div class="ad-wrap my-8">
-          <ins class="adsbygoogle" style="display:block"
-               data-ad-client="ca-pub-1954893264438671" data-ad-slot="7573679395"
-               data-ad-format="autorelaxed"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-
         <div class="bg-ink-100/40 rounded-2xl p-5 mb-5">
           <p class="text-xs font-bold text-ink-400 uppercase tracking-wide mb-3">📚 출처 및 참고자료</p>
           <ul class="space-y-1.5">
@@ -421,12 +395,6 @@
             <p class="text-brand-200 text-xs mb-3 leading-relaxed">부동산·투자 핵심 정보를<br>이메일로 바로 받아보세요</p>
             <a href="../index.html#newsletter" class="block text-center bg-white text-brand-600 text-xs font-bold py-2.5 rounded-lg hover:bg-brand-50 transition-colors">무료 구독하기</a>
           </div>
-          <div class="ad-wrap">
-            <ins class="adsbygoogle" style="display:block"
-                 data-ad-format="fluid" data-ad-layout-key="-6t+ed+2i-1n-4w"
-                 data-ad-client="ca-pub-1954893264438671" data-ad-slot="8738587259"></ins>
-            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-          </div>
         </div>
       </aside>
     </div>
@@ -449,22 +417,6 @@
     (function(){const toc=document.getElementById('tocNav');if(!toc)return;const links=Array.from(toc.querySelectorAll('a.toc-link'));const headings=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);if(!headings.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{const l=toc.querySelector('a[href="#'+e.target.id+'"]');if(l)l.classList.toggle('active',e.isIntersecting);});},{rootMargin:'-10% 0px -75% 0px'});headings.forEach(h=>obs.observe(h));})();
     (function(){const url=encodeURIComponent(window.location.href),title=encodeURIComponent(document.title);const tw=document.getElementById('twitterShare'),fb=document.getElementById('fbShare');if(tw)tw.href='https://twitter.com/intent/tweet?text='+title+'&url='+url;if(fb)fb.href='https://www.facebook.com/sharer/sharer.php?u='+url;})();
     function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>{const m=document.getElementById('copyMsg');if(m){m.classList.remove('hidden');setTimeout(()=>m.classList.add('hidden'),2500);}});}
-
-    // 광고 미로드 시 빈 공간 자동 제거
-    (function hideEmptyAds(){
-      function check(){
-        document.querySelectorAll('.ad-wrap').forEach(function(wrap){
-          var ins=wrap.querySelector('ins.adsbygoogle');
-          if(ins && ins.offsetHeight===0){wrap.style.cssText='display:none!important;margin:0!important;padding:0!important';}
-        });
-      }
-      // AdSense 로드 완료 후 + 1.5초 뒤 체크
-      if(document.readyState==='complete'){setTimeout(check,1500);}
-      else{window.addEventListener('load',function(){setTimeout(check,1500);});}
-      // 3초, 5초 추가 체크 (lazy load 대응)
-      setTimeout(check,3000);
-      setTimeout(check,5000);
-    })();
   </script>
 </body>
 </html>
