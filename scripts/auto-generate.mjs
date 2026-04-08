@@ -64,11 +64,19 @@ function hasInvalidDate(text) {
   return null;
 }
 
-// 4자리 이상 숫자에 천단위 콤마 추가 (1000000 → 1,000,000)
+// 금액·수치에 천단위 콤마 추가 (1000000 → 1,000,000)
+// 제외: 연도(2026년), 날짜(4월/8일), 법령번호(제12호), 전화번호 등
 function formatNumbers(text) {
   if (!text || typeof text !== 'string') return text;
-  return text.replace(/(?<![,\d])(\d{4,})(?!\d)/g, (n) => {
-    return parseInt(n, 10).toLocaleString('ko-KR');
+  return text.replace(/(?<![,\d])(\d{4,})(?!\d)/g, (n, offset, str) => {
+    const after = str.slice(offset + n.length);
+    const before = str.slice(Math.max(0, offset - 1), offset);
+    // 뒤에 년·월·일·호·번·위·회·층·기·장·관이 오면 스킵 (날짜·순서·번호류)
+    if (/^[년월일호번위회층기장관]/.test(after)) return n;
+    // 2000~2099 범위 숫자는 연도로 간주 → 스킵
+    const num = parseInt(n, 10);
+    if (num >= 2000 && num <= 2099) return n;
+    return num.toLocaleString('ko-KR');
   });
 }
 
@@ -118,7 +126,8 @@ async function callGroq(prompt, retryCount = 0) {
 - "본 글에서는" 삭제 — AI처럼 보이는 모든 표현 금지
 - 모든 수치는 실제 한국 공식 자료 기반으로 작성
 - 독자가 "오늘 당장 쓸 수 있는" 실용 정보 위주
-- 금액 표기는 반드시 천단위 콤마 포함: 1,000원 / 10,000원 / 1,000,000원
+- 금액·수량 표기는 반드시 천단위 콤마 포함: 1,000원 / 10,000원 / 1,000,000원 / 5,000명
+- 절대 금지: 연도에 콤마 사용 (2,026년 ❌ → 2026년 ✅), 날짜에 콤마 사용 (4월 8일 ✅)
 - 각 섹션마다 독자가 실제 취할 수 있는 행동 지침 1개 이상 포함
 - 공식 출처 인용 필수: "국세청 발표(2026.03)", "보건복지부 고시" 등
 - 글 하나로 해당 주제를 완벽히 이해할 수 있도록 충분히 상세하게 작성
