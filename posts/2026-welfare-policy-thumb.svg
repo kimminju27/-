@@ -11,10 +11,10 @@
   <circle cx="150" cy="540" r="220" fill="white" fill-opacity="0.04" filter="url(#glow)"/>
   <rect x="60" y="52" rx="20" ry="20" width="104" height="40" fill="white" fill-opacity="0.18"/>
   <text x="112" y="78" font-family="'Noto Sans KR',Arial,sans-serif" font-size="17" font-weight="700" fill="white" text-anchor="middle">복지정책</text>
-  <text x="72" y="200" font-family="'Noto Sans KR',Arial,sans-serif" font-size="50" font-weight="900" fill="white" dominant-baseline="middle">2026년 복지정책 10대 핵심 </text>
-  <text x="72" y="290" font-family="'Noto Sans KR',Arial,sans-serif" font-size="50" font-weight="900" fill="white" dominant-baseline="middle">사항</text>
+  <text x="72" y="200" font-family="'Noto Sans KR',Arial,sans-serif" font-size="50" font-weight="900" fill="white" dominant-baseline="middle">2026년 복지정책, 울진군마포구</text>
+  <text x="72" y="290" font-family="'Noto Sans KR',Arial,sans-serif" font-size="50" font-weight="900" fill="white" dominant-baseline="middle">장애인 복지정책</text>
   
-  <rect x="60" y="430" rx="14" ry="14" width="150" height="56" fill="white" fill-opacity="0.15"/><text x="135" y="464" font-family="'Noto Sans KR',Arial,sans-serif" font-size="30" font-weight="900" fill="white" text-anchor="middle" dominant-baseline="middle">100억원</text>
-  <text x="72" y="578" font-family="'Noto Sans KR',Arial,sans-serif" font-size="20" fill="white" fill-opacity="0.55">2026.04.07 · bloginfo360.com</text>
+  <rect x="60" y="430" rx="14" ry="14" width="172" height="56" fill="white" fill-opacity="0.15"/><text x="146" y="464" font-family="'Noto Sans KR',Arial,sans-serif" font-size="30" font-weight="900" fill="white" text-anchor="middle" dominant-baseline="middle">100억원원</text>
+  <text x="72" y="578" font-family="'Noto Sans KR',Arial,sans-serif" font-size="20" fill="white" fill-opacity="0.55">2026.04.08 · bloginfo360.com</text>
   <text x="1140" y="590" font-family="'Noto Sans KR',Arial,sans-serif" font-size="72" text-anchor="end">🤝</text>
 </svg>
