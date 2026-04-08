@@ -110,20 +110,26 @@ async function callGroq(prompt, retryCount = 0) {
 - 수치: 합리적인 범위 내에서만 작성 (예: "종부세 15배 증가" 같은 비현실적 수치 금지)
 - 정책명: 실제 한국 정책명만 사용, 임의로 정책명 조어 금지
 
-[글쓰기 규칙]
+[글쓰기 규칙 — AdSense 고품질 기준]
 - "~에 대해 알아보겠습니다" 금지 → 바로 본론 시작
 - "중요합니다" 단순 반복 금지 → 구체적 수치/날짜로 설명
 - "첫째, 둘째, 셋째" 나열 최소화 → 자연스러운 구어체로
-- 모든 수치는 실제 한국 공식 자료 기반으로 작성 (뉴스에 없는 수치는 쓰지 말 것)
+- "포괄적으로", "다양한 측면에서" 금지 → 구체적 항목 나열
+- "본 글에서는" 삭제 — AI처럼 보이는 모든 표현 금지
+- 모든 수치는 실제 한국 공식 자료 기반으로 작성
 - 독자가 "오늘 당장 쓸 수 있는" 실용 정보 위주
 - 금액 표기는 반드시 천단위 콤마 포함: 1,000원 / 10,000원 / 1,000,000원
+- 각 섹션마다 독자가 실제 취할 수 있는 행동 지침 1개 이상 포함
+- 공식 출처 인용 필수: "국세청 발표(2026.03)", "보건복지부 고시" 등
+- 글 하나로 해당 주제를 완벽히 이해할 수 있도록 충분히 상세하게 작성
+- 흔한 실수·주의사항·예외 상황 반드시 포함 (독자 신뢰 구축)
 
 {
   "title": "글 제목 (50자 이내, 연도+키워드+숫자/혜택 포함, 클릭 유발)",
   "description": "메타 설명 (80-120자, 핵심 키워드+수치 포함)",
   "category": "카테고리명",
   "slug": "korean-topic-english-slug",
-  "hashtags": ["#키워드1", "#키워드2", "#키워드3", "#키워드4", "#키워드5", "#키워드6", "#키워드7", "#키워드8", "#키워드9", "#키워드10", "#키워드11", "#키워드12"],
+  "hashtags": ["#키워드1","#키워드2","#키워드3","#키워드4","#키워드5","#키워드6","#키워드7","#키워드8","#키워드9","#키워드10","#키워드11","#키워드12","#키워드13","#키워드14"],
   "keyPoints": [
     "핵심 포인트 1 — 구체적 숫자나 날짜 반드시 포함",
     "핵심 포인트 2 — 독자의 가장 큰 궁금증 해소",
@@ -136,28 +142,32 @@ async function callGroq(prompt, retryCount = 0) {
     {"label": "통계 항목명", "value": "숫자/금액", "unit": "단위"}
   ],
   "imageCards": [
-    {"icon":"📊","title":"제목","type":"stat","items":["항목1","항목2","항목3"]},
-    {"icon":"📋","title":"제목","type":"checklist","items":["항목1","항목2","항목3","항목4"]},
-    {"icon":"🔄","title":"제목","type":"process","items":["1단계","2단계","3단계","4단계"]},
-    {"icon":"⚖️","title":"제목","type":"comparison","items":["비교1","비교2","비교3"]},
-    {"icon":"💡","title":"제목","type":"tips","items":["팁1","팁2","팁3","팁4"]}
+    {"icon":"📊","title":"제목","type":"stat","items":["항목1: 수치","항목2: 수치","항목3: 수치"]},
+    {"icon":"📋","title":"제목","type":"checklist","items":["항목1","항목2","항목3","항목4","항목5"]},
+    {"icon":"🔄","title":"제목","type":"process","items":["1단계: 상세설명","2단계: 상세설명","3단계: 상세설명","4단계: 상세설명"]},
+    {"icon":"⚖️","title":"제목","type":"comparison","items":["비교항목1: A vs B","비교항목2: A vs B","비교항목3: A vs B"]},
+    {"icon":"💡","title":"제목","type":"tips","items":["팁1: 구체적내용","팁2: 구체적내용","팁3: 구체적내용","팁4: 구체적내용"]}
   ],
-  "intro": "도입부 — 독자의 실생활과 연결되는 구체적 상황 묘사로 시작. 수치/날짜 포함. 3문단 이상, 600자 이상.",
+  "intro": "도입부 — 독자의 실생활 상황으로 바로 시작. 공식 수치·날짜 포함. 4문단 이상, 800자 이상. AI처럼 보이지 않게 자연스럽게.",
   "sections": [
-    {"id":"section1","title":"소제목1(숫자포함)","content":"700자이상.공식수치·날짜인용.구어체.","tip":"핵심팁","highlight":"강조수치"},
-    {"id":"section2","title":"소제목2","content":"700자이상.단계별설명.","tip":"주의사항","highlight":"기관명"},
-    {"id":"section3","title":"소제목3","content":"700자이상.금액/조건/비교.","tip":"혜택방법","highlight":"핵심금액"},
-    {"id":"section4","title":"소제목4-총정리","content":"700자이상.주의사항·행동유도.","tip":"첫행동","highlight":"정리문구"}
+    {"id":"section1","title":"소제목1(연도·수치포함)","content":"1000자이상. 공식수치·날짜·기관명 인용. 독자가 바로 확인할 수 있는 행동 지침 포함.","tip":"실용적핵심팁","highlight":"구체적수치"},
+    {"id":"section2","title":"소제목2(조건·자격)","content":"1000자이상. 신청 자격·조건을 표처럼 상세히 설명. 예외 상황 포함.","tip":"주의사항","highlight":"기관명·링크"},
+    {"id":"section3","title":"소제목3(신청방법·절차)","content":"1000자이상. 단계별 신청 방법. 필요 서류 목록. 온라인/오프라인 경로.","tip":"빠른신청팁","highlight":"신청기한"},
+    {"id":"section4","title":"소제목4(혜택·금액비교)","content":"1000자이상. 실제 수령 금액. 타 제도와 비교. 계산 예시 포함.","tip":"최대혜택방법","highlight":"핵심금액"},
+    {"id":"section5","title":"소제목5(흔한실수·주의사항)","content":"1000자이상. 사람들이 자주 하는 실수. 불이익 예방. 사례 포함.","tip":"실수방지","highlight":"주의사항"},
+    {"id":"section6","title":"소제목6-지금당장실천하기","content":"1000자이상. 오늘 당장 할 수 있는 구체적 행동 순서. 공식 사이트 주소. 체크리스트.","tip":"첫번째행동","highlight":"실천요약"}
   ],
   "comparisonTable": {
     "caption":"비교표제목",
-    "headers":["구분","항목A","항목B"],
-    "rows":[["비교1","내용","내용"],["비교2","내용","내용"],["비교3","내용","내용"]]
+    "headers":["구분","항목A","항목B","항목C"],
+    "rows":[["비교1","내용","내용","내용"],["비교2","내용","내용","내용"],["비교3","내용","내용","내용"],["비교4","내용","내용","내용"]]
   },
   "faqs": [
-    {"question":"질문1","answer":"150자이상답변"},
-    {"question":"질문2","answer":"150자이상답변"},
-    {"question":"질문3","answer":"150자이상답변"}
+    {"question":"독자가 가장 많이 검색하는 질문1","answer":"200자이상의 구체적이고 친절한 답변. 수치나 날짜 포함."},
+    {"question":"질문2","answer":"200자이상답변"},
+    {"question":"질문3","answer":"200자이상답변"},
+    {"question":"질문4","answer":"200자이상답변"},
+    {"question":"질문5","answer":"200자이상답변"}
   ],
   "sources": [
     {"name":"언론사A — 기사제목(2026.MM)","url":"REPLACE_WITH_REAL_URL"},
@@ -169,8 +179,10 @@ async function callGroq(prompt, retryCount = 0) {
 [필수 규칙]
 - hashtags: 반드시 12개 이상, #으로 시작, 구글/네이버 검색 최적화
 - imageCards: 반드시 5개, 각기 다른 type 사용
-- sections: 반드시 4개, 각 content 700자 이상
-- sources: 반드시 3개, 서로 다른 언론사/기관`;
+- sections: 반드시 6개, 각 content 1,000자 이상
+- faqs: 반드시 5개, 각 answer 200자 이상
+- sources: 반드시 3개, 서로 다른 언론사/기관
+- intro: 반드시 800자 이상`;
 
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -223,21 +235,35 @@ async function callGroq(prompt, retryCount = 0) {
   content = sanitizeData(content);
 
   // sections 검증
-  if (!Array.isArray(content.sections) || content.sections.length < 2) {
+  if (!Array.isArray(content.sections) || content.sections.length < 4) {
     if (retryCount < 2) {
       console.warn(`⚠️ sections 부족 (${content.sections?.length || 0}개), 35초 대기 후 재시도...`);
       await new Promise(r => setTimeout(r, 36000));
-      return callGroq(prompt + '\n\n[필수] sections 배열 4개를 반드시 포함하고 각 content는 700자 이상으로 작성하세요!', retryCount + 1);
+      return callGroq(prompt + '\n\n[필수] sections 배열 6개를 반드시 포함하고 각 content는 1,000자 이상으로 작성하세요!', retryCount + 1);
     }
     throw new Error('sections 배열이 없거나 부족합니다.');
   }
 
-  // 내용 길이 검증
-  const shortSection = content.sections.some(s => (s.content || '').length < 400);
+  // 섹션 내용 길이 검증
+  const shortSection = content.sections.some(s => (s.content || '').length < 600);
   if (shortSection && retryCount < 1) {
     console.warn(`⚠️ 섹션 내용 너무 짧음, 35초 대기 후 재시도...`);
     await new Promise(r => setTimeout(r, 36000));
-    return callGroq(prompt + '\n\n[필수] 각 섹션 content는 반드시 700자 이상 작성하세요!', retryCount + 1);
+    return callGroq(prompt + '\n\n[필수] 각 섹션 content는 반드시 1,000자 이상 작성하세요! 현재 너무 짧습니다.', retryCount + 1);
+  }
+
+  // intro 길이 검증
+  if ((content.intro || '').length < 400 && retryCount < 1) {
+    console.warn(`⚠️ intro 너무 짧음 (${(content.intro || '').length}자), 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
+    return callGroq(prompt + '\n\n[필수] intro는 반드시 800자 이상 작성하세요! 독자의 실생활 상황으로 시작하는 4문단 이상의 도입부가 필요합니다.', retryCount + 1);
+  }
+
+  // FAQ 개수 검증
+  if ((!Array.isArray(content.faqs) || content.faqs.length < 3) && retryCount < 1) {
+    console.warn(`⚠️ FAQ 부족 (${content.faqs?.length || 0}개), 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
+    return callGroq(prompt + '\n\n[필수] faqs 배열에 5개의 질문과 200자 이상 답변을 반드시 포함하세요!', retryCount + 1);
   }
 
   // 외국어 혼입 검증
@@ -527,7 +553,7 @@ function buildPostHTML(data, slug, dateStr) {
     ? data.hashtags
     : (data.tags || []).map(t => t.startsWith('#') ? t : `#${t}`);
   const tagsHTML = hashtagList.map(t =>
-    `<a href="../index.html" class="text-xs text-ink-500 bg-ink-100 hover:bg-brand-100 hover:text-brand-700 px-2.5 py-1 rounded-full transition-colors">${t.startsWith('#') ? t : '#'+t}</a>`
+    `<span class="text-xs text-ink-500 bg-ink-100 px-2.5 py-1 rounded-full">${t.startsWith('#') ? t : '#'+t}</span>`
   ).join('\n          ');
 
   const sourcesHTML = (data.sources || [{ name: '공식 자료 기반 작성', url: '#' }]).map(s =>
