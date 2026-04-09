@@ -23,6 +23,12 @@
 
   <!-- 포스트 목록 (새 글 추가 시 아래 형식으로 추가) -->
   <url>
+    <loc>https://bloginfo360.com/posts/2026-welfare-policy</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://bloginfo360.com/posts/2026-bohum-upgye-donghyang</loc>
     <lastmod>2026-04-09</lastmod>
     <changefreq>weekly</changefreq>
