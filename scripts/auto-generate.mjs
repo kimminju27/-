@@ -253,11 +253,12 @@ async function callGroq(prompt, retryCount = 0) {
   }
 
   // 섹션 내용 길이 검증
-  const shortSection = content.sections.some(s => (s.content || '').length < 600);
-  if (shortSection && retryCount < 1) {
-    console.warn(`⚠️ 섹션 내용 너무 짧음, 35초 대기 후 재시도...`);
+  const shortSections = content.sections.filter(s => (s.content || '').length < 600);
+  if (shortSections.length > 0 && retryCount < 2) {
+    const names = shortSections.map(s => `"${s.title}"(${(s.content||'').length}자)`).join(', ');
+    console.warn(`⚠️ 섹션 내용 너무 짧음 [${names}], 35초 대기 후 재시도...`);
     await new Promise(r => setTimeout(r, 36000));
-    return callGroq(prompt + '\n\n[필수] 각 섹션 content는 반드시 1,000자 이상 작성하세요! 현재 너무 짧습니다.', retryCount + 1);
+    return callGroq(prompt + `\n\n[필수] 다음 섹션의 content가 너무 짧습니다: ${names}. 각 섹션 content는 반드시 1,000자 이상 실제 정보로 채워야 합니다. 2~3문장 요약은 절대 금지!`, retryCount + 1);
   }
 
   // intro 길이 검증
@@ -527,8 +528,9 @@ function buildPostHTML(data, slug, dateStr) {
       .map(p => `<p>${formatNumbers(p.trim())}</p>`)
       .join('\n          ');
 
-    const tipBox       = s.tip       ? buildHighlightBox(s.tip,       idx % 2 === 0 ? 'tip' : 'point') : '';
-    const highlightBox = s.highlight ? buildHighlightBox(s.highlight, 'info')  : '';
+    // tip/highlight: 30자 미만이면 섹션 제목과 같거나 의미없는 내용 → 표시 안 함
+    const tipBox       = (s.tip       && s.tip.length       >= 30) ? buildHighlightBox(s.tip,       idx % 2 === 0 ? 'tip' : 'point') : '';
+    const highlightBox = (s.highlight && s.highlight.length >= 30) ? buildHighlightBox(s.highlight, 'info')  : '';
     const statCards    = idx === 0   ? buildStatCards(data.stats)                  : '';
     const imageCards   = idx === 1   ? buildImageCards(data.imageCards)             : '';
     const cmpTable     = idx === 2   ? buildComparisonTable(data.comparisonTable)   : '';
@@ -616,7 +618,7 @@ function buildPostHTML(data, slug, dateStr) {
   {"@context":"https://schema.org","@type":"FAQPage","mainEntity":${JSON.stringify(faqJsonLD)}}
   </script>` : ''}
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"홈","item":"https://bloginfo360.com/"},{"@type":"ListItem","position":2,"name":"${data.category}","item":"https://bloginfo360.com/#category"},{"@type":"ListItem","position":3,"name":"${data.title}","item":"${postUrl}"}]}
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"홈","item":"https://bloginfo360.com/"},{"@type":"ListItem","position":2,"name":"${data.category}","item":"https://bloginfo360.com/"},{"@type":"ListItem","position":3,"name":"${data.title}","item":"${postUrl}"}]}
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -686,7 +688,7 @@ function buildPostHTML(data, slug, dateStr) {
     <nav aria-label="breadcrumb" class="mb-6 text-xs text-ink-300 flex items-center gap-1.5 flex-wrap">
       <a href="../index.html" class="hover:text-brand-600 transition-colors">홈</a>
       <span>›</span>
-      <a href="../index.html#category" class="hover:text-brand-600 transition-colors">${data.category}</a>
+      <span class="text-ink-500">${data.category}</span>
       <span>›</span>
       <span class="text-ink-500 font-medium line-clamp-1">${data.title}</span>
     </nav>
