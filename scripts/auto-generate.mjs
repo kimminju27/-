@@ -68,14 +68,13 @@ function hasInvalidDate(text) {
 // 제외: 연도(2026년), 날짜(4월/8일), 법령번호(제12호), 전화번호 등
 function formatNumbers(text) {
   if (!text || typeof text !== 'string') return text;
-  return text.replace(/(?<![,\d])(\d{4,})(?!\d)/g, (n, offset, str) => {
-    const after = str.slice(offset + n.length);
-    const before = str.slice(Math.max(0, offset - 1), offset);
+  return text.replace(/(?<![,\d])(\d{4,})(?!\d)/g, (match, _p1, offset, str) => {
+    const after = str.slice(offset + match.length);
     // 뒤에 년·월·일·호·번·위·회·층·기·장·관이 오면 스킵 (날짜·순서·번호류)
-    if (/^[년월일호번위회층기장관]/.test(after)) return n;
+    if (/^[년월일호번위회층기장관]/.test(after)) return match;
     // 2000~2099 범위 숫자는 연도로 간주 → 스킵
-    const num = parseInt(n, 10);
-    if (num >= 2000 && num <= 2099) return n;
+    const num = parseInt(match, 10);
+    if (num >= 2000 && num <= 2099) return match;
     return num.toLocaleString('ko-KR');
   });
 }
