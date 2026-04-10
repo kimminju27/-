@@ -149,6 +149,8 @@ sections의 각 content는 반드시 실제 독자가 읽을 본문 전문입니
 - 흔한 실수·주의사항·예외 상황 반드시 포함
 - tip 필드: 반드시 30자 이상의 실용적 팁 문장 (단어만 넣으면 표시 안 됨)
 - highlight 필드: 반드시 30자 이상의 핵심 수치나 정보 문장
+- 각 섹션 내용 중복 절대 금지: 다른 섹션에서 쓴 문장·표현을 그대로 쓰거나 비슷하게 반복 금지. 6개 섹션은 각자 완전히 독립된 다른 정보를 담아야 함
+- FAQ 답변: 단순 "예/아니오"나 1~2문장 요약 금지. 구체적 수치·조건·예외사항 포함해 200자 이상 작성
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [5] JSON 스키마
@@ -292,6 +294,34 @@ sections의 각 content는 반드시 실제 독자가 읽을 본문 전문입니
     console.warn(`⚠️ FAQ 부족 (${content.faqs?.length || 0}개), 35초 대기 후 재시도...`);
     await new Promise(r => setTimeout(r, 36000));
     return callGroq(prompt + '\n\n[필수] faqs 배열에 5개의 질문과 200자 이상 답변을 반드시 포함하세요!', retryCount + 1);
+  }
+
+  // slug 품질 검증 (숫자만으로 된 slug 금지)
+  if (/^\d+$/.test(content.slug || '') && retryCount < 2) {
+    console.warn(`⚠️ slug가 숫자만으로 구성됨: "${content.slug}", 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
+    return callGroq(prompt + `\n\n[필수] slug는 카테고리+주제를 영어로 조합해야 합니다. 숫자만("${content.slug}")은 절대 금지! 예: "tax-refund-2026", "welfare-policy-2026", "insurance-reform-2026"`, retryCount + 1);
+  }
+
+  // FAQ 답변 길이 검증
+  const shortFaqs = (content.faqs || []).filter(f => (f.answer || '').length < 100);
+  if (shortFaqs.length > 0 && retryCount < 2) {
+    console.warn(`⚠️ FAQ 답변 너무 짧음 (${shortFaqs.length}개), 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
+    return callGroq(prompt + `\n\n[필수] FAQ 답변 ${shortFaqs.length}개가 너무 짧습니다. 각 answer는 반드시 200자 이상, 구체적 수치·조건·예외사항을 포함해 작성하세요!`, retryCount + 1);
+  }
+
+  // 섹션 간 반복 문장 검증
+  const allSentences = (content.sections || []).flatMap(s =>
+    (s.content || '').split(/(?<=[.!?])\s+/).filter(x => x.trim().length > 20)
+  );
+  const sentenceCount = {};
+  allSentences.forEach(s => { const key = s.trim().slice(0, 25); sentenceCount[key] = (sentenceCount[key] || 0) + 1; });
+  const repeatedEntry = Object.entries(sentenceCount).find(([, v]) => v >= 3);
+  if (repeatedEntry && retryCount < 2) {
+    console.warn(`⚠️ 반복 문장 감지: "${repeatedEntry[0]}..." (${repeatedEntry[1]}회), 35초 대기 후 재시도...`);
+    await new Promise(r => setTimeout(r, 36000));
+    return callGroq(prompt + `\n\n[필수] 같은 문장이 여러 섹션에 ${repeatedEntry[1]}회 반복됩니다. 각 섹션은 완전히 다른 고유한 내용만 담아야 합니다. 반복 문장·표현 절대 금지!`, retryCount + 1);
   }
 
   // 외국어 혼입 검증
@@ -733,13 +763,17 @@ function buildPostHTML(data, slug, dateStr) {
           </div>
         </div>
 
-        <!-- 히어로 배너 (이미지 대체) -->
-        <div class="w-full h-56 sm:h-72 bg-gradient-to-br ${meta.gradient} rounded-2xl flex flex-col items-center justify-center mb-8 relative overflow-hidden border border-ink-100" role="img" aria-label="${data.title}">
-          <div class="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle_at_30%_50%,#000_1px,transparent_1px)] bg-[length:24px_24px]"></div>
-          <div class="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full ${meta.badge} opacity-80">${data.category}</div>
-          <div class="text-7xl mb-4 relative drop-shadow-sm">${meta.emoji}</div>
-          <p class="relative text-sm font-bold text-ink-700 px-6 text-center max-w-sm leading-relaxed">${data.title}</p>
-          <p class="relative text-xs text-ink-400 mt-2">${dateFormatted}</p>
+        <!-- 히어로 이미지 -->
+        <div class="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden mb-8 border border-ink-100 bg-gradient-to-br ${meta.gradient}" role="img" aria-label="${data.title}">
+          <img src="https://picsum.photos/seed/${slug}/1200/630" alt="${data.title}" class="absolute inset-0 w-full h-full object-cover" loading="eager" onerror="this.style.opacity='0'">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+          <div class="absolute top-4 left-4">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-white/20 text-white border border-white/20 backdrop-blur-sm">${meta.emoji} ${data.category}</span>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+            <p class="text-white font-black text-lg sm:text-xl leading-tight drop-shadow-lg">${data.title}</p>
+            <p class="text-white/60 text-xs mt-1.5">${dateFormatted} · bloginfo360.com</p>
+          </div>
         </div>
 
         <!-- 핵심 요약 -->
@@ -867,11 +901,16 @@ function updateIndex(data, slug, dateStr) {
   const card = `
       <article class="post-item" data-category="${data.category}" data-title="${data.title}">
         <a href="posts/${slug}.html" class="block bg-white rounded-2xl border border-ink-100 shadow-card hover:shadow-card-hover post-card overflow-hidden transition-shadow">
-          <img src="posts/${slug}-thumb.svg" alt="${data.title}" class="w-full h-44 object-cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-          <div class="w-full h-44 bg-gradient-to-br ${meta.gradient} flex-col items-center justify-center relative overflow-hidden px-4" style="display:none">
-            <span class="relative text-4xl mb-1">${meta.emoji}</span>
-            ${firstStat ? `<span class="relative text-lg font-black" style="color:${meta.color}">${firstStat}</span>` : ''}
-            <p class="relative text-center text-xs font-bold text-ink-700 mt-1 line-clamp-2 max-w-[180px] leading-tight">${data.title.slice(0, 28)}${data.title.length > 28 ? '…' : ''}</p>
+          <div class="relative w-full h-44 overflow-hidden bg-gradient-to-br ${meta.gradient}">
+            <img src="https://picsum.photos/seed/${slug}/600/400" alt="${data.title}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.opacity='0'">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent"></div>
+            <div class="absolute top-3 left-3">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 backdrop-blur-sm">${meta.emoji} ${data.category}</span>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-3">
+              <p class="text-white font-black text-xs leading-snug drop-shadow line-clamp-2">${data.title.slice(0, 40)}${data.title.length > 40 ? '…' : ''}</p>
+              ${firstStat ? `<p class="text-white/70 text-[10px] mt-0.5 font-medium">${firstStat}</p>` : ''}
+            </div>
           </div>
           <div class="p-5">
             <div class="flex items-center gap-2 mb-2">
