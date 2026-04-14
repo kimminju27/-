@@ -3,309 +3,436 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>나만 모르는 요즘 소식</title>
-  <meta name="description" content="보험, 세금, 부동산, 복지정책, 주식·재테크 — 나만 모르던 요즘 핵심 정보를 쉽고 명확하게 전달합니다.">
+  <title>블로그인포360 — 체험단 캠페인 검색</title>
+  <meta name="description" content="37개 체험단 사이트의 캠페인을 한 곳에서 검색하세요. 블로그, 인스타, 유튜브 체험단 모집 정보를 실시간으로 확인합니다.">
   <meta name="robots" content="index, follow">
-  <meta name="naver-site-verification" content="8d911d2c19b710aba3ada77284691b9beee6e358" />
-  <link rel="canonical" href="https://bloginfo360.com/">
-  <script src="/analytics.js" async></script>
-  <!-- Open Graph -->
+  <meta property="og:title" content="블로그인포360 — 체험단 캠페인 검색">
+  <meta property="og:description" content="37개 체험단 사이트의 캠페인을 한 곳에서 검색하세요.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="나만 모르는 요즘 소식">
-  <meta property="og:description" content="경제, 주식, 재테크 정보를 쉽고 명확하게 전달합니다.">
   <meta property="og:url" content="https://bloginfo360.com/">
-  <meta property="og:site_name" content="나만 모르는 요즘 소식">
-  <meta property="og:image" content="https://bloginfo360.com/og-default.svg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://bloginfo360.com/og-default.svg">
-  <meta name="twitter:title" content="나만 모르는 요즘 소식">
-  <meta name="twitter:description" content="경제, 주식, 재테크 정보를 쉽고 명확하게 전달합니다.">
-  <!-- Google Search Console -->
-  <meta name="google-site-verification" content="8eCrGynyuC7aVMKk7w1XrzbuVWffcjBzdeAIIlE4Cog">
-  <!-- JSON-LD: WebSite 구조화 데이터 -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "나만 모르는 요즘 소식",
-    "url": "https://bloginfo360.com",
-    "description": "보험, 세금/절세, 부동산, 복지정책, 주식·재테크 — 나만 모르던 요즘 핵심 정보를 쉽고 명확하게 전달합니다.",
-    "inLanguage": "ko-KR",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://bloginfo360.com/?search={search_term_string}",
-      "query-input": "required name=search_term_string"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "나만 모르는 요즘 소식",
-      "url": "https://bloginfo360.com",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "email": "mju427@naver.com",
-        "contactType": "customer service"
-      }
-    }
-  }
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="canonical" href="https://bloginfo360.com/">
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: {
-              50:  '#f0fdf4',
-              100: '#dcfce7',
-              200: '#bbf7d0',
-              500: '#22c55e',
-              600: '#16a34a',
-              700: '#15803d',
-              800: '#166534',
-            },
-            gold: {
-              400: '#fbbf24',
-              500: '#f59e0b',
-            },
-            ink: {
-              900: '#0f172a',
-              700: '#1e293b',
-              500: '#475569',
-              300: '#94a3b8',
-              100: '#f1f5f9',
-            }
+            brand: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',500:'#22c55e',600:'#16a34a',700:'#15803d' },
+            ink: { 900:'#0f172a',700:'#1e293b',500:'#475569',300:'#94a3b8',100:'#f1f5f9' }
           },
-          fontFamily: {
-            sans: ['Noto Sans KR', 'sans-serif'],
-          },
+          fontFamily: { sans: ['Noto Sans KR','sans-serif'] },
           boxShadow: {
-            'card': '0 2px 8px 0 rgba(15,23,42,0.08), 0 1px 2px 0 rgba(15,23,42,0.04)',
-            'card-hover': '0 8px 24px 0 rgba(22,163,74,0.12), 0 2px 8px 0 rgba(15,23,42,0.08)',
+            'card': '0 2px 8px rgba(15,23,42,0.08)',
+            'card-hover': '0 8px 24px rgba(22,163,74,0.15)',
           }
         }
       }
     }
   </script>
+
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <!-- D3 + D3-cloud -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1/build/d3.layout.cloud.js"></script>
+
   <style>
     body { font-family: 'Noto Sans KR', sans-serif; }
-
-    /* 카테고리 탭 */
-    .cat-btn {
-      padding: 6px 18px;
-      border-radius: 9999px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      border: 1.5px solid #e2e8f0;
-      color: #475569;
-      background: #fff;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
-    }
-    .cat-btn:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
-    .cat-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,0.2); }
-    .cat-btn:active { transform: scale(0.97); }
-    .cat-btn.active { background: #16a34a; color: #fff; border-color: #16a34a; }
-
-    /* 포스트 카드 */
-    .post-card { transition: transform 0.18s, box-shadow 0.18s; }
-    .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px 0 rgba(22,163,74,0.12), 0 2px 8px 0 rgba(15,23,42,0.08); }
-
-    /* 뉴스레터 버튼 */
-    .btn-subscribe {
-      background: #16a34a;
-      color: #fff;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 1rem;
-      border: none;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-      box-shadow: 0 4px 12px rgba(22,163,74,0.25);
-    }
-    .btn-subscribe:hover { background: #15803d; transform: scale(1.02); box-shadow: 0 6px 16px rgba(22,163,74,0.35); }
-    .btn-subscribe:focus { outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,0.3); }
-    .btn-subscribe:active { transform: scale(0.98); }
-    .btn-subscribe:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    /* 검색 */
-    .search-input:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
-
-    /* 숨김 */
-    .post-item.hidden { display: none; }
+    .line-clamp-2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+    .campaign-card { transition: box-shadow 0.2s, transform 0.2s; }
+    .campaign-card:hover { box-shadow:0 8px 24px rgba(22,163,74,0.15);transform:translateY(-2px); }
+    .tag-chip { cursor:pointer;transition:background 0.15s,color 0.15s; }
+    .skeleton { background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
+    ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#16a34a;border-radius:3px}
   </style>
 </head>
-<body class="bg-white text-ink-900">
+<body class="bg-gray-50 text-ink-900">
 
-  <!-- 헤더 -->
-  <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-2">
-        <span class="text-2xl font-black text-brand-600 tracking-tight leading-tight">
-          나만 모르는<br class="sm:hidden"> 요즘 소식
-        </span>
-      </a>
-      <nav class="hidden sm:flex items-center gap-6 text-sm font-medium text-ink-500">
-        <a href="index.html" class="hover:text-brand-600 transition-colors">홈</a>
-        <a href="#category" class="hover:text-brand-600 transition-colors">카테고리</a>
-        <a href="#newsletter" class="hover:text-brand-600 transition-colors">뉴스레터</a>
-        <a href="about.html" class="hover:text-brand-600 transition-colors">소개</a>
-        <a href="privacy.html" class="hover:text-brand-600 transition-colors">개인정보처리방침</a>
-      </nav>
-      <!-- 모바일 메뉴 (간단) -->
-      <div class="sm:hidden flex gap-4 text-sm font-medium text-ink-500">
-        <a href="#category" class="hover:text-brand-600">카테고리</a>
-        <a href="#newsletter" class="hover:text-brand-600">뉴스레터</a>
-        <a href="about.html" class="hover:text-brand-600">소개</a>
+<!-- ===== 헤더 ===== -->
+<header class="bg-brand-600 text-white sticky top-0 z-50 shadow-lg">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="/" class="text-xl font-black tracking-tight">블로그인포360</a>
+    <nav class="flex items-center gap-1 text-sm">
+      <a href="/about.html" class="px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">소개</a>
+      <a href="/admin.html" class="px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">관리자</a>
+      <a href="https://pf.kakao.com/" target="_blank" class="px-3 py-1.5 rounded-lg bg-yellow-400 text-yellow-900 font-bold hover:bg-yellow-300 transition-colors">📗 카카오채널</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== 히어로 ===== -->
+<section class="bg-gradient-to-b from-brand-600 to-brand-700 text-white py-10 px-4">
+  <div class="max-w-3xl mx-auto text-center">
+    <h1 class="text-2xl md:text-3xl font-black mb-2">체험단 캠페인 통합 검색</h1>
+    <p class="text-brand-100 text-sm mb-6">37개 사이트의 체험단 모집 정보를 한 곳에서 확인하세요</p>
+
+    <!-- 검색창 -->
+    <div class="flex gap-2 bg-white rounded-2xl p-1.5 shadow-xl mb-5">
+      <span class="pl-3 text-gray-400 flex items-center text-lg">🔍</span>
+      <input id="search-input" type="text"
+        placeholder="예) 뷰티 체험단, 서울 맛집, 강아지 간식..."
+        class="flex-1 text-gray-800 text-sm outline-none px-2 py-2 bg-transparent" autocomplete="off">
+      <button id="search-btn"
+        class="bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold px-5 py-2 rounded-xl text-sm transition-all">
+        검색
+      </button>
+    </div>
+
+    <!-- 추천 검색어 -->
+    <div class="mb-3">
+      <span class="text-brand-200 text-xs">💡 추천&nbsp;</span>
+      <span id="recommend-tags" class="inline-flex flex-wrap gap-1.5"></span>
+    </div>
+
+    <!-- 인기 검색어 -->
+    <div>
+      <span class="text-brand-200 text-xs">🔥 인기&nbsp;</span>
+      <span id="popular-tags" class="inline-flex flex-wrap gap-1.5"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 통계 배너 ===== -->
+<section class="bg-white border-b py-4 px-4">
+  <div class="max-w-6xl mx-auto grid grid-cols-3 gap-4 text-center">
+    <div><div id="stat-total" class="text-2xl font-black text-brand-600">-</div><div class="text-xs text-gray-500">총 캠페인</div></div>
+    <div><div id="stat-today" class="text-2xl font-black text-brand-600">-</div><div class="text-xs text-gray-500">오늘 신규</div></div>
+    <div><div id="stat-platforms" class="text-2xl font-black text-brand-600">-</div><div class="text-xs text-gray-500">연동 플랫폼</div></div>
+  </div>
+</section>
+
+<!-- ===== 대시보드 ===== -->
+<section class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="bg-white rounded-2xl shadow-card p-5">
+    <h2 class="text-sm font-bold text-gray-700 mb-3">🔡 최근 인기 검색어</h2>
+    <div id="wordcloud-container" style="height:200px;" class="flex items-center justify-center text-gray-400 text-sm">로딩 중...</div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-card p-5">
+    <h2 class="text-sm font-bold text-gray-700 mb-3">📈 일별 방문자 수</h2>
+    <div style="height:200px;"><canvas id="visitor-chart"></canvas></div>
+  </div>
+</section>
+
+<!-- ===== 필터 바 ===== -->
+<section class="max-w-6xl mx-auto px-4 mb-4">
+  <div class="bg-white rounded-2xl shadow-card p-4 space-y-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-bold text-gray-500">플랫폼</span>
+      <div id="platform-filter" class="flex flex-wrap gap-1.5">
+        <button class="filter-btn px-3 py-1 rounded-full text-xs font-bold bg-brand-600 text-white" data-platform="전체">전체</button>
       </div>
     </div>
-  </header>
-
-  <!-- 히어로 -->
-  <section class="bg-gradient-to-br from-brand-50 to-white border-b border-ink-100">
-    <div class="max-w-5xl mx-auto px-4 py-14 text-center">
-      <span class="inline-block bg-gold-400 text-ink-900 text-xs font-bold px-3 py-1 rounded-full mb-4">보험 · 세금 · 부동산 · 재테크</span>
-      <h1 class="text-3xl sm:text-4xl font-black text-ink-900 mb-3 leading-tight">
-        나만 모르고 있던<br>요즘 진짜 소식
-      </h1>
-      <p class="text-ink-500 text-base mb-8 max-w-md mx-auto">
-        남들은 다 아는데 나만 몰랐던 정보, 여기서 다 찾으세요.
-      </p>
-
-      <!-- 검색창 -->
-      <div class="relative max-w-lg mx-auto">
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="궁금한 키워드를 검색하세요 (예: 청년도약계좌, 양도세, 실손보험)"
-          class="search-input w-full border border-ink-100 rounded-xl py-3.5 px-5 pr-14 text-sm bg-white shadow-card transition-all"
-          oninput="filterPosts()"
-        >
-        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-ink-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
-          </svg>
-        </span>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-bold text-gray-500">유형</span>
+      <div class="flex flex-wrap gap-1.5" id="type-filter">
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-brand-600 text-white" data-type="전체">전체</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 hover:bg-brand-100" data-type="블로그">블로그</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 hover:bg-brand-100" data-type="인스타">인스타</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 hover:bg-brand-100" data-type="유튜브">유튜브</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 hover:bg-brand-100" data-type="방문">방문</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 hover:bg-brand-100" data-type="재택">재택</button>
       </div>
     </div>
-  </section>
-
-  <!-- 카테고리 탭 -->
-  <section id="category" class="max-w-5xl mx-auto px-4 pt-10 pb-4">
-    <div class="flex flex-wrap gap-2">
-      <button class="cat-btn active" onclick="filterCategory('전체', this)">전체</button>
-      <button class="cat-btn" onclick="filterCategory('보험', this)">💼 보험</button>
-      <button class="cat-btn" onclick="filterCategory('세금', this)">💸 세금/절세</button>
-      <button class="cat-btn" onclick="filterCategory('부동산', this)">🏠 부동산</button>
-      <button class="cat-btn" onclick="filterCategory('복지', this)">🏛️ 복지정책</button>
-      <button class="cat-btn" onclick="filterCategory('주식', this)">📈 주식·재테크</button>
-      <button class="cat-btn" onclick="filterCategory('제품리뷰', this)">📦 제품리뷰</button>
+    <div class="flex items-center justify-between">
+      <span id="result-count" class="text-xs text-gray-500"></span>
+      <span id="last-update" class="text-xs text-gray-400"></span>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- 포스트 목록 -->
-  <main class="max-w-5xl mx-auto px-4 py-6">
-    <div id="postGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- ===== 캠페인 그리드 ===== -->
+<main class="max-w-6xl mx-auto px-4 pb-12">
+  <div id="campaign-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+  </div>
+  <div class="text-center mt-8">
+    <button id="load-more" class="hidden bg-white border-2 border-brand-600 text-brand-600 hover:bg-brand-50 font-bold px-8 py-3 rounded-xl transition-colors">
+      캠페인 더 보기
+    </button>
+  </div>
+  <div id="no-results" class="hidden text-center py-16">
+    <div class="text-4xl mb-3">🔍</div>
+    <p class="text-gray-500 font-medium">검색 결과가 없습니다</p>
+    <p class="text-gray-400 text-sm mt-1">다른 키워드로 검색해보세요</p>
+  </div>
+</main>
 
-      <!-- POSTS_START -->
+<!-- ===== 푸터 ===== -->
+<footer class="bg-gray-800 text-gray-400 text-center py-6 text-xs">
+  <p class="mb-1">블로그인포360 — 체험단 캠페인 통합 검색</p>
+  <p>본 사이트는 각 체험단 플랫폼의 정보를 수집·제공하며, 캠페인 신청 및 관리 책임은 해당 플랫폼에 있습니다.</p>
+  <p class="mt-2">
+    <a href="/privacy.html" class="hover:text-white mr-3">개인정보처리방침</a>
+    <a href="/about.html" class="hover:text-white">사이트 소개</a>
+  </p>
+</footer>
 
-    </div>
+<script>
+// =============================================
+// Supabase 설정 — Supabase 정보 받은 후 교체
+// =============================================
+const SUPABASE_URL = 'https://krmlhcsnpswxavxcskvq.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWxoY3NucHN3eGF2eGNza3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA5ODksImV4cCI6MjA5MTcxNjk4OX0.I5t6b6rjuj3dOxmcSzVpTPz5cU00_6JWSQYGd-P-YDY'
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    <!-- 검색 결과 없음 -->
-    <div id="noResult" class="hidden text-center py-20 text-ink-300">
-      <div class="text-5xl mb-4">🔍</div>
-      <p class="text-base">검색 결과가 없습니다.</p>
-    </div>
-  </main>
+// =============================================
+// 상수
+// =============================================
+const RECOMMEND_TAGS = ['뷰티','식품','맛집','생활용품','반려동물','유아','패션','강남','제주','서울','인테리어','건강식품']
+const PAGE_SIZE = 30
 
-  <!-- 뉴스레터 -->
-  <section id="newsletter" class="bg-gradient-to-br from-brand-600 to-brand-700 mt-12">
-    <div class="max-w-2xl mx-auto px-4 py-16 text-center">
-      <span class="text-gold-400 text-2xl">✉️</span>
-      <h2 class="mt-3 text-2xl sm:text-3xl font-black text-white leading-tight">
-        새 글이 올라오면<br>바로 알려드릴게요
-      </h2>
-      <p class="mt-3 text-brand-200 text-sm">경제·주식·리뷰 인사이트를 이메일로 받아보세요. 스팸 없이, 언제든 해지 가능.</p>
+let currentKeyword = ''
+let currentPlatform = '전체'
+let currentType = '전체'
+let currentPage = 0
+let isLoading = false
 
-      <!-- Mailchimp 폼 — 아래 action URL을 Mailchimp 발급 URL로 교체하세요 -->
-      <form class="mt-8 flex flex-col sm:flex-row gap-3 justify-center" onsubmit="handleSubscribe(event)">
-        <input
-          type="email"
-          id="emailInput"
-          placeholder="이메일 주소를 입력하세요"
-          required
-          class="flex-1 max-w-sm px-5 py-3.5 rounded-xl text-sm text-ink-900 border-0 focus:outline-none focus:ring-2 focus:ring-gold-400"
-        >
-        <button type="submit" class="btn-subscribe whitespace-nowrap">무료 구독하기</button>
-      </form>
-      <p id="subscribeMsg" class="mt-4 text-brand-200 text-xs hidden">✅ 구독 신청이 완료되었습니다!</p>
-    </div>
-  </section>
+// =============================================
+// 초기화
+// =============================================
+document.addEventListener('DOMContentLoaded', async () => {
+  trackVisit()
+  renderRecommendTags()
+  setupEventListeners()
+  await Promise.all([
+    loadStats(),
+    loadPopularKeywords(),
+    loadPlatformFilter(),
+    loadVisitorChart(),
+    loadCampaigns(true),
+  ])
+})
 
-  <!-- 푸터 -->
-  <footer class="border-t border-ink-100 bg-white">
-    <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
-      <span class="font-bold text-ink-500">나만 모르는 요즘 소식</span>
-      <div class="flex items-center gap-4">
-        <a href="about.html" class="hover:text-brand-600 transition-colors">소개</a>
-        <a href="privacy.html" class="hover:text-brand-600 transition-colors">개인정보처리방침</a>
-        <a href="mailto:mju427@naver.com" class="hover:text-brand-600 transition-colors">mju427@naver.com</a>
-      </div>
-      <span>© 2026. All rights reserved.</span>
-    </div>
-  </footer>
+// =============================================
+// 방문자 카운팅
+// =============================================
+async function trackVisit() {
+  try { await sb.rpc('increment_visitor') } catch(e) {}
+}
 
-  <script>
-    let currentCategory = '전체';
+// =============================================
+// 통계
+// =============================================
+async function loadStats() {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    const [r1,r2,r3] = await Promise.all([
+      sb.from('campaigns').select('id',{count:'exact',head:true}).eq('is_active',true),
+      sb.from('campaigns').select('id',{count:'exact',head:true}).eq('is_active',true).gte('crawled_at',today+'T00:00:00'),
+      sb.from('platforms').select('id',{count:'exact',head:true}).eq('is_active',true),
+    ])
+    document.getElementById('stat-total').textContent = (r1.count||0).toLocaleString()
+    document.getElementById('stat-today').textContent = (r2.count||0).toLocaleString()
+    document.getElementById('stat-platforms').textContent = (r3.count||0).toLocaleString()
+  } catch(e) {}
+}
 
-    // 카테고리 필터
-    function filterCategory(cat, btn) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      applyFilters();
+// =============================================
+// 인기 검색어 + 워드클라우드
+// =============================================
+async function loadPopularKeywords() {
+  try {
+    const {data} = await sb.from('popular_keywords').select('keyword,count').limit(30)
+    if (!data || !data.length) return
+
+    // 인기 태그 칩
+    document.getElementById('popular-tags').innerHTML = data.slice(0,12).map(k =>
+      `<button class="tag-chip px-2.5 py-1 bg-white/20 hover:bg-white text-white hover:text-brand-700 rounded-full text-xs font-medium border border-white/30 transition-all" onclick="doSearch('${escapeHtml(k.keyword)}')">#${escapeHtml(k.keyword)}</button>`
+    ).join('')
+
+    renderWordCloud(data)
+  } catch(e) { console.warn('인기 검색어 실패',e) }
+}
+
+function renderWordCloud(words) {
+  const container = document.getElementById('wordcloud-container')
+  container.innerHTML = ''
+  const w = container.clientWidth || 400, h = 190
+  const maxCnt = Math.max(...words.map(d=>+d.count))
+  const colors = d3.schemeTableau10
+
+  d3.layout.cloud()
+    .size([w, h])
+    .words(words.map((d,i)=>({text:d.keyword,size:12+(d.count/maxCnt)*28,color:colors[i%10]})))
+    .padding(4).rotate(0).fontSize(d=>d.size)
+    .on('end', drawn => {
+      const svg = d3.select('#wordcloud-container').append('svg')
+        .attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%').attr('height','100%')
+      svg.append('g').attr('transform',`translate(${w/2},${h/2})`)
+        .selectAll('text').data(drawn).enter().append('text')
+        .style('font-size',d=>`${d.size}px`).style('font-weight','700')
+        .style('fill',d=>d.color).style('cursor','pointer')
+        .attr('text-anchor','middle')
+        .attr('transform',d=>`translate(${d.x},${d.y})`)
+        .text(d=>d.text)
+        .on('click',(_,d)=>doSearch(d.text))
+    }).start()
+}
+
+// =============================================
+// 추천 태그
+// =============================================
+function renderRecommendTags() {
+  document.getElementById('recommend-tags').innerHTML = RECOMMEND_TAGS.map(t =>
+    `<button class="tag-chip px-2.5 py-1 bg-white/20 hover:bg-white text-white hover:text-brand-700 rounded-full text-xs font-medium border border-white/30 transition-all" onclick="doSearch('${t}')">#${t}</button>`
+  ).join('')
+}
+
+// =============================================
+// 플랫폼 필터
+// =============================================
+async function loadPlatformFilter() {
+  try {
+    const {data} = await sb.from('platforms').select('name,badge_color').eq('is_active',true).order('name')
+    if (!data) return
+    const pf = document.getElementById('platform-filter')
+    data.forEach(p => {
+      const btn = document.createElement('button')
+      btn.className = 'filter-btn px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 hover:bg-brand-100 transition-colors'
+      btn.dataset.platform = p.name
+      btn.textContent = p.name
+      pf.appendChild(btn)
+    })
+    pf.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pf.querySelectorAll('.filter-btn').forEach(b=>{b.classList.remove('bg-brand-600','text-white');b.classList.add('bg-gray-100','text-gray-600')})
+        btn.classList.add('bg-brand-600','text-white');btn.classList.remove('bg-gray-100','text-gray-600')
+        currentPlatform = btn.dataset.platform
+        loadCampaigns(true)
+      })
+    })
+  } catch(e) {}
+}
+
+// =============================================
+// 방문자 차트
+// =============================================
+async function loadVisitorChart() {
+  try {
+    const {data} = await sb.from('visitor_stats').select('date,visit_count').order('date',{ascending:false}).limit(14)
+    const sorted = (data||[]).reverse()
+    new Chart(document.getElementById('visitor-chart'), {
+      type:'line',
+      data:{
+        labels: sorted.map(d=>d.date.slice(5).replace('-','/')),
+        datasets:[{data:sorted.map(d=>d.visit_count),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#16a34a',tension:0.3,fill:true}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#f1f5f9'},ticks:{font:{size:10},stepSize:1}}}}
+    })
+  } catch(e) {}
+}
+
+// =============================================
+// 캠페인 로드
+// =============================================
+async function loadCampaigns(reset=false) {
+  if (isLoading) return
+  isLoading = true
+  if (reset) {
+    currentPage = 0
+    document.getElementById('campaign-grid').innerHTML = Array(6).fill('<div class="skeleton rounded-2xl h-40"></div>').join('')
+    document.getElementById('no-results').classList.add('hidden')
+    document.getElementById('load-more').classList.add('hidden')
+  }
+  try {
+    let q = sb.from('campaigns')
+      .select('id,platform_name,title,campaign_url,campaign_type,applicants,capacity,deadline_text,crawled_at')
+      .eq('is_active',true).order('crawled_at',{ascending:false})
+      .range(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE-1)
+    if (currentKeyword) q = q.textSearch('title',currentKeyword,{type:'websearch'})
+    if (currentPlatform!=='전체') q = q.eq('platform_name',currentPlatform)
+    if (currentType!=='전체') q = q.eq('campaign_type',currentType)
+    const {data,error} = await q
+    if (error) throw error
+    const grid = document.getElementById('campaign-grid')
+    if (reset) grid.innerHTML = ''
+    if (!data||!data.length) {
+      if (currentPage===0) document.getElementById('no-results').classList.remove('hidden')
+      document.getElementById('load-more').classList.add('hidden')
+    } else {
+      data.forEach(c => grid.insertAdjacentHTML('beforeend',renderCard(c)))
+      document.getElementById('result-count').textContent = `${(currentPage*PAGE_SIZE+data.length).toLocaleString()}개 표시`
+      document.getElementById('last-update').textContent = `업데이트: ${formatAgo(data[0]?.crawled_at)}`
+      document.getElementById('load-more').classList[data.length===PAGE_SIZE?'remove':'add']('hidden')
     }
+    currentPage++
+  } catch(e) {
+    console.error(e)
+    document.getElementById('campaign-grid').innerHTML = '<div class="col-span-3 text-center py-10 text-gray-400">데이터를 불러오지 못했습니다. Supabase 설정을 확인해주세요.</div>'
+  } finally {
+    isLoading = false
+  }
+}
 
-    // 검색 필터
-    function filterPosts() {
-      applyFilters();
-    }
+function renderCard(c) {
+  const pct = c.capacity ? Math.min(100,Math.round((c.applicants/c.capacity)*100)) : 0
+  const barColor = pct>=80?'bg-red-500':pct>=50?'bg-yellow-500':'bg-brand-500'
+  const typeClass = {블로그:'bg-blue-100 text-blue-700',인스타:'bg-pink-100 text-pink-700',유튜브:'bg-red-100 text-red-700',방문:'bg-purple-100 text-purple-700',재택:'bg-green-100 text-green-700'}[c.campaign_type]||'bg-gray-100 text-gray-600'
+  return `<article class="campaign-card bg-white rounded-2xl shadow-card p-4 flex flex-col gap-3">
+  <div class="flex items-center justify-between gap-2">
+    <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-brand-100 text-brand-700 truncate">${escapeHtml(c.platform_name)}</span>
+    <span class="px-2 py-0.5 rounded-full text-xs font-bold shrink-0 ${typeClass}">${c.campaign_type||'블로그'}</span>
+  </div>
+  <h3 class="font-bold text-gray-900 text-sm leading-snug line-clamp-2 flex-1">${escapeHtml(c.title)}</h3>
+  ${c.capacity?`<div><div class="w-full bg-gray-100 rounded-full h-1.5 mb-1"><div class="${barColor} h-1.5 rounded-full" style="width:${pct}%"></div></div><div class="flex justify-between text-xs text-gray-400"><span>신청 ${c.applicants||0}명</span><span>모집 ${c.capacity}명</span></div></div>`:`<div class="text-xs text-gray-400">신청 ${c.applicants||0}명</div>`}
+  <div class="flex items-center justify-between">
+    <span class="text-xs text-gray-400">${c.deadline_text||formatAgo(c.crawled_at)}</span>
+    <a href="${c.campaign_url}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-brand-600 hover:underline">신청하기 →</a>
+  </div>
+</article>`
+}
 
-    function applyFilters() {
-      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-      const items = document.querySelectorAll('.post-item');
-      let visible = 0;
+// =============================================
+// 검색
+// =============================================
+async function doSearch(kw) {
+  currentKeyword = kw !== undefined ? kw : document.getElementById('search-input').value.trim()
+  document.getElementById('search-input').value = currentKeyword
+  await loadCampaigns(true)
+  if (currentKeyword) sb.from('search_logs').insert({keyword:currentKeyword}).then(()=>{})
+}
 
-      items.forEach(item => {
-        const cat = item.dataset.category;
-        const title = item.dataset.title.toLowerCase();
-        const catMatch = currentCategory === '전체' || cat === currentCategory;
-        const searchMatch = keyword === '' || title.includes(keyword);
+// =============================================
+// 이벤트
+// =============================================
+function setupEventListeners() {
+  document.getElementById('search-btn').addEventListener('click', ()=>doSearch())
+  document.getElementById('search-input').addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch() })
+  document.getElementById('load-more').addEventListener('click', ()=>loadCampaigns(false))
+  document.querySelectorAll('.type-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.type-btn').forEach(b=>{b.classList.remove('bg-brand-600','text-white');b.classList.add('bg-gray-100','text-gray-600')})
+      btn.classList.add('bg-brand-600','text-white');btn.classList.remove('bg-gray-100','text-gray-600')
+      currentType=btn.dataset.type;loadCampaigns(true)
+    })
+  })
+}
 
-        if (catMatch && searchMatch) {
-          item.classList.remove('hidden');
-          visible++;
-        } else {
-          item.classList.add('hidden');
-        }
-      });
-
-      document.getElementById('noResult').classList.toggle('hidden', visible > 0);
-    }
-
-    // 뉴스레터 구독
-    function handleSubscribe(e) {
-      e.preventDefault();
-      const msg = document.getElementById('subscribeMsg');
-      msg.classList.remove('hidden');
-      document.getElementById('emailInput').value = '';
-      // TODO: Mailchimp API 연동 시 여기에 fetch 요청 추가
-    }
-  </script>
+// =============================================
+// 유틸
+// =============================================
+function escapeHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function formatAgo(iso){
+  if(!iso)return''
+  const d=new Date(iso),diff=Math.floor((Date.now()-d)/60000)
+  if(diff<60)return `${diff}분 전`
+  if(diff<1440)return `${Math.floor(diff/60)}시간 전`
+  return d.toLocaleDateString('ko-KR',{month:'long',day:'numeric'})
+}
+</script>
 </body>
 </html>

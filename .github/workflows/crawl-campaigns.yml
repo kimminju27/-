@@ -1,0 +1,42 @@
+name: 체험단 캠페인 크롤링
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # 매 정각 (1시간 주기)
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: '특정 플랫폼만 크롤링 (비워두면 전체)'
+        required: false
+        default: ''
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 캠페인 크롤링 실행
+        run: node scripts/crawler/index.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TARGET_PLATFORM: ${{ inputs.platform }}
+
+      - name: 크롤링 완료 알림
+        if: always()
+        run: |
+          echo "크롤링 완료: $(date '+%Y-%m-%d %H:%M:%S')"
+          echo "대상 플랫폼: ${{ inputs.platform || '전체' }}"

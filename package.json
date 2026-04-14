@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "generate": "node scripts/auto-generate.mjs"
+    "generate": "node scripts/auto-generate.mjs",
+    "crawl": "node scripts/crawler/index.mjs"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^3.3.2"
+  }
 }
