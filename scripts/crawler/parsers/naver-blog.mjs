@@ -52,7 +52,14 @@ function decodeEntities(str) {
 }
 
 function isExperiencePost(title, desc) {
-  const keywords = ['체험', '리뷰', '모집', '신청', '무료', '제공', '협찬', '캠페인', '체험단']
-  const text = (title + desc).toLowerCase()
-  return keywords.some(k => text.includes(k))
+  const text = title + ' ' + desc
+
+  // 반드시 모집/신청 의미 단어 포함
+  const recruitWords = ['모집', '신청', '체험단', '리뷰어 모집', '캠페인 모집', '블로거 모집', '인플루언서 모집']
+  const hasRecruit = recruitWords.some(k => text.includes(k))
+  if (!hasRecruit) return false
+
+  // 체험/리뷰 관련 단어도 포함
+  const expWords = ['체험', '리뷰', '협찬', '제공', '캠페인', '무료 제공', '무상 제공']
+  return expWords.some(k => text.includes(k))
 }
