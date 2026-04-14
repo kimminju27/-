@@ -34,16 +34,29 @@ export async function genericParse(baseUrl, config) {
       $(config.listSelector).each((_, el) => {
         const $el = $(el)
 
-        const title = config.titleSelector
+        let title = config.titleSelector
           ? $el.find(config.titleSelector).first().text().trim()
-          : $el.find('h2, h3, h4, .title, [class*="title"]').first().text().trim()
+          : $el.find('h2, h3, h4, .title, [class*="title"], [class*="subject"]').first().text().trim()
+
+        // fallback: a 태그 텍스트
+        if (!title || title.length < 6) {
+          title = $el.find('a').first().text().replace(/\s+/g, ' ').trim()
+        }
+
+        // 불필요한 부분 제거 (날짜, 상태 텍스트 등)
+        title = title
+          .replace(/\d+\s*일\s*남음/g, '')
+          .replace(/신청\s*\d+\s*\/\s*\d+/g, '')
+          .replace(/D-\d+/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
 
         const $a = config.linkSelector
           ? $el.find(config.linkSelector).first()
           : $el.find('a').first()
         const href = $a.attr('href') || ''
 
-        if (!title || title.length < 3) return
+        if (!title || title.length < 6) return
 
         const fullUrl = href.startsWith('http')
           ? href
