@@ -3,34 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/analytics.js" async></script>
-  <title>소개 | 나만 모르는 요즘 소식 — bloginfo360.com</title>
-  <meta name="description" content="나만 모르는 요즘 소식을 운영하는 김민주입니다. 경제·복지정책·재테크 정보를 공식 자료 기반으로 쉽게 정리해 드립니다.">
+  <title>사이트 소개 | 캠레이더 — 체험단 캠페인 통합 검색</title>
+  <meta name="description" content="캠레이더는 37개 체험단 플랫폼의 모집 캠페인을 한 곳에서 검색할 수 있는 통합 검색 서비스입니다.">
   <meta name="robots" content="index, follow">
-  <meta name="google-adsense-account" content="ca-pub-1954893264438671">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954893264438671" crossorigin="anonymous"></script>
-  <link rel="canonical" href="https://bloginfo360.com/about">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="소개 | 나만 모르는 요즘 소식">
-  <meta property="og:description" content="경제·복지정책·재테크 정보를 공식 자료 기반으로 쉽게 정리해 드립니다.">
-  <meta property="og:locale" content="ko_KR">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="소개 | 나만 모르는 요즘 소식">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "AboutPage",
-    "name": "나만 모르는 요즘 소식 소개",
-    "url": "https://bloginfo360.com/about",
-    "author": {
-      "@type": "Person",
-      "name": "김민주",
-      "email": "mju427@naver.com",
-      "url": "https://bloginfo360.com/about"
-    },
-    "publisher": { "@type": "Organization", "name": "나만 모르는 요즘 소식", "url": "https://bloginfo360.com" }
-  }
-  </script>
+  <link rel="canonical" href="https://bloginfo360.com/about.html">
+  <meta property="og:title" content="사이트 소개 | 캠레이더">
+  <meta property="og:description" content="37개 체험단 플랫폼 캠페인을 한 곳에서 검색하세요.">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -40,7 +18,6 @@
         extend: {
           colors: {
             brand: { 50:"#f0fdf4", 100:"#dcfce7", 600:"#16a34a", 700:"#15803d" },
-            gold:  { 400:"#fbbf24", 500:"#f59e0b" },
             ink:   { 900:"#0f172a", 700:"#1e293b", 500:"#475569", 300:"#94a3b8", 100:"#f1f5f9" }
           },
           fontFamily: { sans: ["Noto Sans KR", "sans-serif"] }
@@ -50,126 +27,119 @@
   </script>
   <style>
     body { font-family: "Noto Sans KR", sans-serif; }
-    .section-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; border-left: 4px solid #16a34a; padding-left: 12px; margin-bottom: 1rem; }
-    .prose p { line-height: 1.9; margin-bottom: 1rem; color: #475569; font-size: 0.97rem; }
-    .process-step { display: flex; align-items: flex-start; gap: 16px; padding: 18px 0; border-bottom: 1px solid #f1f5f9; }
-    .process-step:last-child { border-bottom: none; }
-    .step-num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: #16a34a; color: #fff; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; }
+    .section-title { font-size: 1.15rem; font-weight: 700; color: #0f172a; border-left: 4px solid #16a34a; padding-left: 12px; margin-bottom: 1rem; }
+    .prose p { line-height: 1.9; margin-bottom: 1rem; color: #475569; font-size: 0.95rem; }
+    .step-card { display: flex; align-items: flex-start; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f1f5f9; }
+    .step-card:last-child { border-bottom: none; }
+    .step-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: #16a34a; color: #fff; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
 <body class="bg-white text-ink-900">
-  <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="index.html" class="text-xl font-black text-brand-600 leading-tight">나만 모르는<br class="sm:hidden"> 요즘 소식</a>
-      <nav class="hidden sm:flex items-center gap-6 text-sm font-medium text-ink-500">
-        <a href="index.html" class="hover:text-brand-600 transition-colors">홈</a>
-        <a href="index.html#category" class="hover:text-brand-600 transition-colors">카테고리</a>
-        <a href="index.html#newsletter" class="hover:text-brand-600 transition-colors">뉴스레터</a>
-        <a href="about.html" class="text-brand-600 font-bold">소개</a>
-        <a href="privacy.html" class="hover:text-brand-600 transition-colors">개인정보처리방침</a>
+
+  <!-- 헤더 -->
+  <header class="sticky top-0 z-50 bg-brand-600 text-white shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="text-xl font-black tracking-tight">캠레이더 📡</a>
+      <nav class="flex items-center gap-1 text-sm">
+        <a href="/" class="px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">홈</a>
+        <a href="/about.html" class="px-3 py-1.5 rounded-lg bg-white/20 font-bold transition-colors">소개</a>
+        <a href="/admin-platforms.html" class="px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">관리자</a>
       </nav>
-      <div class="sm:hidden flex gap-4 text-sm font-medium text-ink-500">
-        <a href="index.html#category" class="hover:text-brand-600">카테고리</a>
-        <a href="about.html" class="text-brand-600 font-bold">소개</a>
-      </div>
     </div>
   </header>
 
   <main class="max-w-3xl mx-auto px-4 py-12">
 
-    <!-- 운영자 프로필 -->
+    <!-- 타이틀 -->
+    <div class="text-center mb-12">
+      <div class="text-5xl mb-4">📡</div>
+      <h1 class="text-3xl font-black text-ink-900 mb-3">캠레이더</h1>
+      <p class="text-ink-500 text-base leading-relaxed">
+        흩어진 체험단 캠페인, 이제 한 곳에서 찾으세요.<br>
+        37개 플랫폼의 모집 정보를 실시간으로 수집합니다.
+      </p>
+    </div>
+
+    <!-- 운영자 카드 -->
     <section class="mb-12">
-      <div class="flex items-start gap-6 p-6 bg-brand-50 border border-brand-100 rounded-2xl">
-        <div class="w-16 h-16 rounded-full bg-brand-600 flex items-center justify-center text-white font-black text-2xl shrink-0">민</div>
+      <div class="flex items-start gap-5 p-6 bg-brand-50 border border-brand-100 rounded-2xl">
+        <div class="w-14 h-14 rounded-full bg-brand-600 flex items-center justify-center text-white font-black text-2xl shrink-0">📡</div>
         <div>
-          <p class="font-black text-ink-900 text-xl">김민주</p>
-          <p class="text-brand-600 font-bold text-sm mt-0.5">나만 모르는 요즘 소식 운영자</p>
+          <p class="font-black text-ink-900 text-lg">운영자</p>
+          <p class="text-brand-600 font-bold text-sm mt-0.5">캠레이더 운영팀</p>
           <p class="text-ink-500 text-sm mt-3 leading-relaxed">
-            경제·재테크·복지정책 분야의 정보를 누구나 쉽게 이해할 수 있도록 정리합니다.
-            복잡한 정책 문서와 공식 발표 자료를 직접 읽고, 실생활에 바로 적용할 수 있는 형태로 풀어냅니다.
+            국내 주요 체험단 플랫폼의 모집 캠페인을 자동으로 수집·분류해
+            인플루언서와 블로거가 더 쉽게 체험단을 찾을 수 있도록 운영하고 있습니다.
           </p>
-          <a href="mailto:mju427@naver.com" class="inline-block mt-3 text-xs text-brand-600 font-bold hover:underline">✉ mju427@naver.com</a>
+          <a href="mailto:bloginf0360@outlook.com" class="inline-block mt-3 text-xs text-brand-600 font-bold hover:underline">✉ bloginf0360@outlook.com</a>
         </div>
       </div>
     </section>
 
-    <!-- 사이트 소개 -->
+    <!-- 서비스 소개 -->
     <section class="mb-12">
-      <h2 class="section-title">이 블로그에 대해</h2>
+      <h2 class="section-title">캠레이더란?</h2>
       <div class="prose">
         <p>
-          <strong style="color:#0f172a;">나만 모르는 요즘 소식</strong>은 2026년부터 운영 중인 경제·생활정보 큐레이션 블로그입니다.
-          주소는 <strong style="color:#16a34a;">bloginfo360.com</strong>이며, 매일 새로운 정보를 업데이트합니다.
+          <strong style="color:#0f172a;">캠레이더(CAM RADAR)</strong>는 국내 37개 체험단 플랫폼의 모집 캠페인을 자동 수집하여 통합 검색 서비스로 제공합니다.
+          도메인은 <strong style="color:#16a34a;">bloginfo360.com</strong>입니다.
         </p>
         <p>
-          인터넷에는 정보가 넘쳐나지만 정작 내게 필요한 내용을 빠르게 찾기는 어렵습니다.
-          이 블로그는 그 문제를 해결하기 위해 만들어졌습니다.
-          복잡한 정책은 핵심만 추려 정리하고, 알면 돈이 되는 재테크 정보는 바로 실행할 수 있도록 풀어냅니다.
+          원하는 키워드, 지역, 카테고리로 검색하면 여러 플랫폼에 흩어진 캠페인을 한 번에 확인할 수 있습니다.
+          블로그, 인스타그램, 유튜브 등 다양한 채널의 체험단 모집 정보를 실시간으로 수집합니다.
         </p>
       </div>
     </section>
 
-    <!-- 다루는 카테고리 -->
+    <!-- 수집 플랫폼 -->
     <section class="mb-12">
-      <h2 class="section-title">다루는 카테고리</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-        <div class="p-4 bg-gray-50 rounded-xl border border-ink-100">
-          <p class="font-bold text-ink-900 text-sm mb-1">💼 보험</p>
-          <p class="text-xs text-ink-500 leading-relaxed">실손보험·암보험·자동차보험 비교, 보험료 절감 방법을 정리합니다.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-xl border border-ink-100">
-          <p class="font-bold text-ink-900 text-sm mb-1">💸 세금/절세</p>
-          <p class="text-xs text-ink-500 leading-relaxed">연말정산·종합소득세·양도세 등 세금 신고와 절세 전략을 알기 쉽게.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-xl border border-ink-100">
-          <p class="font-bold text-ink-900 text-sm mb-1">🏠 부동산</p>
-          <p class="text-xs text-ink-500 leading-relaxed">청약·전세·대출·취득세 등 꼭 알아야 할 부동산 정보.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-xl border border-ink-100">
-          <p class="font-bold text-ink-900 text-sm mb-1">🏛️ 복지정책</p>
-          <p class="text-xs text-ink-500 leading-relaxed">정부 지원금·청년·노인·장애인 복지 혜택 신청 방법을 총정리합니다.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-xl border border-ink-100">
-          <p class="font-bold text-ink-900 text-sm mb-1">📈 주식·재테크</p>
-          <p class="text-xs text-ink-500 leading-relaxed">ETF·배당주·ISA·연금저축 등 초보도 따라할 수 있는 투자 정보.</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-xl border border-ink-100">
-          <p class="font-bold text-ink-900 text-sm mb-1">📦 제품리뷰</p>
-          <p class="text-xs text-ink-500 leading-relaxed">실제 사용 후기와 가격 비교로 현명한 소비를 돕습니다.</p>
-        </div>
+      <h2 class="section-title">연동 플랫폼</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">미스터블로그</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">리뷰노트</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">체험단</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">레뷰</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">리뷰쉐어</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">태그바이</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">다이닝퀸</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">서울오빠</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">클라우드리뷰</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">아싸뷰</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">링블</div>
+        <div class="text-center text-xs py-2 px-3 bg-gray-50 rounded-xl border">외 26개 플랫폼</div>
       </div>
     </section>
 
-    <!-- 글 작성 기준 -->
+    <!-- 서비스 이용 안내 -->
     <section class="mb-12">
-      <h2 class="section-title">글 작성 기준</h2>
-      <div class="bg-ink-100/40 rounded-2xl p-5 mt-4">
-        <div class="process-step">
+      <h2 class="section-title">이용 안내</h2>
+      <div class="bg-ink-100/40 rounded-2xl p-5">
+        <div class="step-card">
           <div class="step-num">1</div>
           <div>
-            <p class="font-bold text-ink-900 text-sm mb-1">공식 자료 우선 참조</p>
-            <p class="text-xs text-ink-500 leading-relaxed">금융위원회·보건복지부·국세청·한국은행 등 정부·공공기관의 공식 발표 자료를 최우선으로 참조합니다.</p>
+            <p class="font-bold text-ink-900 text-sm mb-1">검색으로 빠르게 찾기</p>
+            <p class="text-xs text-ink-500 leading-relaxed">원하는 카테고리, 지역, 제품명 키워드를 검색하면 37개 플랫폼의 관련 캠페인을 한 번에 확인할 수 있습니다.</p>
           </div>
         </div>
-        <div class="process-step">
+        <div class="step-card">
           <div class="step-num">2</div>
           <div>
-            <p class="font-bold text-ink-900 text-sm mb-1">실시간 뉴스 데이터 기반 작성</p>
-            <p class="text-xs text-ink-500 leading-relaxed">연합뉴스·주요 경제 매체의 최신 보도를 수집해 내용의 시의성을 확인합니다. 확인되지 않은 정보는 "예정", "~로 알려짐" 등 유보적 표현을 사용합니다.</p>
+            <p class="font-bold text-ink-900 text-sm mb-1">실시간 자동 수집</p>
+            <p class="text-xs text-ink-500 leading-relaxed">매 1시간마다 각 플랫폼을 자동으로 크롤링하여 최신 모집 캠페인을 반영합니다. 모집이 마감된 캠페인은 자동으로 제거됩니다.</p>
           </div>
         </div>
-        <div class="process-step">
+        <div class="step-card">
           <div class="step-num">3</div>
           <div>
-            <p class="font-bold text-ink-900 text-sm mb-1">정보 제공 목적, 전문가 조언 대체 불가</p>
-            <p class="text-xs text-ink-500 leading-relaxed">본 블로그의 모든 콘텐츠는 일반적인 정보 제공을 목적으로 하며, 투자·재정·법률 전문가의 조언을 대체하지 않습니다.</p>
+            <p class="font-bold text-ink-900 text-sm mb-1">신청은 해당 플랫폼에서</p>
+            <p class="text-xs text-ink-500 leading-relaxed">캠레이더는 정보 검색 서비스로, 실제 체험단 신청은 각 플랫폼 사이트에서 직접 진행해주세요.</p>
           </div>
         </div>
-        <div class="process-step">
+        <div class="step-card">
           <div class="step-num">4</div>
           <div>
-            <p class="font-bold text-ink-900 text-sm mb-1">오류 수정 요청 환영</p>
-            <p class="text-xs text-ink-500 leading-relaxed">내용에 오류가 있거나 업데이트가 필요한 경우 이메일로 알려주시면 즉시 검토 후 수정합니다.</p>
+            <p class="font-bold text-ink-900 text-sm mb-1">플랫폼 추가 제안 환영</p>
+            <p class="text-xs text-ink-500 leading-relaxed">수집 대상에 없는 체험단 플랫폼이 있으면 이메일로 알려주세요. 검토 후 추가합니다.</p>
           </div>
         </div>
       </div>
@@ -178,12 +148,12 @@
     <!-- 연락처 -->
     <section class="mb-4">
       <h2 class="section-title">연락처</h2>
-      <div class="bg-brand-50 border border-brand-100 rounded-2xl p-6 mt-4">
+      <div class="bg-brand-50 border border-brand-100 rounded-2xl p-6">
         <p class="text-sm text-ink-500 leading-relaxed mb-4">
-          콘텐츠 오류 제보, 협업 제안, 광고 문의 등 모든 내용을 환영합니다.
+          플랫폼 추가 제안, 수집 오류 제보, 광고 및 협업 문의를 받습니다.
         </p>
-        <a href="mailto:mju427@naver.com" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">
-          ✉️ mju427@naver.com
+        <a href="mailto:bloginf0360@outlook.com" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">
+          ✉️ bloginf0360@outlook.com
         </a>
       </div>
     </section>
@@ -192,12 +162,12 @@
 
   <footer class="border-t border-ink-100 bg-white">
     <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
-      <span class="font-bold text-ink-500">나만 모르는 요즘 소식</span>
+      <span class="font-bold text-ink-500">캠레이더 (bloginfo360.com)</span>
       <div class="flex items-center gap-4">
-        <span>운영자: 김민주</span>
-        <a href="about.html" class="hover:text-brand-600 transition-colors">소개</a>
-        <a href="privacy.html" class="hover:text-brand-600 transition-colors">개인정보처리방침</a>
-        <a href="mailto:mju427@naver.com" class="hover:text-brand-600 transition-colors">mju427@naver.com</a>
+        <span>운영자: 운영자</span>
+        <a href="/about.html" class="hover:text-brand-600 transition-colors">소개</a>
+        <a href="/privacy.html" class="hover:text-brand-600 transition-colors">개인정보처리방침</a>
+        <a href="mailto:bloginf0360@outlook.com" class="hover:text-brand-600 transition-colors">bloginf0360@outlook.com</a>
       </div>
       <span>© 2026. All rights reserved.</span>
     </div>

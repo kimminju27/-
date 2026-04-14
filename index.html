@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>블로그인포360 — 체험단 캠페인 검색</title>
-  <meta name="description" content="37개 체험단 사이트의 캠페인을 한 곳에서 검색하세요. 블로그, 인스타, 유튜브 체험단 모집 정보를 실시간으로 확인합니다.">
+  <title>캠레이더 — 체험단 캠페인 통합 검색</title>
+  <meta name="description" content="37개 체험단 사이트의 모집 캠페인을 한 곳에서 검색하세요. 블로그·인스타·유튜브 체험단 정보를 실시간으로 확인합니다.">
   <meta name="robots" content="index, follow">
-  <meta property="og:title" content="블로그인포360 — 체험단 캠페인 검색">
-  <meta property="og:description" content="37개 체험단 사이트의 캠페인을 한 곳에서 검색하세요.">
+  <meta property="og:title" content="캠레이더 — 체험단 캠페인 통합 검색">
+  <meta property="og:description" content="37개 체험단 사이트의 모집 캠페인을 한 곳에서 검색하세요.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://bloginfo360.com/">
   <link rel="canonical" href="https://bloginfo360.com/">
@@ -60,7 +60,7 @@
 <!-- ===== 헤더 ===== -->
 <header class="bg-brand-600 text-white sticky top-0 z-50 shadow-lg">
   <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-    <a href="/" class="text-xl font-black tracking-tight">블로그인포360</a>
+    <a href="/" class="text-xl font-black tracking-tight">캠레이더 📡</a>
     <nav class="flex items-center gap-1 text-sm">
       <a href="/about.html" class="px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">소개</a>
       <a href="/admin.html" class="px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">관리자</a>
@@ -72,8 +72,8 @@
 <!-- ===== 히어로 ===== -->
 <section class="bg-gradient-to-b from-brand-600 to-brand-700 text-white py-10 px-4">
   <div class="max-w-3xl mx-auto text-center">
-    <h1 class="text-2xl md:text-3xl font-black mb-2">체험단 캠페인 통합 검색</h1>
-    <p class="text-brand-100 text-sm mb-6">37개 사이트의 체험단 모집 정보를 한 곳에서 확인하세요</p>
+    <h1 class="text-2xl md:text-3xl font-black mb-2">📡 캠레이더 — 체험단 통합 검색</h1>
+    <p class="text-brand-100 text-sm mb-6">37개 체험단 사이트의 모집 캠페인을 실시간으로 한 번에 검색하세요</p>
 
     <!-- 검색창 -->
     <div class="flex gap-2 bg-white rounded-2xl p-1.5 shadow-xl mb-5">
@@ -173,9 +173,10 @@
 
 <!-- ===== 푸터 ===== -->
 <footer class="bg-gray-800 text-gray-400 text-center py-6 text-xs">
-  <p class="mb-1">블로그인포360 — 체험단 캠페인 통합 검색</p>
+  <p class="mb-1">캠레이더 — 체험단 캠페인 통합 검색 | bloginfo360.com</p>
   <p>본 사이트는 각 체험단 플랫폼의 정보를 수집·제공하며, 캠페인 신청 및 관리 책임은 해당 플랫폼에 있습니다.</p>
   <p class="mt-2">
+    <a href="mailto:bloginf0360@outlook.com" class="hover:text-white mr-3">bloginf0360@outlook.com</a>
     <a href="/privacy.html" class="hover:text-white mr-3">개인정보처리방침</a>
     <a href="/about.html" class="hover:text-white">사이트 소개</a>
   </p>
@@ -353,7 +354,7 @@ async function loadCampaigns(reset=false) {
       .select('id,platform_name,title,campaign_url,campaign_type,applicants,capacity,deadline_text,crawled_at')
       .eq('is_active',true).order('crawled_at',{ascending:false})
       .range(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE-1)
-    if (currentKeyword) q = q.textSearch('title',currentKeyword,{type:'websearch'})
+    if (currentKeyword) q = q.ilike('title', `%${currentKeyword}%`)
     if (currentPlatform!=='전체') q = q.eq('platform_name',currentPlatform)
     if (currentType!=='전체') q = q.eq('campaign_type',currentType)
     const {data,error} = await q
