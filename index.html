@@ -231,7 +231,7 @@ async function loadStats() {
     const today = new Date().toISOString().split('T')[0]
     const [r1,r2,r3] = await Promise.all([
       sb.from('campaigns').select('id',{count:'exact',head:true}).eq('is_active',true),
-      sb.from('campaigns').select('id',{count:'exact',head:true}).eq('is_active',true).gte('first_seen_at',today+'T00:00:00'),
+      sb.from('campaigns').select('id',{count:'exact',head:true}).eq('is_active',true).gte('crawled_at',today+'T00:00:00'),
       sb.from('platforms').select('id',{count:'exact',head:true}).eq('is_active',true),
     ])
     document.getElementById('stat-total').textContent = (r1.count||0).toLocaleString()

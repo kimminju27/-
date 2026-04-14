@@ -1,7 +1,6 @@
 // 크롤러 공통 유틸리티
 import crypto from 'crypto'
 
-// 불량 제목 필터
 const BAD_TITLE_PATTERNS = [
   /^(로그인|회원가입|마이페이지|공지사항|더보기|전체보기|신청하기|목록보기|홈|HOME)$/i,
   /^(블로그|인스타|유튜브|틱톡|방문|재택|체험단|캠페인|이벤트|기자단)$/i,
@@ -13,12 +12,8 @@ const BAD_TITLE_PATTERNS = [
 function isValidTitle(title) {
   if (!title) return false
   const t = title.trim()
-  if (t.length < 6) return false
-  if (t.length > 200) return false
-  for (const pattern of BAD_TITLE_PATTERNS) {
-    if (pattern.test(t)) return false
-  }
-  return true
+  if (t.length < 6 || t.length > 200) return false
+  return !BAD_TITLE_PATTERNS.some(p => p.test(t))
 }
 
 export function makeHash(platformName, title) {
@@ -26,9 +21,9 @@ export function makeHash(platformName, title) {
 }
 
 /**
- * 캠페인 upsert
- * - 신규: INSERT (first_seen_at + crawled_at = NOW())
- * - 기존: crawled_at + is_active만 갱신 (first_seen_at 유지)
+ * 캠페인 upsert — ignoreDuplicates:true
+ * crawled_at = 최초 삽입 시각 (이후 변경 안 됨)
+ * → "오늘 신규" = crawled_at >= today 로 판별 가능
  */
 export async function upsertCampaigns(supabase, platformName, platformId, campaigns) {
   if (!campaigns || campaigns.length === 0) return { inserted: 0, skipped: 0 }
@@ -48,49 +43,22 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
       deadline_text: c.deadline_text || null,
       content_hash: makeHash(platformName, c.title.trim()),
       crawled_at: now,
-      first_seen_at: now,  // 신규 시 설정, 기존 시 ignoreDuplicates로 보존됨
       is_active: true,
     }))
 
   if (rows.length === 0) return { inserted: 0, skipped: 0 }
 
-  // Step 1: 신규 캠페인만 INSERT (기존은 건드리지 않아 first_seen_at 보존)
-  const { data: newData, error: insertErr } = await supabase
+  const { data, error } = await supabase
     .from('campaigns')
     .upsert(rows, { onConflict: 'content_hash', ignoreDuplicates: true })
     .select('id')
 
-  if (insertErr) {
-    console.error(`[${platformName}] insert 오류:`, insertErr.message)
+  if (error) {
+    console.error(`[${platformName}] upsert 오류:`, error.message)
     return { inserted: 0, skipped: rows.length }
   }
 
-  // Step 2: 기존 캠페인의 crawled_at + is_active 갱신 (청크 단위)
-  const hashes = rows.map(r => r.content_hash)
-  for (let i = 0; i < hashes.length; i += 200) {
-    const chunk = hashes.slice(i, i + 200)
-    await supabase
-      .from('campaigns')
-      .update({ crawled_at: now, is_active: true })
-      .in('content_hash', chunk)
-      .eq('platform_name', platformName)
-  }
-
-  return { inserted: newData?.length || 0, skipped: rows.length - (newData?.length || 0) }
-}
-
-/**
- * 이번 크롤에서 미수집된 캠페인 비활성화 (모집 마감 처리)
- */
-export async function deactivateOldCampaigns(supabase, platformName, crawlStart) {
-  const { error } = await supabase
-    .from('campaigns')
-    .update({ is_active: false })
-    .eq('platform_name', platformName)
-    .lt('crawled_at', crawlStart)
-    .eq('is_active', true)
-
-  if (error) console.warn(`[${platformName}] 비활성화 실패:`, error.message)
+  return { inserted: data?.length || 0, skipped: rows.length - (data?.length || 0) }
 }
 
 export async function fetchWithRetry(url, options = {}, retries = 2) {

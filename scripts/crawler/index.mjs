@@ -1,6 +1,6 @@
 // 크롤러 진입점 — GitHub Actions에서 실행
 import { createClient } from '@supabase/supabase-js'
-import { upsertCampaigns, deactivateOldCampaigns } from './utils.mjs'
+import { upsertCampaigns } from './utils.mjs'
 
 // 파서 목록 (사이트별 파서 동적 import)
 import { parse as parseNaverBlog } from './parsers/naver-blog.mjs'
@@ -125,7 +125,6 @@ async function main() {
 
     try {
       console.log(`[${platform.name}] 크롤링 시작...`)
-      const crawlStart = new Date().toISOString()
       const campaigns = await parser.fn(parser.url)
 
       if (campaigns.length > 0) {
@@ -133,19 +132,15 @@ async function main() {
           supabase, platform.name, platform.id, campaigns
         )
 
-        // 이번 크롤 전에 수집된 캠페인 비활성화 (= 모집마감으로 목록에서 사라진 것)
-        await deactivateOldCampaigns(supabase, platform.name, crawlStart)
-
-        // last_crawled_at 업데이트
         await supabase
           .from('platforms')
           .update({ last_crawled_at: new Date().toISOString() })
           .eq('id', platform.id)
 
-        console.log(`[${platform.name}] 완료: ${inserted}개 갱신, 총 ${campaigns.length}개 수집`)
+        console.log(`[${platform.name}] 완료: ${inserted}개 신규, 총 ${campaigns.length}개 수집`)
         totalInserted += inserted
       } else {
-        console.log(`[${platform.name}] 수집 결과 없음 — 비활성화 생략`)
+        console.log(`[${platform.name}] 수집 결과 없음`)
       }
     } catch (err) {
       console.error(`[${platform.name}] 실패:`, err.message)
