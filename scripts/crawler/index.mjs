@@ -37,7 +37,6 @@ import { parse as parseCashnote } from './parsers/cashnote.mjs'
 import { parse as parsePavlovu } from './parsers/pavlovu.mjs'
 import { parse as parseReviewting } from './parsers/reviewting.mjs'
 import { parse as parseXnChehumdan } from './parsers/xn-chehumdan.mjs'
-import { parse as parseXnChehumdan2 } from './parsers/xn-chehumdan2.mjs'
 import { parse as parseXnBlogchehumdan } from './parsers/xn-blogchehumdan.mjs'
 import { parse as parseXnReviewmoeum } from './parsers/xn-reviewmoeum.mjs'
 
@@ -80,7 +79,6 @@ const PARSERS = {
   '블로그랩':        { fn: parseBloglab,      url: 'https://bloglab.kr/index.php' },
   '메타체험단':      { fn: parseMetachehumdan,url: 'https://meta-chehumdan.com/index.php' },
   '오마이블로그':    { fn: parseOhmyblog,     url: 'https://www.ohmyblog.co.kr/' },
-  '체험단XN2':       { fn: parseXnChehumdan2, url: 'https://xn--vk1bn0kvydxrlprb.com/' },
 }
 
 // Supabase 클라이언트 (service_role 키 사용)
