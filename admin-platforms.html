@@ -78,6 +78,27 @@
 
   <!-- ===== 탭1: 플랫폼 관리 ===== -->
   <div id="tab-platforms" class="tab-content space-y-6">
+
+    <!-- GitHub 토큰 설정 카드 -->
+    <div id="token-card" class="bg-white rounded-2xl shadow-sm border p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-bold text-sm">GitHub 토큰 설정</h3>
+          <p class="text-xs text-gray-400 mt-0.5">크롤링 실행을 위해 <code class="bg-gray-100 px-1 rounded">workflow</code> 권한이 있는 Classic PAT가 필요합니다.</p>
+        </div>
+        <span id="token-status" class="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-600">미설정</span>
+      </div>
+      <div class="flex gap-2">
+        <input id="github-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+          class="flex-1 px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+        <button id="token-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors">저장</button>
+        <button id="token-clear-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold px-3 py-2 rounded-lg text-sm transition-colors">초기화</button>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">
+        📌 <a href="https://github.com/settings/tokens/new?scopes=workflow,repo" target="_blank" class="text-blue-500 underline">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</a>에서 <strong>workflow</strong> 체크 후 생성
+      </p>
+    </div>
+
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-black">플랫폼 관리</h2>
       <div class="flex gap-2">
@@ -208,7 +229,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // 생성 방법: https://emn178.github.io/online-tools/sha256.html
 const ADMIN_PW_HASH = 'cdfa2aac702320116321895722f624af9c1220932ce94afbb277268b6b4194b9'
 
-let githubToken = ''
+let githubToken = localStorage.getItem('gh_crawl_token') || ''
 
 // =============================================
 // 인증
@@ -281,7 +302,40 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 캠페인 정리
   document.getElementById('cleanup-btn')?.addEventListener('click', cleanupCampaigns)
   document.getElementById('refresh-campaigns-btn')?.addEventListener('click', loadCampaignStats)
+
+  // GitHub 토큰 UI
+  updateTokenStatus()
+  document.getElementById('token-save-btn').addEventListener('click', () => {
+    const val = document.getElementById('github-token-input').value.trim()
+    if (!val) { showToast('토큰을 입력해주세요','error'); return }
+    if (!val.startsWith('ghp_') && !val.startsWith('github_pat_')) {
+      showToast('올바른 GitHub PAT 형식이 아닙니다 (ghp_ 또는 github_pat_ 로 시작해야 함)','error'); return
+    }
+    localStorage.setItem('gh_crawl_token', val)
+    githubToken = val
+    document.getElementById('github-token-input').value = ''
+    updateTokenStatus()
+    showToast('토큰이 저장되었습니다','success')
+  })
+  document.getElementById('token-clear-btn').addEventListener('click', () => {
+    localStorage.removeItem('gh_crawl_token')
+    githubToken = ''
+    document.getElementById('github-token-input').value = ''
+    updateTokenStatus()
+    showToast('토큰이 초기화되었습니다','success')
+  })
 })
+
+function updateTokenStatus() {
+  const el = document.getElementById('token-status')
+  if (githubToken) {
+    el.textContent = '설정됨 ✓'
+    el.className = 'text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-600'
+  } else {
+    el.textContent = '미설정'
+    el.className = 'text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-600'
+  }
+}
 
 // =============================================
 // 플랫폼 목록 로드
@@ -372,9 +426,12 @@ async function deletePlatform(id, name) {
 // 크롤링 실행 (GitHub Actions workflow_dispatch)
 // =============================================
 async function triggerCrawl(platformName) {
-  const token = githubToken || prompt('GitHub Personal Access Token 입력 (workflow 권한 필요):')
-  if (!token) return
-  githubToken = token
+  const token = githubToken
+  if (!token) {
+    showToast('먼저 상단의 "GitHub 토큰 설정"에 PAT를 입력해주세요','error')
+    document.getElementById('github-token-input').focus()
+    return
+  }
 
   const body = {
     ref: 'main',
