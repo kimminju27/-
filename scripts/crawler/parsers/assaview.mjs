@@ -24,8 +24,12 @@ export async function parse(baseUrl) {
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
 
-        const title = $a.find('span.subject').first().text().trim()
+        const rawTitle = $a.find('span.subject').first().text().trim()
           || $a.text().replace(/\s+/g, ' ').trim()
+        // 날짜/시간 prefix 제거: "2026/04/21 23:59:59 " 패턴
+        const title = rawTitle
+          .replace(/^\d{4}[\/\-]\d{2}[\/\-]\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '')
+          .trim()
         if (!title || title.length < 4) return
 
         const deadlineText = $el.find('[class*="day"], [class*="dday"], .deadline').first().text().trim()
