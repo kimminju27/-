@@ -21,8 +21,8 @@ export async function parse(baseUrl) {
         const link = $el.find('a').first().attr('href')
         const applyText = $el.find('[class*="apply"], [class*="count"], .apply-count').first().text()
         const capacityText = $el.find('[class*="capacity"], [class*="limit"], .total').first().text()
-        const deadline = $el.find('[class*="deadline"], [class*="date"], .d-day').first().text().trim()
-        const typeText = $el.find('[class*="type"], [class*="channel"], .media-type').first().text().trim()
+        const deadline = $el.find('[class*="dday"],[class*="d-day"],[class*="remain"],[class*="day"],[class*="deadline"],[class*="timer"],[class*="date"],[class*="expire"]').first().text().trim()
+        const typeText = $el.find('[class*="type"],[class*="channel"],[class*="media"],[class*="tag"],[class*="badge"],[class*="kind"],[class*="category"]').first().text().trim()
 
         if (!title || !link) return
 

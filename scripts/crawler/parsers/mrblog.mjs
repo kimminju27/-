@@ -28,8 +28,8 @@ export async function parse(baseUrl) {
 
         if (!title || title.length < 6) return
 
-        const deadlineText = $el.find('[class*="day"], [class*="deadline"], [class*="date"], .dday').first().text().trim()
-        const typeText = $el.find('[class*="type"], [class*="channel"], .reels, .clip').first().text().trim()
+        const deadlineText = $el.find('[class*="dday"],[class*="d-day"],[class*="remain"],[class*="day"],[class*="deadline"],[class*="timer"],[class*="date"],[class*="expire"]').first().text().trim()
+        const typeText = $el.find('[class*="type"],[class*="channel"],[class*="media"],[class*="tag"],[class*="badge"],[class*="kind"],[class*="category"],.reels,.clip').first().text().trim()
         const applyText = $el.find('[class*="apply"], [class*="count"]').first().text()
         const capacityText = $el.find('[class*="limit"], [class*="total"], [class*="capacity"]').first().text()
 

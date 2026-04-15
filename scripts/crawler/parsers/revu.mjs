@@ -23,10 +23,10 @@ export async function parse(baseUrl) {
 
         if (!title || !href || title.length < 5) return
 
-        const typeEl = $el.find('[class*="type"], [class*="channel"]').first().text().trim()
+        const typeEl = $el.find('[class*="type"],[class*="channel"],[class*="media"],[class*="tag"],[class*="badge"],[class*="kind"],[class*="category"]').first().text().trim()
         const applyEl = $el.find('[class*="apply"], [class*="count"]').first().text()
         const capacityEl = $el.find('[class*="limit"], [class*="total"]').first().text()
-        const deadlineEl = $el.find('[class*="day"], [class*="date"]').first().text().trim()
+        const deadlineEl = $el.find('[class*="dday"],[class*="d-day"],[class*="remain"],[class*="day"],[class*="deadline"],[class*="timer"],[class*="date"],[class*="expire"]').first().text().trim()
 
         items.push({
           title,

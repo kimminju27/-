@@ -45,11 +45,11 @@ export async function genericParse(baseUrl, config) {
 
         // 불필요한 부분 제거 (날짜·상태·카운트 텍스트 등)
         title = title
-          .replace(/\d{4}[.\/-]\d{2}[.\/-]\d{2}(\s+\d{2}:\d{2}(:\d{2})?)?/g, '')
-          .replace(/^(배송형|구매형|방문형|재택형|구매평형)\s*/g, '')
+          .replace(/\d{4}[.\/-]\d{2}[.\/-]\d{2}(\s*\d{2}:\d{2}(:\d{2})?)?/g, '')
+          .replace(/^(매장방문형|배송형|구매형|방문형|재택형|구매평형|기자단형)\s*/g, '')
           .replace(/\d+\s*일\s*남음/g, '')
-          .replace(/신청\s*[\d,]+\s*\/\s*[\d,]+명?/g, '')
-          .replace(/D-\d+/g, '')
+          .replace(/\(?\s*신청\s*[\d,]+\s*\/\s*[\d,]+\s*명?\s*\)?/g, '')
+          .replace(/D-\d+/gi, '')
           .replace(/\s*오늘\s*마감/g, '')
           .replace(/\s+/g, ' ')
           .trim()
@@ -65,18 +65,22 @@ export async function genericParse(baseUrl, config) {
           ? href
           : href ? `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}` : baseUrl
 
-        const typeText = config.typeSelector
+        // 타입 셀렉터: 설정값 우선, 없으면 공통 폴백 (방문·채널 감지용)
+        const typeText = (config.typeSelector
           ? $el.find(config.typeSelector).first().text().trim()
-          : ''
+          : '') ||
+          $el.find('[class*="type"],[class*="kind"],[class*="category"],[class*="tag"],[class*="badge"],[class*="channel"],[class*="media"]').first().text().trim()
         const applyText = config.applicantsSelector
           ? $el.find(config.applicantsSelector).first().text()
           : ''
         const capacityText = config.capacitySelector
           ? $el.find(config.capacitySelector).first().text()
           : ''
-        const deadlineText = config.deadlineSelector
+        // 마감일 셀렉터: 설정값 우선, 없으면 공통 폴백
+        const deadlineText = (config.deadlineSelector
           ? $el.find(config.deadlineSelector).first().text().trim()
-          : ''
+          : '') ||
+          $el.find('[class*="day"],[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="timer"],[class*="expire"],[class*="date"]').first().text().trim()
 
         items.push({
           title,

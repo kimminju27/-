@@ -640,9 +640,16 @@ async function loadCampaigns(reset=false) {
 
     if (currentKeyword) q = q.ilike('title', `%${currentKeyword}%`)
     if (currentPlatform!=='전체') q = q.eq('platform_name',currentPlatform)
-    // 블로그 필터 = 블로그 + 재택 모두 포함 (배송형/구매형은 재택으로 분류됨)
-    if (currentType==='블로그') q = q.in('campaign_type',['블로그','재택'])
-    else if (currentType!=='전체') q = q.eq('campaign_type',currentType)
+    // 타입 필터: .or()에서 ilike 와일드카드는 * 사용 (PostgREST 규칙)
+    if (currentType!=='전체') {
+      if (currentType==='블로그') {
+        // 블로그 + 재택 + "방문,블로그" 같은 복합 타입 포함
+        q = q.or('campaign_type.eq.블로그,campaign_type.eq.재택,campaign_type.ilike.*블로그*')
+      } else {
+        // 단일 타입 정확 매칭 + 복합 타입(콤마 포함) 포함
+        q = q.or(`campaign_type.eq.${currentType},campaign_type.ilike.*${currentType}*`)
+      }
+    }
     if (filterAvailable) q = q.not('capacity','is',null).gt('capacity',0)
     if (filterToday) {
       const today = new Date().toISOString().split('T')[0]
@@ -679,6 +686,31 @@ async function loadCampaigns(reset=false) {
 // 캠페인 데이터 캐시 (모달용)
 const campaignCache = {}
 
+// deadline_text → D-day 변환 (카드 썸네일용)
+function calcDday(text) {
+  if (!text) return null
+  const t = text.trim()
+  if (/^D[-+]?\d+$/i.test(t)) return t  // 이미 D-day 포맷
+  let year, month, day
+  // 범위 "~" 포함 시 종료일 사용 (예: "26-04-15 ~ 26-04-21")
+  const rangeMatch = t.match(/~\s*(\d{2,4})[-\/](\d{1,2})[-\/](\d{1,2})/)
+  if (rangeMatch) {
+    year = parseInt(rangeMatch[1]); if (year < 100) year += 2000
+    month = parseInt(rangeMatch[2]); day = parseInt(rangeMatch[3])
+  } else {
+    const m = t.match(/(\d{2,4})[-\/](\d{1,2})[-\/](\d{1,2})/)
+    if (!m) return null
+    year = parseInt(m[1]); if (year < 100) year += 2000
+    month = parseInt(m[2]); day = parseInt(m[3])
+  }
+  const target = new Date(year, month-1, day)
+  const now = new Date(); now.setHours(0,0,0,0); target.setHours(0,0,0,0)
+  const diff = Math.round((target - now) / 86400000)
+  if (diff < 0) return '마감'
+  if (diff === 0) return 'D-0'
+  return `D-${diff}`
+}
+
 function renderCard(c) {
   campaignCache[c.id] = c
   const pct = c.capacity ? Math.min(100,Math.round((c.applicants/c.capacity)*100)) : 0
@@ -693,21 +725,25 @@ function renderCard(c) {
     재택:{cls:'bg-emerald-100 text-emerald-700'},
     틱톡:{cls:'bg-gray-100 text-gray-700'},
   }
-  const type = c.campaign_type||'블로그'
-  const typeInfo = typeMap[type]||{cls:'bg-gray-100 text-gray-600'}
+  // 다중 타입 지원 (콤마 구분, 예: "방문,블로그")
+  const types = (c.campaign_type||'블로그').split(',').map(t=>t.trim()).filter(Boolean)
+  const typeBadges = types.map(t=>{const ti=typeMap[t]||{cls:'bg-gray-100 text-gray-600'};return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${ti.cls}">${escapeHtml(t)}</span>`}).join('')
   const remaining = c.capacity ? c.capacity - (c.applicants||0) : null
   const remainBadge = remaining !== null && remaining <= 5 && remaining > 0
     ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-600 animate-pulse">잔여 ${remaining}명</span>`
     : ''
-  const deadlineRow = c.deadline_text
-    ? `<div class="text-xs font-semibold" style="color:#d97706;">⏰ 마감 ${escapeHtml(c.deadline_text)}</div>`
+  // 카드에는 D-day 형식, 색상은 긴박도에 따라 변경
+  const dday = calcDday(c.deadline_text)
+  const ddayColor = !dday ? '' : dday==='마감'||dday==='D-0' ? '#ef4444' : dday.startsWith('D-') && parseInt(dday.slice(2))<=3 ? '#f59e0b' : '#d97706'
+  const deadlineRow = dday
+    ? `<div class="text-xs font-semibold" style="color:${ddayColor};">⏰ ${dday}</div>`
     : ''
-  return `<article class="campaign-card bg-white rounded-2xl shadow-card p-4 flex flex-col gap-2.5 cursor-pointer" data-type="${escapeHtml(type)}" onclick="openModal('${c.id}')">
+  return `<article class="campaign-card bg-white rounded-2xl shadow-card p-4 flex flex-col gap-2.5 cursor-pointer" data-type="${escapeHtml(c.campaign_type||'블로그')}" onclick="openModal('${c.id}')">
   <div class="flex items-center justify-between gap-2">
     <span class="px-2.5 py-0.5 rounded-full text-xs font-bold truncate max-w-[110px]" style="background:#fef3c7;color:#92400e;">${escapeHtml(c.platform_name)}</span>
-    <div class="flex items-center gap-1 shrink-0">
+    <div class="flex items-center gap-1 flex-wrap shrink-0 justify-end">
       ${remainBadge}
-      <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${typeInfo.cls}">${type}</span>
+      ${typeBadges}
     </div>
   </div>
   <h3 class="font-bold text-gray-900 text-sm leading-snug line-clamp-2 flex-1">${escapeHtml(c.title)}</h3>
@@ -745,12 +781,12 @@ function openModal(id) {
     재택:{cls:'bg-emerald-100 text-emerald-700'},
     틱톡:{cls:'bg-gray-100 text-gray-700'},
   }
-  const type = c.campaign_type||'블로그'
-  const typeInfo = typeMap[type]||{cls:'bg-gray-100 text-gray-600'}
+  const types = (c.campaign_type||'블로그').split(',').map(t=>t.trim()).filter(Boolean)
+  const typeBadgesModal = types.map(t=>{const ti=typeMap[t]||{cls:'bg-gray-100 text-gray-600'};return `<span class="px-3 py-1 rounded-full text-xs font-bold ${ti.cls}">${escapeHtml(t)}</span>`}).join('')
 
   document.getElementById('modal-badges').innerHTML = `
     <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#fef3c7;color:#92400e;">${escapeHtml(c.platform_name)}</span>
-    <span class="px-3 py-1 rounded-full text-xs font-bold ${typeInfo.cls}">${type}</span>
+    ${typeBadgesModal}
   `
   document.getElementById('modal-title').textContent = c.title
 
@@ -782,7 +818,7 @@ function openModal(id) {
     </div>
     <div class="bg-gray-50 rounded-xl p-3 text-center">
       <div class="text-xs text-gray-400 mb-1">채널</div>
-      <div class="text-sm font-bold text-gray-700">${c.campaign_type || '블로그'}</div>
+      <div class="text-sm font-bold text-gray-700">${(c.campaign_type||'블로그').split(',').map(t=>t.trim()).join(' · ')}</div>
     </div>
   `
 

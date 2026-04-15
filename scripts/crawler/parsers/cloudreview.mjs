@@ -23,13 +23,19 @@ export async function parse(baseUrl) {
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
 
-        const title = $el.find('h2, h3, h4, [class*="title"], [class*="name"], p').first().text().trim()
+        const rawTitle = $el.find('h2, h3, h4, [class*="title"], [class*="name"], p').first().text().trim()
           || $el.text().replace(/\s+/g, ' ').trim()
+        const title = rawTitle
+          .replace(/\d{4}[.\/-]\d{2}[.\/-]\d{2}(\s*\d{2}:\d{2}(:\d{2})?)?/g, '')
+          .replace(/\(?\s*신청\s*[\d,]+\s*\/\s*[\d,]+\s*명?\s*\)?/g, '')
+          .replace(/\d+\s*일\s*남음/g, '').replace(/D-\d+/gi, '')
+          .replace(/^(매장방문형|배송형|구매형|방문형|재택형)\s*/g, '')
+          .replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
 
         const $card = $el.closest('[class*="card"], [class*="item"], li')
-        const deadlineText = $card.find('[class*="day"], [class*="deadline"]').first().text().trim()
-        const typeText = $card.find('[class*="type"], [class*="category"]').first().text().trim()
+        const deadlineText = $card.find('[class*="dday"],[class*="d-day"],[class*="remain"],[class*="day"],[class*="deadline"],[class*="timer"],[class*="date"]').first().text().trim()
+        const typeText = $card.find('[class*="type"],[class*="category"],[class*="tag"],[class*="badge"],[class*="kind"],[class*="channel"],[class*="media"]').first().text().trim()
         const applyText = $card.find('[class*="apply"], [class*="count"]').first().text()
         const capacityText = $card.find('[class*="limit"], [class*="모집"]').first().text()
 

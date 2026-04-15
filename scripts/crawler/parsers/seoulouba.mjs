@@ -28,14 +28,18 @@ export async function parse(baseUrl) {
           || $a.text().replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
 
-        const deadlineText = $el.find('[class*="day"], [class*="dday"]').first().text().trim()
+        const deadlineText = $el.find(
+          '[class*="dday"],[class*="d-day"],[class*="d_day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="day"],[class*="timer"],[class*="date"]'
+        ).first().text().trim()
         const typeImgSrc = $el.find('img[src*="thum_ch_"]').first().attr('src') || ''
+        // 매장방문형 등 카테고리 텍스트도 함께 전달 (다중 타입 감지)
+        const categoryText = $el.find('[class*="tag"],[class*="type"],[class*="category"],[class*="badge"],[class*="kind"]').first().text().trim()
         const applyText = $el.find('[class*="apply"], [class*="cnt"]').first().text()
 
         items.push({
           title,
           campaign_url: fullUrl,
-          campaign_type: detectType('', typeImgSrc ? [typeImgSrc] : []),
+          campaign_type: detectType(categoryText, typeImgSrc ? [typeImgSrc] : []),
           applicants: parseNum(applyText),
           capacity: null,
           deadline_text: deadlineText || null,

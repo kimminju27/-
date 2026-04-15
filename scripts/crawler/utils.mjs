@@ -30,27 +30,39 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
 
   const now = new Date().toISOString()
 
+  // 모든 파서 공통 제목 정제 (신청수·날짜·타입접두 제거)
+  const sanitizeTitle = (raw) => raw
+    .replace(/\d{4}[.\/-]\d{2}[.\/-]\d{2}(\s*\d{2}:\d{2}(:\d{2})?)?/g, '')
+    .replace(/\(?\s*신청\s*[\d,]+\s*\/\s*[\d,]+\s*명?\s*\)?/g, '')
+    .replace(/\d+\s*일\s*남음/g, '')
+    .replace(/D-\d+/gi, '')
+    .replace(/\s*오늘\s*마감/g, '')
+    .replace(/^(매장방문형|배송형|구매형|방문형|재택형|구매평형|기자단형)\s*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
   const rows = campaigns
     .filter(c => c.title && c.campaign_url && isValidTitle(c.title))
     .map(c => ({
       platform_id: platformId || null,
       platform_name: platformName,
-      title: c.title.trim().substring(0, 200),
+      title: sanitizeTitle(c.title).substring(0, 200),
       campaign_url: c.campaign_url,
       campaign_type: c.campaign_type || '블로그',
       applicants: parseInt(c.applicants) || 0,
       capacity: parseInt(c.capacity) || null,
       deadline_text: c.deadline_text || null,
       content_hash: makeHash(platformName, c.title.trim()),
-      crawled_at: now,
+      // crawled_at 제외 → 신규 행은 DB DEFAULT(NOW()), 기존 행은 원래 값 유지
       is_active: true,
     }))
 
   if (rows.length === 0) return { inserted: 0, skipped: 0 }
 
+  // ignoreDuplicates: false → 기존 행의 deadline_text·applicants·campaign_type 업데이트
   const { data, error } = await supabase
     .from('campaigns')
-    .upsert(rows, { onConflict: 'content_hash', ignoreDuplicates: true })
+    .upsert(rows, { onConflict: 'content_hash', ignoreDuplicates: false })
     .select('id')
 
   if (error) {
@@ -88,25 +100,39 @@ export function parseNum(text) {
 
 /**
  * 캠페인 타입 감지 — 모든 파서 공유
- * imgSrcs: 카드 내 img src 배열 (아이콘 기반 감지용)
+ * imgSrcs: 카드 내 img src 배열 (아이콘 기반 채널 감지용)
+ * 방문형 캠페인은 "방문,블로그" 또는 "방문,인스타" 등 다중 타입 반환
  */
 export function detectType(text, imgSrcs = []) {
-  // 아이콘 기반 감지 (assaview 등)
+  // 1) 채널 타입 감지 (아이콘 우선)
+  let channelType = null
   if (imgSrcs.length) {
-    if (imgSrcs.some(s => /insta_icon|insta-icon/i.test(s))) return '인스타'
-    if (imgSrcs.some(s => /clip_icon|clip-icon|naver.clip/i.test(s))) return '클립'
-    if (imgSrcs.some(s => /youtube|yt_icon/i.test(s))) return '유튜브'
-    if (imgSrcs.some(s => /reels/i.test(s))) return '릴스'
+    if (imgSrcs.some(s => /insta_icon|insta-icon/i.test(s))) channelType = '인스타'
+    else if (imgSrcs.some(s => /clip_icon|clip-icon|naver.clip/i.test(s))) channelType = '클립'
+    else if (imgSrcs.some(s => /youtube|yt_icon/i.test(s))) channelType = '유튜브'
+    else if (imgSrcs.some(s => /reels/i.test(s))) channelType = '릴스'
   }
-  if (!text) return '블로그'
-  const t = text.toLowerCase()
-  if (t.includes('릴스') || t.includes('reels')) return '릴스'
-  if (t.includes('클립') || t.includes('naverclip') || (t.includes('클립') && t.includes('naver'))) return '클립'
-  if (t.includes('인스타') || t.includes('instagram')) return '인스타'
-  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
-  if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
-  if (t.includes('방문')) return '방문'
-  // 배송형/구매형/구매평 → 재택
-  if (t.includes('재택') || t.includes('배송') || t.includes('구매')) return '재택'
-  return '블로그'
+  const t = (text || '').toLowerCase()
+  if (!channelType) {
+    if (t.includes('릴스') || t.includes('reels')) channelType = '릴스'
+    else if (t.includes('클립') || t.includes('naverclip')) channelType = '클립'
+    else if (t.includes('인스타') || t.includes('instagram')) channelType = '인스타'
+    else if (t.includes('유튜브') || t.includes('youtube')) channelType = '유튜브'
+    else if (t.includes('틱톡') || t.includes('tiktok')) channelType = '틱톡'
+  }
+
+  // 2) 형식 타입 감지
+  const isVisit = t.includes('방문') || t.includes('매장')
+  const isHome  = t.includes('재택') || t.includes('배송') || t.includes('구매')
+
+  // 3) 방문형: 채널과 조합 (예: "방문,블로그" / "방문,인스타")
+  if (isVisit) {
+    const ch = channelType || '블로그'
+    return `방문,${ch}`
+  }
+
+  // 4) 재택형 (배송/구매평)
+  if (isHome) return '재택'
+
+  return channelType || '블로그'
 }
