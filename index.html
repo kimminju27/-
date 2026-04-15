@@ -23,13 +23,15 @@
       theme: {
         extend: {
           colors: {
-            brand: { 50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',500:'#a855f7',600:'#9333ea',700:'#7e22ce' },
-            ink: { 900:'#0f172a',700:'#1e293b',500:'#475569',300:'#94a3b8',100:'#f1f5f9' }
+            brand: { 50:'#fffbeb',100:'#fef3c7',200:'#fde68a',500:'#f59e0b',600:'#d97706',700:'#b45309' },
+            navy: { 900:'#080f1f',800:'#0c1830',700:'#102040',600:'#1a2f55' },
+            ink: { 900:'#0f172a',700:'#1e293b',500:'#475569',300:'#94a3b8',100:'#f1f5f9' },
+            gold: { light:'#fde68a',DEFAULT:'#d97706',dark:'#92400e' }
           },
           fontFamily: { sans: ['Noto Sans KR','sans-serif'] },
           boxShadow: {
-            'card': '0 2px 8px rgba(15,23,42,0.08)',
-            'card-hover': '0 12px 28px rgba(147,51,234,0.18)',
+            'card': '0 2px 12px rgba(8,15,31,0.07)',
+            'card-hover': '0 16px 40px rgba(217,119,6,0.15)',
           }
         }
       }
@@ -45,146 +47,149 @@
   <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1/build/d3.layout.cloud.js"></script>
 
   <style>
-    body { font-family: 'Noto Sans KR', sans-serif; background:#faf8ff; }
+    body { font-family: 'Noto Sans KR', sans-serif; background:#fdfcf7; }
     .line-clamp-2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
-    .campaign-card { transition: box-shadow 0.2s, transform 0.2s; border-left: 3px solid transparent; }
-    .campaign-card:hover { box-shadow:0 12px 28px rgba(147,51,234,0.18);transform:translateY(-3px); }
-    .campaign-card[data-type="블로그"] { border-left-color:#3b82f6; }
-    .campaign-card[data-type="인스타"] { border-left-color:#ec4899; }
-    .campaign-card[data-type="유튜브"] { border-left-color:#ef4444; }
-    .campaign-card[data-type="방문"] { border-left-color:#8b5cf6; }
-    .campaign-card[data-type="재택"] { border-left-color:#10b981; }
+    .campaign-card { transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s; border:1px solid #f0ece0; border-left:3px solid #e5e0d0; }
+    .campaign-card:hover { box-shadow:0 16px 40px rgba(217,119,6,0.13);transform:translateY(-3px);border-color:#d97706; border-left-color:#d97706; }
     .tag-chip { cursor:pointer;transition:background 0.15s,color 0.15s; }
-    .skeleton { background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:shimmer 1.5s infinite; }
+    .skeleton { background:linear-gradient(90deg,#f5f0e8 25%,#ece7da 50%,#f5f0e8 75%);background-size:200% 100%;animation:shimmer 1.5s infinite; }
     @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
-    ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#f3e8ff}::-webkit-scrollbar-thumb{background:#9333ea;border-radius:3px}
-    .hero-pattern { background-image: radial-gradient(circle at 20% 50%, rgba(168,85,247,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(236,72,153,0.1) 0%, transparent 40%); }
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f5f0e8}::-webkit-scrollbar-thumb{background:#d97706;border-radius:3px}
+    .gold-btn { background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff; }
+    .gold-btn:hover { background:linear-gradient(135deg,#d97706,#b45309); }
+    .gold-line { background:linear-gradient(90deg,transparent,#d97706,transparent);height:1px; }
+    .hero-glow { background-image:radial-gradient(ellipse at 30% 60%,rgba(245,158,11,0.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(251,191,36,0.06) 0%,transparent 50%); }
+    .stat-card { border-bottom:2px solid transparent;transition:border-color 0.2s; }
+    .stat-card:hover { border-bottom-color:#d97706; }
   </style>
 </head>
-<body class="text-ink-900" style="background:#faf8ff;">
+<body class="text-ink-900" style="background:#fdfcf7;">
 
 <!-- ===== 헤더 ===== -->
-<header class="sticky top-0 z-50 shadow-lg" style="background:linear-gradient(135deg,#1e1b4b 0%,#4c1d95 100%);">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-    <a href="/" class="text-xl font-black tracking-tight text-white flex items-center gap-2">
-      <span class="text-2xl">📡</span>
-      <span>캠레이더</span>
-      <span class="text-xs font-normal bg-white/20 px-2 py-0.5 rounded-full text-purple-200">BETA</span>
+<header class="sticky top-0 z-50" style="background:#080f1f;border-bottom:1px solid rgba(217,119,6,0.25);">
+  <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5">
+      <span class="text-xl">📡</span>
+      <span class="text-lg font-black tracking-tight" style="color:#f5c842;">캠레이더</span>
+      <span class="text-xs font-medium px-2 py-0.5 rounded border text-xs" style="color:#d97706;border-color:rgba(217,119,6,0.4);background:rgba(217,119,6,0.08);">BETA</span>
     </a>
     <nav class="flex items-center gap-1 text-sm">
-      <a href="/about.html" class="px-3 py-1.5 rounded-lg text-purple-200 hover:bg-white/20 hover:text-white transition-colors">소개</a>
+      <a href="/about.html" class="px-3 py-1.5 rounded-lg transition-colors" style="color:#9ca3af;" onmouseover="this.style.color='#f5c842'" onmouseout="this.style.color='#9ca3af'">소개</a>
     </nav>
   </div>
 </header>
 
 <!-- ===== 히어로 ===== -->
-<section class="hero-pattern text-white py-12 px-4" style="background:linear-gradient(135deg,#2e1065 0%,#4c1d95 50%,#7e22ce 100%);">
+<section class="hero-glow text-white py-14 px-4" style="background:#080f1f;">
   <div class="max-w-3xl mx-auto text-center">
-    <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs text-purple-200 mb-4">
-      <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+    <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs mb-5" style="background:rgba(217,119,6,0.12);border:1px solid rgba(217,119,6,0.3);color:#fbbf24;">
+      <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
       실시간 업데이트 중
     </div>
-    <h1 class="text-2xl md:text-4xl font-black mb-3 leading-tight">체험단 캠페인<br>한 번에 다 찾자</h1>
-    <p class="text-purple-200 text-sm mb-7">37개 체험단 사이트 캠페인을 실시간으로 통합 검색</p>
+    <h1 class="text-3xl md:text-5xl font-black mb-4 leading-tight" style="color:#fdfcf7;">체험단 캠페인<br><span style="color:#f5c842;">한 번에</span> 다 찾자</h1>
+    <p class="text-sm mb-8" style="color:#6b7280;">37개 체험단 사이트 캠페인을 실시간으로 통합 검색</p>
 
     <!-- 검색창 -->
-    <div class="flex gap-2 bg-white rounded-2xl p-1.5 shadow-2xl mb-5" style="box-shadow:0 20px 60px rgba(46,16,101,0.3);">
-      <span class="pl-3 text-gray-400 flex items-center text-lg">🔍</span>
+    <div class="flex gap-2 rounded-2xl p-1.5 mb-6" style="background:#fff;box-shadow:0 24px 64px rgba(0,0,0,0.4),0 0 0 1px rgba(217,119,6,0.2);">
+      <span class="pl-3 flex items-center text-lg" style="color:#d97706;">🔍</span>
       <input id="search-input" type="text"
         placeholder="예) 뷰티 체험단, 서울 맛집, 강아지 간식..."
-        class="flex-1 text-gray-800 text-sm outline-none px-2 py-2 bg-transparent" autocomplete="off">
+        class="flex-1 text-gray-800 text-sm outline-none px-2 py-2.5 bg-transparent" autocomplete="off">
       <button id="search-btn"
-        class="active:scale-95 text-white font-bold px-6 py-2 rounded-xl text-sm transition-all"
-        style="background:linear-gradient(135deg,#9333ea,#7e22ce);">
+        class="gold-btn active:scale-95 font-bold px-6 py-2 rounded-xl text-sm transition-all">
         검색
       </button>
     </div>
 
     <!-- 추천 검색어 -->
     <div class="mb-3">
-      <span class="text-purple-300 text-xs">💡 추천&nbsp;</span>
+      <span class="text-xs" style="color:#6b7280;">💡 추천&nbsp;</span>
       <span id="recommend-tags" class="inline-flex flex-wrap gap-1.5"></span>
     </div>
 
     <!-- 인기 검색어 -->
     <div>
-      <span class="text-purple-300 text-xs">🔥 인기&nbsp;</span>
+      <span class="text-xs" style="color:#6b7280;">🔥 인기&nbsp;</span>
       <span id="popular-tags" class="inline-flex flex-wrap gap-1.5"></span>
     </div>
   </div>
 </section>
+<div class="gold-line"></div>
 
 <!-- ===== 통계 배너 ===== -->
-<section class="bg-white border-b py-5 px-4">
+<section class="py-6 px-4" style="background:#fff;border-bottom:1px solid #f0ece0;">
   <div class="max-w-6xl mx-auto grid grid-cols-3 gap-4 text-center">
-    <div>
-      <div id="stat-total" class="text-2xl font-black" style="color:#9333ea">-</div>
-      <div class="text-xs text-gray-400 mt-0.5">총 캠페인</div>
+    <div class="stat-card pb-2">
+      <div id="stat-total" class="text-2xl font-black" style="color:#d97706">-</div>
+      <div class="text-xs mt-1" style="color:#9ca3af;">총 캠페인</div>
     </div>
-    <div>
-      <div id="stat-today" class="text-2xl font-black" style="color:#ec4899">-</div>
-      <div class="text-xs text-gray-400 mt-0.5">오늘 신규</div>
+    <div class="stat-card pb-2">
+      <div id="stat-today" class="text-2xl font-black" style="color:#d97706">-</div>
+      <div class="text-xs mt-1" style="color:#9ca3af;">오늘 신규</div>
     </div>
-    <div>
-      <div id="stat-platforms" class="text-2xl font-black" style="color:#6366f1">-</div>
-      <div class="text-xs text-gray-400 mt-0.5">연동 플랫폼</div>
+    <div class="stat-card pb-2">
+      <div id="stat-platforms" class="text-2xl font-black" style="color:#d97706">-</div>
+      <div class="text-xs mt-1" style="color:#9ca3af;">연동 플랫폼</div>
     </div>
   </div>
 </section>
 
 <!-- ===== 대시보드 ===== -->
 <section class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div class="bg-white rounded-2xl shadow-card p-5 border border-purple-50">
-    <h2 class="text-sm font-bold mb-3 flex items-center gap-1.5" style="color:#7e22ce;">🔡 인기 검색어</h2>
+  <div class="bg-white rounded-2xl shadow-card p-5" style="border:1px solid #f0ece0;">
+    <h2 class="text-sm font-bold mb-3 flex items-center gap-1.5" style="color:#b45309;">🔡 인기 검색어</h2>
     <div id="wordcloud-container" style="height:200px;" class="flex items-center justify-center text-gray-400 text-sm">로딩 중...</div>
   </div>
-  <div class="bg-white rounded-2xl shadow-card p-5 border border-purple-50">
-    <h2 class="text-sm font-bold mb-3 flex items-center gap-1.5" style="color:#7e22ce;">📈 일별 방문자 수</h2>
+  <div class="bg-white rounded-2xl shadow-card p-5" style="border:1px solid #f0ece0;">
+    <h2 class="text-sm font-bold mb-3 flex items-center gap-1.5" style="color:#b45309;">📈 일별 방문자 수</h2>
     <div style="height:200px;"><canvas id="visitor-chart"></canvas></div>
   </div>
 </section>
 
 <!-- ===== 필터 바 ===== -->
 <section class="max-w-6xl mx-auto px-4 mb-4">
-  <div class="bg-white rounded-2xl shadow-card p-4 space-y-3">
+  <div class="bg-white rounded-2xl shadow-card p-4 space-y-3" style="border:1px solid #f0ece0;">
     <!-- 채널 유형 -->
     <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-bold text-gray-400 uppercase tracking-wide w-10 shrink-0">채널</span>
+      <span class="text-xs font-bold uppercase tracking-wider w-10 shrink-0" style="color:#b45309;">채널</span>
       <div class="flex flex-wrap gap-1.5" id="type-filter">
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold text-white" style="background:#9333ea;" data-type="전체">전체</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold text-white gold-btn" data-type="전체">전체</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200" data-type="블로그">📝 블로그</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-pink-100 text-pink-700 hover:bg-pink-200" data-type="인스타">📸 인스타</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200" data-type="유튜브">▶ 유튜브</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-violet-100 text-violet-700 hover:bg-violet-200" data-type="방문">🚶 방문</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100" data-type="방문">🚶 방문</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200" data-type="재택">🏠 재택</button>
       </div>
     </div>
 
     <!-- 플랫폼 -->
     <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-bold text-gray-400 uppercase tracking-wide w-10 shrink-0">사이트</span>
+      <span class="text-xs font-bold uppercase tracking-wider w-10 shrink-0" style="color:#b45309;">사이트</span>
       <div id="platform-filter" class="flex flex-wrap gap-1.5">
-        <button class="filter-btn px-3 py-1 rounded-full text-xs font-bold text-white" style="background:#9333ea;" data-platform="전체">전체</button>
+        <button class="filter-btn px-3 py-1 rounded-full text-xs font-bold text-white gold-btn" data-platform="전체">전체</button>
       </div>
     </div>
 
     <!-- 고급 필터 -->
-    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-gray-50">
+    <div class="flex flex-wrap items-center justify-between gap-2 pt-2" style="border-top:1px solid #f5efe0;">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-bold text-gray-400 uppercase tracking-wide w-10 shrink-0">옵션</span>
+        <span class="text-xs font-bold uppercase tracking-wider w-10 shrink-0" style="color:#b45309;">옵션</span>
         <button id="btn-available" onclick="toggleAvailable()"
-          class="px-3 py-1 rounded-full text-xs font-bold border transition-all bg-gray-50 text-gray-500 border-gray-200 hover:border-purple-400 hover:text-purple-600">
+          class="px-3 py-1 rounded-full text-xs font-bold border transition-all"
+          style="background:#fdfcf7;color:#78716c;border-color:#e5e0d0;">
           ✅ 여석있는 캠페인만
         </button>
         <button id="btn-today" onclick="toggleToday()"
-          class="px-3 py-1 rounded-full text-xs font-bold border transition-all bg-gray-50 text-gray-500 border-gray-200 hover:border-purple-400 hover:text-purple-600">
+          class="px-3 py-1 rounded-full text-xs font-bold border transition-all"
+          style="background:#fdfcf7;color:#78716c;border-color:#e5e0d0;">
           🆕 오늘 신규
         </button>
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-xs text-gray-400">정렬</span>
+        <span class="text-xs" style="color:#9ca3af;">정렬</span>
         <select id="sort-select" onchange="onSortChange()"
-          class="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-purple-400 bg-white text-gray-600">
+          class="text-xs rounded-lg px-2 py-1 outline-none bg-white"
+          style="border:1px solid #e5e0d0;color:#57534e;">
           <option value="latest">최신순</option>
           <option value="applicants">신청자 많은순</option>
           <option value="available">여석 많은순</option>
@@ -192,9 +197,9 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between pt-1">
-      <span id="result-count" class="text-xs text-gray-400"></span>
-      <span id="last-update" class="text-xs text-gray-300"></span>
+    <div class="flex items-center justify-between">
+      <span id="result-count" class="text-xs" style="color:#9ca3af;"></span>
+      <span id="last-update" class="text-xs" style="color:#c0bab0;"></span>
     </div>
   </div>
 </section>
@@ -228,7 +233,7 @@
         <!-- 신청하기 버튼 -->
         <a id="modal-apply-btn" href="#" target="_blank" rel="noopener noreferrer"
           class="block w-full text-center text-white font-black py-4 rounded-2xl text-base transition-all active:scale-95"
-          style="background:linear-gradient(135deg,#9333ea,#7e22ce);">
+          style="background:linear-gradient(135deg,#f59e0b,#b45309);">
           신청하러 가기 →
         </a>
         <p class="text-center text-xs text-gray-400 mt-3">해당 체험단 플랫폼 사이트로 이동합니다</p>
@@ -248,9 +253,9 @@
     <div class="skeleton rounded-2xl h-44"></div>
   </div>
   <div class="text-center mt-8">
-    <button id="load-more" class="hidden bg-white border-2 font-bold px-8 py-3 rounded-xl transition-colors hover:text-white"
-      style="border-color:#9333ea;color:#9333ea;"
-      onmouseover="this.style.background='#9333ea'" onmouseout="this.style.background='white'">
+    <button id="load-more" class="hidden font-bold px-10 py-3 rounded-xl transition-all"
+      style="background:#fff;border:1.5px solid #d97706;color:#d97706;"
+      onmouseover="this.style.background='linear-gradient(135deg,#f59e0b,#d97706)';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#d97706'">
       캠페인 더 보기
     </button>
   </div>
@@ -262,7 +267,7 @@
 </main>
 
 <!-- ===== 푸터 ===== -->
-<footer class="text-gray-400 text-center py-6 text-xs" style="background:#1e1b4b;">
+<footer class="text-center py-8 text-xs" style="background:#080f1f;border-top:1px solid rgba(217,119,6,0.2);color:#6b7280;">
   <p class="mb-1">캠레이더 — 체험단 캠페인 통합 검색 | bloginfo360.com</p>
   <p>본 사이트는 각 체험단 플랫폼의 정보를 수집·제공하며, 캠페인 신청 및 관리 책임은 해당 플랫폼에 있습니다.</p>
   <p class="mt-2">
@@ -345,7 +350,7 @@ async function loadPopularKeywords() {
 
     // 인기 태그 칩
     document.getElementById('popular-tags').innerHTML = data.slice(0,12).map(k =>
-      `<button class="tag-chip px-2.5 py-1 bg-white/10 hover:bg-white text-purple-100 hover:text-purple-700 rounded-full text-xs font-medium border border-white/20 transition-all" onclick="doSearch('${escapeHtml(k.keyword)}')">#${escapeHtml(k.keyword)}</button>`
+      `<button class="tag-chip px-2.5 py-1 rounded-full text-xs font-medium border transition-all" style="background:rgba(217,119,6,0.12);border-color:rgba(217,119,6,0.3);color:#fbbf24;" onmouseover="this.style.background='#d97706';this.style.color='#fff'" onmouseout="this.style.background='rgba(217,119,6,0.12)';this.style.color='#fbbf24'" onclick="doSearch('${escapeHtml(k.keyword)}')">#${escapeHtml(k.keyword)}</button>`
     ).join('')
 
     renderWordCloud(data)
@@ -382,7 +387,7 @@ function renderWordCloud(words) {
 // =============================================
 function renderRecommendTags() {
   document.getElementById('recommend-tags').innerHTML = RECOMMEND_TAGS.map(t =>
-    `<button class="tag-chip px-2.5 py-1 bg-white/10 hover:bg-white text-purple-100 hover:text-purple-700 rounded-full text-xs font-medium border border-white/20 transition-all" onclick="doSearch('${t}')">#${t}</button>`
+    `<button class="tag-chip px-2.5 py-1 rounded-full text-xs font-medium border transition-all" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:#d1d5db;" onmouseover="this.style.background='#d97706';this.style.color='#fff';this.style.borderColor='#d97706'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.color='#d1d5db';this.style.borderColor='rgba(255,255,255,0.15)'" onclick="doSearch('${t}')">#${t}</button>`
   ).join('')
 }
 
@@ -404,7 +409,7 @@ async function loadPlatformFilter() {
     pf.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         pf.querySelectorAll('.filter-btn').forEach(b=>{b.style.background='';b.style.color='';b.classList.remove('text-white');b.classList.add('bg-gray-100','text-gray-600')})
-        btn.classList.remove('bg-gray-100','text-gray-600');btn.classList.add('text-white');btn.style.background='#9333ea'
+        btn.classList.remove('bg-gray-100','text-gray-600');btn.classList.add('text-white');btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'
         currentPlatform = btn.dataset.platform
         loadCampaigns(true)
       })
@@ -423,7 +428,7 @@ async function loadVisitorChart() {
       type:'line',
       data:{
         labels: sorted.map(d=>d.date.slice(5).replace('-','/')),
-        datasets:[{data:sorted.map(d=>d.visit_count),borderColor:'#9333ea',backgroundColor:'rgba(147,51,234,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#9333ea',tension:0.3,fill:true}]
+        datasets:[{data:sorted.map(d=>d.visit_count),borderColor:'#d97706',backgroundColor:'rgba(217,119,6,0.06)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#d97706',tension:0.3,fill:true}]
       },
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#f3e8ff'},ticks:{font:{size:10},stepSize:1}}}}
     })
@@ -506,7 +511,7 @@ function renderCard(c) {
     : ''
   return `<article class="campaign-card bg-white rounded-2xl shadow-card p-4 flex flex-col gap-3 cursor-pointer" data-type="${escapeHtml(type)}" onclick="openModal('${c.id}')">
   <div class="flex items-center justify-between gap-2">
-    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-100 text-brand-700 truncate max-w-[110px]">${escapeHtml(c.platform_name)}</span>
+    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold truncate max-w-[110px]" style="background:#fef3c7;color:#92400e;">${escapeHtml(c.platform_name)}</span>
     <div class="flex items-center gap-1 shrink-0">
       ${remainBadge}
       <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${typeInfo.cls}">${type}</span>
@@ -525,7 +530,7 @@ function renderCard(c) {
     :`<div class="text-xs text-gray-400">신청 ${(c.applicants||0).toLocaleString()}명</div>`}
   <div class="flex items-center justify-between pt-1 border-t border-gray-50">
     <span class="text-xs text-gray-400">${c.deadline_text||formatAgo(c.crawled_at)}</span>
-    <span class="text-xs font-bold" style="color:#9333ea;">상세보기 →</span>
+    <span class="text-xs font-bold" style="color:#d97706;">상세보기 →</span>
   </div>
 </article>`
 }
@@ -548,7 +553,7 @@ function openModal(id) {
   const typeInfo = typeMap[type]||{cls:'bg-gray-100 text-gray-600'}
 
   document.getElementById('modal-badges').innerHTML = `
-    <span class="px-3 py-1 rounded-full text-xs font-bold bg-brand-100 text-brand-700">${escapeHtml(c.platform_name)}</span>
+    <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#fef3c7;color:#92400e;">${escapeHtml(c.platform_name)}</span>
     <span class="px-3 py-1 rounded-full text-xs font-bold ${typeInfo.cls}">${type}</span>
   `
   document.getElementById('modal-title').textContent = c.title
@@ -606,16 +611,16 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal() })
 function toggleAvailable() {
   filterAvailable = !filterAvailable
   const btn = document.getElementById('btn-available')
-  if (filterAvailable) { btn.style.background='#9333ea'; btn.style.color='white'; btn.style.borderColor='#9333ea' }
-  else { btn.style.background=''; btn.style.color=''; btn.style.borderColor='' }
+  if (filterAvailable) { btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; btn.style.color='white'; btn.style.borderColor='#d97706' }
+  else { btn.style.background='#fdfcf7'; btn.style.color='#78716c'; btn.style.borderColor='#e5e0d0' }
   loadCampaigns(true)
 }
 
 function toggleToday() {
   filterToday = !filterToday
   const btn = document.getElementById('btn-today')
-  if (filterToday) { btn.style.background='#9333ea'; btn.style.color='white'; btn.style.borderColor='#9333ea' }
-  else { btn.style.background=''; btn.style.color=''; btn.style.borderColor='' }
+  if (filterToday) { btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; btn.style.color='white'; btn.style.borderColor='#d97706' }
+  else { btn.style.background='#fdfcf7'; btn.style.color='#78716c'; btn.style.borderColor='#e5e0d0' }
   loadCampaigns(true)
 }
 
@@ -644,7 +649,7 @@ function setupEventListeners() {
   document.querySelectorAll('.type-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       document.querySelectorAll('.type-btn').forEach(b=>{b.style.background='';b.style.color='';b.classList.remove('text-white')})
-      btn.classList.add('text-white');btn.style.background='#9333ea';btn.style.color='white'
+      btn.classList.add('text-white');btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';btn.style.color='white'
       currentType=btn.dataset.type;loadCampaigns(true)
     })
   })
