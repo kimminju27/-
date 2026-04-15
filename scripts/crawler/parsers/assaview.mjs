@@ -24,15 +24,16 @@ export async function parse(baseUrl) {
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
 
-        const rawTitle = $a.find('span.subject').first().text().trim()
-          || $a.text().replace(/\s+/g, ' ').trim()
-        // 날짜/시간 prefix 제거: "2026/04/21 23:59:59 " 패턴
-        const title = rawTitle
-          .replace(/^\d{4}[\/\-]\d{2}[\/\-]\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '')
-          .trim()
+        // .timer 제거한 clone에서 제목 추출 (timer가 $a.text() fallback에 섞이는 것 방지)
+        const $aClone = $a.clone()
+        $aClone.find('.timer, [class*="timer"]').remove()
+        const title = $aClone.find('span.subject').first().text().trim()
+          || $aClone.text().replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
 
-        const deadlineText = $el.find('[class*="day"], [class*="dday"], .deadline').first().text().trim()
+        // .timer → deadline으로 활용
+        const timerText = $a.find('.timer, span.timer').first().text().trim()
+        const deadlineText = timerText || $el.find('[class*="day"], [class*="dday"], .deadline').first().text().trim()
         const typeText = $el.find('[class*="type"], [class*="sns"], .assign_type_chip').first().text().trim()
         const applyText = $el.find('[class*="apply"], [class*="count"], .cnt').first().text()
         const capacityText = $el.find('[class*="limit"], [class*="total"], .max').first().text()

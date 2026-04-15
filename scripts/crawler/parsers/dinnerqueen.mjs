@@ -23,12 +23,16 @@ export async function parse(baseUrl) {
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
 
-        // 제목: img alt (URL이면 무시) → 텍스트 요소 → 링크 내 전체 텍스트
+        // img alt가 URL이면 무시, 유효하면 사용
         const imgAlt = ($el.find('img').first().attr('alt') || '').trim()
         const altClean = /^https?:\/\//.test(imgAlt) ? '' : imgAlt
-        const textContent = $el.find('strong, b, .title, .name, p, span').first().text().replace(/\s+/g, ' ').trim()
-          || $el.clone().find('img').remove().end().text().replace(/\s+/g, ' ').trim()
-        const title = altClean || textContent
+        // span들 중 URL이 아니고 4자 이상인 마지막 것 = 제목 (배지/상태 span 제외)
+        let spanTitle = ''
+        $el.find('span').each((_, s) => {
+          const t = $(s).text().trim()
+          if (t.length > 3 && !/^https?:\/\//.test(t)) spanTitle = t
+        })
+        const title = altClean || spanTitle
         if (!title || title.length < 4 || /^https?:\/\//.test(title)) return
 
         const $card = $el.closest('.swiper-slide, [class*="card"], [class*="item"]')
