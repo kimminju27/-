@@ -1,6 +1,6 @@
 // 클라우드리뷰 — a[href*="/campaign/detail/"]
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -54,11 +54,3 @@ export async function parse(baseUrl) {
   return campaigns
 }
 
-function detectType(text) {
-  if (!text) return '블로그'
-  const t = text.toLowerCase()
-  if (t.includes('인스타') || t.includes('숏폼') || t.includes('reels')) return '인스타'
-  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
-  if (t.includes('구매평')) return '블로그'
-  return '블로그'
-}

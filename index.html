@@ -224,7 +224,9 @@
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold text-white gold-btn" data-type="전체">전체</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200" data-type="블로그">📝 블로그</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-pink-100 text-pink-700 hover:bg-pink-200" data-type="인스타">📸 인스타</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-600 hover:bg-rose-200" data-type="릴스">🎞 릴스</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200" data-type="유튜브">▶ 유튜브</button>
+        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 hover:bg-green-200" data-type="클립">📎 클립</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100" data-type="방문">🚶 방문</button>
         <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200" data-type="재택">🏠 재택</button>
       </div>
@@ -638,7 +640,9 @@ async function loadCampaigns(reset=false) {
 
     if (currentKeyword) q = q.ilike('title', `%${currentKeyword}%`)
     if (currentPlatform!=='전체') q = q.eq('platform_name',currentPlatform)
-    if (currentType!=='전체') q = q.eq('campaign_type',currentType)
+    // 블로그 필터 = 블로그 + 재택 모두 포함 (배송형/구매형은 재택으로 분류됨)
+    if (currentType==='블로그') q = q.in('campaign_type',['블로그','재택'])
+    else if (currentType!=='전체') q = q.eq('campaign_type',currentType)
     if (filterAvailable) q = q.not('capacity','is',null).gt('capacity',0)
     if (filterToday) {
       const today = new Date().toISOString().split('T')[0]
@@ -682,9 +686,12 @@ function renderCard(c) {
   const typeMap = {
     블로그:{cls:'bg-blue-100 text-blue-700'},
     인스타:{cls:'bg-pink-100 text-pink-700'},
+    릴스:{cls:'bg-rose-100 text-rose-600'},
     유튜브:{cls:'bg-red-100 text-red-700'},
+    클립:{cls:'bg-green-100 text-green-700'},
     방문:{cls:'bg-violet-100 text-violet-700'},
     재택:{cls:'bg-emerald-100 text-emerald-700'},
+    틱톡:{cls:'bg-gray-100 text-gray-700'},
   }
   const type = c.campaign_type||'블로그'
   const typeInfo = typeMap[type]||{cls:'bg-gray-100 text-gray-600'}
@@ -731,9 +738,12 @@ function openModal(id) {
   const typeMap = {
     블로그:{cls:'bg-blue-100 text-blue-700'},
     인스타:{cls:'bg-pink-100 text-pink-700'},
+    릴스:{cls:'bg-rose-100 text-rose-600'},
     유튜브:{cls:'bg-red-100 text-red-700'},
+    클립:{cls:'bg-green-100 text-green-700'},
     방문:{cls:'bg-violet-100 text-violet-700'},
     재택:{cls:'bg-emerald-100 text-emerald-700'},
+    틱톡:{cls:'bg-gray-100 text-gray-700'},
   }
   const type = c.campaign_type||'블로그'
   const typeInfo = typeMap[type]||{cls:'bg-gray-100 text-gray-600'}

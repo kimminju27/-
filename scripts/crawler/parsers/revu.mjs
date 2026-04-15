@@ -1,6 +1,6 @@
 // 레뷰 (revu.net) 파서
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -51,11 +51,3 @@ export async function parse(baseUrl) {
   return campaigns
 }
 
-function detectType(text) {
-  if (!text) return '블로그'
-  const t = text.toLowerCase()
-  if (t.includes('인스타') || t.includes('instagram')) return '인스타'
-  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
-  if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
-  return '블로그'
-}

@@ -1,7 +1,7 @@
 // 범용 HTML 파서 템플릿
 // 각 사이트 파서가 이 함수를 활용
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
 
 /**
  * @param {string} baseUrl
@@ -43,11 +43,14 @@ export async function genericParse(baseUrl, config) {
           title = $el.find('a').first().text().replace(/\s+/g, ' ').trim()
         }
 
-        // 불필요한 부분 제거 (날짜, 상태 텍스트 등)
+        // 불필요한 부분 제거 (날짜·상태·카운트 텍스트 등)
         title = title
+          .replace(/\d{4}[.\/-]\d{2}[.\/-]\d{2}(\s+\d{2}:\d{2}(:\d{2})?)?/g, '')
+          .replace(/^(배송형|구매형|방문형|재택형|구매평형)\s*/g, '')
           .replace(/\d+\s*일\s*남음/g, '')
-          .replace(/신청\s*\d+\s*\/\s*\d+/g, '')
+          .replace(/신청\s*[\d,]+\s*\/\s*[\d,]+명?/g, '')
           .replace(/D-\d+/g, '')
+          .replace(/\s*오늘\s*마감/g, '')
           .replace(/\s+/g, ' ')
           .trim()
 
@@ -98,13 +101,4 @@ export async function genericParse(baseUrl, config) {
   return campaigns
 }
 
-export function detectType(text) {
-  if (!text) return '블로그'
-  const t = text.toLowerCase()
-  if (t.includes('인스타') || t.includes('instagram')) return '인스타'
-  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
-  if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
-  if (t.includes('방문')) return '방문'
-  if (t.includes('재택')) return '재택'
-  return '블로그'
-}
+// detectType은 utils.mjs에서 import해서 사용

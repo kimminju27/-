@@ -1,6 +1,6 @@
 // 스토리엔 — a[href*="review_campaign.php?cp_id="]
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   return parseCpId(baseUrl, '스토리엔', 'review_campaign.php?cp_id=')
@@ -50,10 +50,3 @@ export async function parseCpId(baseUrl, name, hrefKey) {
   return campaigns
 }
 
-function detectType(t) {
-  if (!t) return '블로그'
-  if (t.includes('인스타') || t.includes('릴스') || t.includes('Reels')) return '인스타'
-  if (t.includes('유튜브') || t.includes('YouTube')) return '유튜브'
-  if (t.includes('방문')) return '방문'
-  return '블로그'
-}

@@ -1,6 +1,7 @@
-// 아싸뷰 — .campaign_card > a[href*="campaign.php?cp_id="] > span.subject
+// 아싸뷰 — <a class="campaign_card"> 자체가 앵커
+// span.subject = 제목, .timer = 마감, 아이콘 src로 채널 타입 감지
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -14,37 +15,45 @@ export async function parse(baseUrl) {
       const items = []
       const seen = new Set()
 
-      $('.campaign_card').each((_, el) => {
+      // .campaign_card 자체가 <a> 엘리먼트
+      $('a.campaign_card').each((_, el) => {
         const $el = $(el)
-        const $a = $el.find('a[href*="campaign.php?cp_id="]').first()
-        const href = $a.attr('href') || ''
+        const href = $el.attr('href') || ''
         if (!href) return
 
-        const fullUrl = href.startsWith('http') ? href : `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}`
+        const fullUrl = href.startsWith('http') ? href : `https://assaview.co.kr${href.startsWith('/') ? '' : '/'}${href}`
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
 
-        // .timer 제거한 clone에서 제목 추출 (timer가 $a.text() fallback에 섞이는 것 방지)
-        const $aClone = $a.clone()
-        $aClone.find('.timer, [class*="timer"]').remove()
-        const title = $aClone.find('span.subject').first().text().trim()
-          || $aClone.text().replace(/\s+/g, ' ').trim()
+        // 제목: span.subject
+        const title = $el.find('span.subject').first().text().trim()
         if (!title || title.length < 4) return
 
-        // .timer → deadline으로 활용
-        const timerText = $a.find('.timer, span.timer').first().text().trim()
-        const deadlineText = timerText || $el.find('[class*="day"], [class*="dday"], .deadline').first().text().trim()
-        const typeText = $el.find('[class*="type"], [class*="sns"], .assign_type_chip').first().text().trim()
-        const applyText = $el.find('[class*="apply"], [class*="count"], .cnt').first().text()
-        const capacityText = $el.find('[class*="limit"], [class*="total"], .max').first().text()
+        // 마감일: .timer
+        const deadlineText = $el.find('.timer, span.timer').first().text().trim() || null
+
+        // 신청자/모집 인원: 카드 텍스트에서 "신청 N / N명" 패턴 추출
+        const rawText = $el.text()
+        const countMatch = rawText.match(/신청\s*([\d,]+)\s*\/\s*([\d,]+)/)
+        const applicants = countMatch ? parseInt(countMatch[1].replace(/,/g, '')) : 0
+        const capacity = countMatch ? parseInt(countMatch[2].replace(/,/g, '')) : null
+
+        // 채널 타입: 카드 내 아이콘 src로 감지
+        const imgSrcs = []
+        $el.find('img').each((_, img) => {
+          const s = $(img).attr('src') || ''
+          if (s) imgSrcs.push(s)
+        })
+        // 텍스트 기반 보조 감지 (assign_type_chip 등)
+        const typeText = $el.find('.assign_type_chip, [class*="type"], [class*="channel"]').first().text().trim()
 
         items.push({
           title,
           campaign_url: fullUrl,
-          campaign_type: detectType(typeText),
-          applicants: parseNum(applyText),
-          capacity: parseNum(capacityText) || null,
-          deadline_text: deadlineText || null,
+          campaign_type: detectType(typeText, imgSrcs),
+          applicants,
+          capacity: capacity || null,
+          deadline_text: deadlineText,
         })
       })
 
@@ -57,14 +66,4 @@ export async function parse(baseUrl) {
     await new Promise(r => setTimeout(r, 800))
   }
   return campaigns
-}
-
-function detectType(text) {
-  if (!text) return '블로그'
-  const t = text.toLowerCase()
-  if (t.includes('인스타') || t.includes('reels')) return '인스타'
-  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
-  if (t.includes('틱톡')) return '틱톡'
-  if (t.includes('방문')) return '방문'
-  return '블로그'
 }

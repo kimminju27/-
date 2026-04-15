@@ -1,6 +1,6 @@
 // 서울오빠 — div.item > a[href*="campaign/?c="] > strong
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -29,13 +29,13 @@ export async function parse(baseUrl) {
         if (!title || title.length < 4) return
 
         const deadlineText = $el.find('[class*="day"], [class*="dday"]').first().text().trim()
-        const typeImg = $el.find('img[src*="thum_ch_"]').first().attr('src') || ''
+        const typeImgSrc = $el.find('img[src*="thum_ch_"]').first().attr('src') || ''
         const applyText = $el.find('[class*="apply"], [class*="cnt"]').first().text()
 
         items.push({
           title,
           campaign_url: fullUrl,
-          campaign_type: detectType(typeImg),
+          campaign_type: detectType('', typeImgSrc ? [typeImgSrc] : []),
           applicants: parseNum(applyText),
           capacity: null,
           deadline_text: deadlineText || null,
@@ -53,10 +53,3 @@ export async function parse(baseUrl) {
   return campaigns
 }
 
-function detectType(src) {
-  if (src.includes('reels') || src.includes('insta')) return '인스타'
-  if (src.includes('youtube') || src.includes('tube')) return '유튜브'
-  if (src.includes('tiktok')) return '틱톡'
-  if (src.includes('visit')) return '방문'
-  return '블로그'
-}

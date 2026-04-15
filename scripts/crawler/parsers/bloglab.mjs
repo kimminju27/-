@@ -1,6 +1,6 @@
 // 블로그랩 — a[href*="campaign.php?cp_id="] > b
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -38,10 +38,3 @@ export async function parse(baseUrl) {
   return campaigns
 }
 
-function detectType(t) {
-  if (!t) return '블로그'
-  if (t.includes('인스타') || t.includes('릴스')) return '인스타'
-  if (t.includes('유튜브')) return '유튜브'
-  if (t.includes('방문')) return '방문'
-  return '블로그'
-}

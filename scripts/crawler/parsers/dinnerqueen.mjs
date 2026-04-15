@@ -1,6 +1,8 @@
 // 다이닝퀸 — swiper-slide > a[href*="/taste/"]
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum } from '../utils.mjs'
+import { fetchWithRetry, parseNum, detectType as _detectType } from '../utils.mjs'
+// 다이닝퀸 기본값은 '방문' (맛집 특화 사이트)
+function detectType(text) { if (!text) return '방문'; const r = _detectType(text); return r === '블로그' ? '방문' : r }
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -62,11 +64,3 @@ export async function parse(baseUrl) {
   return campaigns
 }
 
-function detectType(text) {
-  if (!text) return '방문'
-  const t = text.toLowerCase()
-  if (t.includes('인스타') || t.includes('reels') || t.includes('릴스')) return '인스타'
-  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
-  if (t.includes('블로그')) return '블로그'
-  return '방문'
-}

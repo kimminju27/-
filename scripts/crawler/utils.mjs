@@ -85,3 +85,28 @@ export function parseNum(text) {
   const n = parseInt(text.replace(/[^0-9]/g, ''))
   return isNaN(n) ? 0 : n
 }
+
+/**
+ * 캠페인 타입 감지 — 모든 파서 공유
+ * imgSrcs: 카드 내 img src 배열 (아이콘 기반 감지용)
+ */
+export function detectType(text, imgSrcs = []) {
+  // 아이콘 기반 감지 (assaview 등)
+  if (imgSrcs.length) {
+    if (imgSrcs.some(s => /insta_icon|insta-icon/i.test(s))) return '인스타'
+    if (imgSrcs.some(s => /clip_icon|clip-icon|naver.clip/i.test(s))) return '클립'
+    if (imgSrcs.some(s => /youtube|yt_icon/i.test(s))) return '유튜브'
+    if (imgSrcs.some(s => /reels/i.test(s))) return '릴스'
+  }
+  if (!text) return '블로그'
+  const t = text.toLowerCase()
+  if (t.includes('릴스') || t.includes('reels')) return '릴스'
+  if (t.includes('클립') || t.includes('naverclip') || (t.includes('클립') && t.includes('naver'))) return '클립'
+  if (t.includes('인스타') || t.includes('instagram')) return '인스타'
+  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
+  if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
+  if (t.includes('방문')) return '방문'
+  // 배송형/구매형/구매평 → 재택
+  if (t.includes('재택') || t.includes('배송') || t.includes('구매')) return '재택'
+  return '블로그'
+}
