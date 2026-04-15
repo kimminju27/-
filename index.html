@@ -692,7 +692,10 @@ function renderCard(c) {
   const remainBadge = remaining !== null && remaining <= 5 && remaining > 0
     ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-600 animate-pulse">잔여 ${remaining}명</span>`
     : ''
-  return `<article class="campaign-card bg-white rounded-2xl shadow-card p-4 flex flex-col gap-3 cursor-pointer" data-type="${escapeHtml(type)}" onclick="openModal('${c.id}')">
+  const deadlineRow = c.deadline_text
+    ? `<div class="text-xs font-semibold" style="color:#d97706;">⏰ 마감 ${escapeHtml(c.deadline_text)}</div>`
+    : ''
+  return `<article class="campaign-card bg-white rounded-2xl shadow-card p-4 flex flex-col gap-2.5 cursor-pointer" data-type="${escapeHtml(type)}" onclick="openModal('${c.id}')">
   <div class="flex items-center justify-between gap-2">
     <span class="px-2.5 py-0.5 rounded-full text-xs font-bold truncate max-w-[110px]" style="background:#fef3c7;color:#92400e;">${escapeHtml(c.platform_name)}</span>
     <div class="flex items-center gap-1 shrink-0">
@@ -701,6 +704,7 @@ function renderCard(c) {
     </div>
   </div>
   <h3 class="font-bold text-gray-900 text-sm leading-snug line-clamp-2 flex-1">${escapeHtml(c.title)}</h3>
+  ${deadlineRow}
   ${c.capacity
     ?`<div>
         <div class="flex justify-between text-xs mb-1">
@@ -711,8 +715,7 @@ function renderCard(c) {
         <div class="text-right text-xs text-gray-400 mt-0.5">모집 ${c.capacity}명</div>
       </div>`
     :`<div class="text-xs text-gray-400">신청 ${(c.applicants||0).toLocaleString()}명</div>`}
-  <div class="flex items-center justify-between pt-1 border-t border-gray-50">
-    <span class="text-xs text-gray-400">${c.deadline_text||formatAgo(c.crawled_at)}</span>
+  <div class="flex justify-end pt-1 border-t border-gray-50">
     <span class="text-xs font-bold" style="color:#d97706;">상세보기 →</span>
   </div>
 </article>`
@@ -765,11 +768,11 @@ function openModal(id) {
   document.getElementById('modal-info').innerHTML = `
     <div class="bg-gray-50 rounded-xl p-3 text-center">
       <div class="text-xs text-gray-400 mb-1">마감일</div>
-      <div class="text-sm font-bold text-gray-700">${c.deadline_text || formatAgo(c.crawled_at)}</div>
+      <div class="text-sm font-bold text-gray-700">${c.deadline_text || '미정'}</div>
     </div>
     <div class="bg-gray-50 rounded-xl p-3 text-center">
-      <div class="text-xs text-gray-400 mb-1">수집시각</div>
-      <div class="text-sm font-bold text-gray-700">${formatAgo(c.crawled_at)}</div>
+      <div class="text-xs text-gray-400 mb-1">채널</div>
+      <div class="text-sm font-bold text-gray-700">${c.campaign_type || '블로그'}</div>
     </div>
   `
 
