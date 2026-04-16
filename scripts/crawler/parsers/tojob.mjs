@@ -14,16 +14,19 @@ export async function parse(_baseUrl) {
       const $ = cheerio.load(html)
       const items = [], seen = new Set()
 
-      $('a[href*="wr_id="]').each((_, el) => {
+      // row-full-link: 카드 전체를 덮는 투명 오버레이 링크 → 부모 li에서 제목 추출
+      $('a.row-full-link').each((_, el) => {
         const $a = $(el)
         const href = $a.attr('href') || ''
-        if (!href.includes('blog_go')) return  // 다른 게시판 링크 제외
+        if (!href.includes('blog_go')) return
         const fullUrl = href.startsWith('http') ? href : `https://www.tojobcn.com${href}`
-        if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
-        const title = $a.find('.ellipsis-link, [class*="title"], b').first().text().trim()
-          || $a.text().replace(/\s+/g, ' ').trim()
+        const $li = $a.closest('li')
+        // 제목: padding-top:35px div의 텍스트 노드
+        const title = $li.find('div[style*="padding-top: 35px"], div[style*="padding-top:35px"]')
+          .first().text().replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
+        if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
         items.push({ title, campaign_url: fullUrl, campaign_type: '블로그', applicants: 0, capacity: null, deadline_text: null })
       })
