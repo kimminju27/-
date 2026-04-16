@@ -1,12 +1,7 @@
-import { genericParse } from './_generic.mjs'
-export async function parse(url) {
-  return genericParse(url, {
-    listSelector: '.list li, .campaign-list li, .item, article',
-    titleSelector: '[class*="title"], h3, h4',
-    linkSelector: 'a',
-    typeSelector: '[class*="type"], .channel',
-    applicantsSelector: '[class*="apply"], [class*="count"]',
-    capacitySelector: '[class*="limit"], [class*="total"]',
-    deadlineSelector: '[class*="day"], .deadline',
+// 리뷰의민족 (remin.co.kr) — JS onClick 링크, Playwright 휴리스틱
+import { playwrightParseHeuristic } from '../utils-playwright.mjs'
+export async function parse(baseUrl) {
+  return playwrightParseHeuristic('https://remin.co.kr/category/campaignlist', {
+    extraWaitMs: 3000,
   })
 }

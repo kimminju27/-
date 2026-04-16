@@ -1,12 +1,5 @@
-import { genericParse } from './_generic.mjs'
-export async function parse(url) {
-  return genericParse(url, {
-    listSelector: '.list li, .campaign-list li, .item, article',
-    titleSelector: '[class*="title"], h3, h4',
-    linkSelector: 'a',
-    typeSelector: '[class*="type"], .channel',
-    applicantsSelector: '[class*="apply"], [class*="count"]',
-    capacitySelector: '[class*="limit"], [class*="total"]',
-    deadlineSelector: '[class*="day"], .deadline',
-  })
+// 체험단모음 (xn--o39a04kpnjo4k9hgflp.com) — AJAX 로드, Playwright로 /cmp/?id= 패턴
+import { playwrightParse } from '../utils-playwright.mjs'
+export async function parse(baseUrl) {
+  return playwrightParse(baseUrl, '/cmp/?id=', { extraWaitMs: 3000 })
 }

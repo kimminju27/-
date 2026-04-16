@@ -1,12 +1,7 @@
-import { genericParse } from './_generic.mjs'
-export async function parse(url) {
-  return genericParse(url, {
-    listSelector: '[class*="campaign"], .list li, article, .item',
-    titleSelector: '[class*="title"], h3, h4',
-    linkSelector: 'a',
-    typeSelector: '[class*="type"], .channel, .sns',
-    applicantsSelector: '[class*="apply"], [class*="count"]',
-    capacitySelector: '[class*="limit"], [class*="total"]',
-    deadlineSelector: '[class*="day"], .deadline',
-  })
+// 태그바이 — Nuxt.js SPA, /campaigns/ 경로 시도 후 휴리스틱
+import { playwrightParse, playwrightParseHeuristic } from '../utils-playwright.mjs'
+export async function parse(baseUrl) {
+  const r = await playwrightParse(baseUrl, '/campaigns/', { extraWaitMs: 2000 })
+  if (r.length > 0) return r
+  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 2000 })
 }

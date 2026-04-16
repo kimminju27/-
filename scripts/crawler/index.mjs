@@ -1,6 +1,7 @@
 // 크롤러 진입점 — GitHub Actions에서 실행
 import { createClient } from '@supabase/supabase-js'
 import { upsertCampaigns } from './utils.mjs'
+import { closeBrowser } from './utils-playwright.mjs'
 
 // 파서 목록 (사이트별 파서 동적 import)
 import { parse as parseNaverBlog } from './parsers/naver-blog.mjs'
@@ -159,6 +160,9 @@ async function main() {
   else console.log('[정리] 30일 이상 캠페인 삭제 완료')
 
   console.log(`\n[크롤러 완료] 신규: ${totalInserted}개, 실패: ${totalErrors}개`)
+
+  // Playwright 브라우저 종료
+  await closeBrowser()
 }
 
 main().catch(err => {

@@ -27,6 +27,9 @@ jobs:
       - name: 의존성 설치
         run: npm install
 
+      - name: Playwright Chromium 설치
+        run: npx playwright install chromium --with-deps
+
       - name: 캠페인 크롤링 실행
         run: node scripts/crawler/index.mjs
         env:
