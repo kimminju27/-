@@ -41,6 +41,7 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
     .replace(/\s+/g, ' ')
     .trim()
 
+  const seenHashes = new Set()
   const rows = campaigns
     .filter(c => c.title && c.campaign_url && isValidTitle(c.title))
     .map(c => ({
@@ -56,6 +57,11 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
       // crawled_at 제외 → 신규 행은 DB DEFAULT(NOW()), 기존 행은 원래 값 유지
       is_active: true,
     }))
+    .filter(r => {
+      if (seenHashes.has(r.content_hash)) return false
+      seenHashes.add(r.content_hash)
+      return true
+    })
 
   if (rows.length === 0) return { inserted: 0, skipped: 0 }
 

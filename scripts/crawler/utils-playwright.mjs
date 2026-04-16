@@ -72,7 +72,7 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
     }
     if (opts.extraWaitMs) await page.waitForTimeout(opts.extraWaitMs)
 
-    const items = await page.evaluate((keyword, titleSel) => {
+    const items = await page.evaluate(({keyword, titleSel}) => {
       const results = [], seen = new Set()
       document.querySelectorAll('a[href]').forEach(el => {
         const href = el.href
@@ -97,7 +97,7 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
         results.push({ title, campaign_url: href })
       })
       return results
-    }, hrefKeyword, opts.titleSelector || '')
+    }, {keyword: hrefKeyword, titleSel: opts.titleSelector || ''})
 
     return items.map(r => ({
       ...r,
@@ -127,7 +127,7 @@ export async function playwrightParseHeuristic(url, opts = {}) {
     if (opts.extraWaitMs) await page.waitForTimeout(opts.extraWaitMs)
 
     const origin = new URL(url).origin
-    const items = await page.evaluate((originStr, navWords) => {
+    const items = await page.evaluate(({originStr, navWords}) => {
       const results = [], seen = new Set()
 
       function isCampaignHref(href) {
@@ -173,8 +173,8 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         results.push({ title, campaign_url: href })
       })
       return results
-    }, origin, ['login','logout','signup','register','about','contact','faq',
-      'terms','policy','pricing','help','support','mypage','profile','notice'])
+    }, {originStr: origin, navWords: ['login','logout','signup','register','about','contact','faq',
+      'terms','policy','pricing','help','support','mypage','profile','notice']})
 
     return items.map(r => ({
       ...r,
