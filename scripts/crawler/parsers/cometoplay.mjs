@@ -16,11 +16,10 @@ export async function parse(baseUrl) {
         const $a = $(el)
         const href = $a.attr('href') || ''
         const fullUrl = href.startsWith('http') ? href : `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}`
-        if (seen.has(fullUrl)) return; seen.add(fullUrl)
-
-        const title = $a.find('b, strong, [class*="title"], [class*="name"]').first().text().trim()
+        const title = $a.find('span.it_name, b, strong, [class*="title"], [class*="name"]').first().text().trim()
           || $a.text().replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
+        if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
         const $card = $a.closest('li, [class*="item"]')
         const deadlineText = $card.find('[class*="day"], [class*="dday"]').first().text().trim()

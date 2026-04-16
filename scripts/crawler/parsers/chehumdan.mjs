@@ -24,12 +24,11 @@ export async function parse(baseUrl) {
 
         const fullUrl = href.startsWith('http') ? href : `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}`
 
+        const title = $el.text().replace(/\s+/g, ' ').trim()
+        if (!title || title.length < 6) return
         // 중복 방지
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
-
-        const title = $el.text().replace(/\s+/g, ' ').trim()
-        if (!title || title.length < 6) return
 
         // 상태: 상시모집, 신청 X / 모집 Y 등
         const parentEl = $el.closest('li, .item, .box, tr, div[class]')

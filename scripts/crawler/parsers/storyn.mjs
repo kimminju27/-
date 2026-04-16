@@ -21,20 +21,21 @@ export async function parseCpId(baseUrl, name, hrefKey) {
         const $a = $(el)
         const href = $a.attr('href') || ''
         const fullUrl = href.startsWith('http') ? href : `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}`
-        if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
-        // 제목: strong/b 먼저, 없으면 가장 긴 div 텍스트
-        let title = $a.find('strong, b').first().text().trim()
+        // 제목: it_name → strong/b → 가장 긴 div 텍스트 순서로 탐색
+        let title = $a.find('span.it_name, span.subject, .title, strong, b').first().text().trim()
         if (!title) {
-          $a.find('div').each((_, d) => {
+          $a.find('div, span').each((_, d) => {
             const t = $(d).clone().children().remove().end().text().trim()
             if (t.length > title.length && t.length > 5 && !/^\[/.test(t)) title = t
           })
         }
         if (!title) title = $a.text().replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
+        // 제목이 있을 때만 seen 체크 (이미지 링크 먼저 만나도 무시 안 되도록)
+        if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
-        const typeText = $a.find('span, div').first().text().trim()
+        const typeText = $a.find('span.sns, span.channel, .option2 span').first().text().trim()
         items.push({
           title, campaign_url: fullUrl,
           campaign_type: detectType(typeText),

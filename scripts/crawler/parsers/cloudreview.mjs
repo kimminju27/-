@@ -20,9 +20,6 @@ export async function parse(baseUrl) {
         if (!/\/campaign\/detail\/\d+/.test(href)) return
 
         const fullUrl = href.startsWith('http') ? href : `https://cloudreview.co.kr${href}`
-        if (seen.has(fullUrl)) return
-        seen.add(fullUrl)
-
         const rawTitle = $el.find('h2, h3, h4, [class*="title"], [class*="name"], p').first().text().trim()
           || $el.text().replace(/\s+/g, ' ').trim()
         const title = rawTitle
@@ -32,6 +29,8 @@ export async function parse(baseUrl) {
           .replace(/^(매장방문형|배송형|구매형|방문형|재택형)\s*/g, '')
           .replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
+        if (seen.has(fullUrl)) return
+        seen.add(fullUrl)
 
         const $card = $el.closest('[class*="card"], [class*="item"], li')
         const deadlineText = $card.find('[class*="dday"],[class*="d-day"],[class*="remain"],[class*="day"],[class*="deadline"],[class*="timer"],[class*="date"]').first().text().trim()

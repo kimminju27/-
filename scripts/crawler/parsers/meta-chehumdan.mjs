@@ -16,11 +16,10 @@ export async function parse(baseUrl) {
         const $a = $(el)
         const href = $a.attr('href') || ''
         const fullUrl = href.startsWith('http') ? href : `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}`
-        if (seen.has(fullUrl)) return; seen.add(fullUrl)
-
-        const title = $a.find('b, strong').first().text().trim()
+        const title = $a.find('span.it_name, b, strong').first().text().trim()
           || $a.text().replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
+        if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
         items.push({ title, campaign_url: fullUrl, campaign_type: '블로그', applicants: 0, capacity: null, deadline_text: null })
       })
