@@ -100,39 +100,30 @@ export function parseNum(text) {
 
 /**
  * 캠페인 타입 감지 — 모든 파서 공유
- * imgSrcs: 카드 내 img src 배열 (아이콘 기반 채널 감지용)
- * 방문형 캠페인은 "방문,블로그" 또는 "방문,인스타" 등 다중 타입 반환
+ * 타입: 블로그·인스타·릴스·유튜브·클립·틱톡·구매평
+ * 방문형·배송형·재택 → 채널 타입 우선, 없으면 블로그로 통합
  */
 export function detectType(text, imgSrcs = []) {
-  // 1) 채널 타입 감지 (아이콘 우선)
-  let channelType = null
+  // 1) 아이콘 기반 채널 감지
   if (imgSrcs.length) {
-    if (imgSrcs.some(s => /insta_icon|insta-icon/i.test(s))) channelType = '인스타'
-    else if (imgSrcs.some(s => /clip_icon|clip-icon|naver.clip/i.test(s))) channelType = '클립'
-    else if (imgSrcs.some(s => /youtube|yt_icon/i.test(s))) channelType = '유튜브'
-    else if (imgSrcs.some(s => /reels/i.test(s))) channelType = '릴스'
+    if (imgSrcs.some(s => /insta_icon|insta-icon/i.test(s))) return '인스타'
+    if (imgSrcs.some(s => /clip_icon|clip-icon|naver.clip/i.test(s))) return '클립'
+    if (imgSrcs.some(s => /youtube|yt_icon/i.test(s))) return '유튜브'
+    if (imgSrcs.some(s => /reels/i.test(s))) return '릴스'
   }
+
   const t = (text || '').toLowerCase()
-  if (!channelType) {
-    if (t.includes('릴스') || t.includes('reels')) channelType = '릴스'
-    else if (t.includes('클립') || t.includes('naverclip')) channelType = '클립'
-    else if (t.includes('인스타') || t.includes('instagram')) channelType = '인스타'
-    else if (t.includes('유튜브') || t.includes('youtube')) channelType = '유튜브'
-    else if (t.includes('틱톡') || t.includes('tiktok')) channelType = '틱톡'
-  }
 
-  // 2) 형식 타입 감지
-  const isVisit = t.includes('방문') || t.includes('매장')
-  const isHome  = t.includes('재택') || t.includes('배송') || t.includes('구매')
+  // 2) 구매평 (구매 후 쇼핑몰 리뷰)
+  if (t.includes('구매평') || t.includes('구매형') || t.includes('구매후기')) return '구매평'
 
-  // 3) 방문형: 채널과 조합 (예: "방문,블로그" / "방문,인스타")
-  if (isVisit) {
-    const ch = channelType || '블로그'
-    return `방문,${ch}`
-  }
+  // 3) 채널 텍스트 감지
+  if (t.includes('릴스') || t.includes('reels')) return '릴스'
+  if (t.includes('클립') || t.includes('naverclip')) return '클립'
+  if (t.includes('인스타') || t.includes('instagram')) return '인스타'
+  if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
+  if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
 
-  // 4) 재택형 (배송/구매평)
-  if (isHome) return '재택'
-
-  return channelType || '블로그'
+  // 4) 방문형·배송형·재택 모두 블로그로 통합
+  return '블로그'
 }
