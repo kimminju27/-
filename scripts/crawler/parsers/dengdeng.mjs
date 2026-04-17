@@ -1,5 +1,5 @@
-// 덩덩뷰 — review_campaign.php?cp_id= (storyn과 동일 구조)
-import { parseCpId } from './storyn.mjs'
+// 덩덩뷰 — Playwright, review_campaign.php?cp_id= 패턴
+import { playwrightParse } from '../utils-playwright.mjs'
 export async function parse(baseUrl) {
-  return parseCpId(baseUrl, '덩덩뷰', 'review_campaign.php?cp_id=')
+  return playwrightParse(baseUrl, 'review_campaign.php?cp_id=', { extraWaitMs: 3000 })
 }

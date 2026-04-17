@@ -1,5 +1,5 @@
-// 블로그체험 (xn--5y2bw0fi0u.kr) — cv_campaign.php?cp_id= (storyn 패턴)
-import { parseCpId } from './storyn.mjs'
+// 블로그체험 (xn--5y2bw0fi0u.kr) — Playwright, cv_campaign.php?cp_id= 패턴
+import { playwrightParse } from '../utils-playwright.mjs'
 export async function parse(baseUrl) {
-  return parseCpId(baseUrl, '블로그체험', 'cv_campaign.php?cp_id=')
+  return playwrightParse(baseUrl, 'cv_campaign.php?cp_id=', { extraWaitMs: 3000 })
 }
