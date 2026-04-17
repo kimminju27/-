@@ -93,7 +93,7 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
         const href = el.href
         if (!href.includes(keyword)) return
         if (seen.has(href)) return
-        seen.add(href)
+        // seen.add는 유효한 제목 확인 후 (이미지링크+제목링크 중 후자를 놓치지 않도록)
         let title = ''
         if (titleSel) {
           const t = el.querySelector(titleSel) ||
@@ -120,6 +120,7 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
           }
         }
         if (!title || title.length < 5 || title.length > 200) return
+        seen.add(href)
         results.push({ title, campaign_url: href })
       })
       return results
