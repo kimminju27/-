@@ -80,7 +80,7 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
   try {
     await blockResources(page)
     // 리소스 차단 시 networkidle 대신 load 사용 (타임아웃 방지)
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: opts.gotoTimeout || 30000 })
     if (opts.waitSelector) {
       await page.waitForSelector(opts.waitSelector, { timeout: 12000 }).catch(() => {})
     }
@@ -108,6 +108,17 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
           }
         }
         if (!title) title = el.innerText.replace(/\s+/g, ' ').trim()
+        // 앵커 외부(부모 카드)에 제목이 있는 경우 탐색
+        if (!title || title.length < 5) {
+          const parent = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"],tr')
+          if (parent) {
+            const pc = parent.querySelectorAll('h1,h2,h3,h4,strong,b,[class*="title"],[class*="name"],[class*="subject"]')
+            for (const t of pc) {
+              const txt = t.textContent.replace(/\s+/g, ' ').trim()
+              if (txt.length >= 5 && txt.length <= 150) { title = txt; break }
+            }
+          }
+        }
         if (!title || title.length < 5 || title.length > 200) return
         results.push({ title, campaign_url: href })
       })
@@ -136,7 +147,7 @@ export async function playwrightParseHeuristic(url, opts = {}) {
   const page = await br.newPage()
   try {
     await blockResources(page)
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: opts.gotoTimeout || 30000 })
     if (opts.waitSelector) {
       await page.waitForSelector(opts.waitSelector, { timeout: 12000 }).catch(() => {})
     }
