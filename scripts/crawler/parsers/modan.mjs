@@ -1,5 +1,5 @@
-// 모단 — SPA (React), Playwright 휴리스틱
-import { playwrightParseHeuristic } from '../utils-playwright.mjs'
+// 모단 — SPA, /shop_view/?idx= 패턴
+import { playwrightParse } from '../utils-playwright.mjs'
 export async function parse(baseUrl) {
-  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 2000 })
+  return playwrightParse(baseUrl, '/shop_view/', { extraWaitMs: 8000 })
 }

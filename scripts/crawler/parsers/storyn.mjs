@@ -9,6 +9,7 @@ export async function parse(baseUrl) {
 // 공통 cp_id 파서 (스토리엔/덩덩뷰/파블로뷰 공용)
 export async function parseCpId(baseUrl, name, hrefKey) {
   const campaigns = []
+  const origin = new URL(baseUrl).origin
   for (let page = 1; page <= 3; page++) {
     try {
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`
@@ -20,7 +21,11 @@ export async function parseCpId(baseUrl, name, hrefKey) {
       $(`a[href*="${hrefKey}"]`).each((_, el) => {
         const $a = $(el)
         const href = $a.attr('href') || ''
-        const fullUrl = href.startsWith('http') ? href : `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}`
+        const fullUrl = href.startsWith('http')
+          ? href
+          : href.startsWith('/')
+            ? `${origin}${href}`
+            : `${origin}/${href}`
 
         // 제목: it_name → strong/b → 가장 긴 div 텍스트 순서로 탐색
         let title = $a.find('span.it_name, span.subject, .title, strong, b').first().text().trim()

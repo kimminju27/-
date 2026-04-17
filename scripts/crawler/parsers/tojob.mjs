@@ -14,17 +14,22 @@ export async function parse(_baseUrl) {
       const $ = cheerio.load(html)
       const items = [], seen = new Set()
 
-      // row-full-link: 카드 전체를 덮는 투명 오버레이 링크 → 부모 li에서 제목 추출
+      // row-full-link: 카드 전체를 덮는 투명 오버레이 링크 → 부모 div.list-row에서 제목 추출
       $('a.row-full-link').each((_, el) => {
         const $a = $(el)
         const href = $a.attr('href') || ''
         if (!href.includes('blog_go')) return
         const fullUrl = href.startsWith('http') ? href : `https://www.tojobcn.com${href}`
 
-        const $li = $a.closest('li')
-        // 제목: padding-top:35px div의 텍스트 노드
-        const title = $li.find('div[style*="padding-top: 35px"], div[style*="padding-top:35px"]')
-          .first().text().replace(/\s+/g, ' ').trim()
+        // 컨테이너: div.list-row 또는 직접 부모
+        const $card = $a.closest('div.list-row') || $a.parent()
+        // 제목: span 직계 텍스트 노드 중 첫 번째로 유효한 것
+        let title = ''
+        $card.find('span').each((_, s) => {
+          const t = $(s).clone().children().remove().end().text().replace(/\s+/g, ' ').trim()
+          if (t.length >= 6) { title = t; return false }
+        })
+        if (!title) title = $card.find('span').first().text().replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
         if (seen.has(fullUrl)) return; seen.add(fullUrl)
 

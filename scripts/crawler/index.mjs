@@ -50,7 +50,7 @@ const PARSERS = {
   '아싸뷰':            { fn: parseAssaview,        url: 'https://assaview.co.kr/' },
   '리뷰노트':          { fn: parseReviewnote,      url: 'https://www.reviewnote.co.kr/' },
   '리얼리뷰':          { fn: parseRealreview,      url: 'https://www.real-review.kr/' },
-  '투잡커넥트':        { fn: parseTojob,           url: 'https://www.tojobcn.com/' },
+  '투잡커넥트':        { fn: parseTojob,           url: 'https://www.tojobcn.com/bbs/board.php?bo_table=blog_go' },
   '블로그체험단':      { fn: parseBlogchehumdan,   url: 'https://xn--939au0g4vj8sq.net/' },
   '티블':              { fn: parseTble,            url: 'https://www.tble.kr/' },
   '링블':              { fn: parseRingble,         url: 'https://www.ringble.co.kr/index_mobile.php' },
@@ -66,7 +66,7 @@ const PARSERS = {
   '체뷰':              { fn: parseChvu,            url: 'https://chvu.co.kr/' },
   '4블로그':           { fn: parse4blog,           url: 'https://4blog.net/' },
   '캐시노트인플루언서':{ fn: parseCashnote,        url: 'https://place.cashnote.kr/influence' },
-  '덩덩뷰':            { fn: parseDengdeng,        url: 'https://www.dengdengview.co.kr/index.php' },
+  '덩덩뷰':            { fn: parseDengdeng,        url: 'https://www.dengdengview.co.kr/review_campaign_list.php' },
   '태그바이':          { fn: parseTagby,           url: 'https://tagby.io/' },
   '레뷰':              { fn: parseRevu,            url: 'https://www.revu.net/' },
   '체험단모음':        { fn: parseXnReviewmoeum,   url: 'https://xn--o39a04kpnjo4k9hgflp.com/' },
@@ -78,7 +78,7 @@ const PARSERS = {
   '리뷰플레이스':      { fn: parseReviewplace,     url: 'https://www.reviewplace.co.kr/' },
   '리뷰의민족':        { fn: parseRemin,           url: 'https://remin.co.kr/' },
   '블로그랩':          { fn: parseBloglab,         url: 'https://bloglab.kr/index.php' },
-  '메타체험단':        { fn: parseMetachehumdan,   url: 'https://meta-chehumdan.com/index.php' },
+  '메타체험단':        { fn: parseMetachehumdan,   url: 'https://meta-chehumdan.com/campaign_list.php' },
   '오마이블로그':      { fn: parseOhmyblog,        url: 'https://www.ohmyblog.co.kr/' },
 }
 
@@ -91,6 +91,7 @@ const supabase = createClient(
 const TARGET = process.env.TARGET_PLATFORM || ''
 
 async function main() {
+  console.log('[크롤러 v2.1] 재시도 로직 + Playwright 리소스차단 버전')
   console.log(`[크롤러 시작] ${new Date().toISOString()}`)
   console.log(`대상: ${TARGET || '전체'}`)
 
@@ -113,24 +114,22 @@ async function main() {
 
   let totalInserted = 0
   let totalErrors = 0
+  const retryTargets = []
 
-  // 순차 처리 (서버 부하 분산, 1초 간격)
-  for (const platform of targets) {
+  async function crawlPlatform(platform, isRetry = false) {
     const parser = PARSERS[platform.name]
     if (!parser) {
       console.warn(`[${platform.name}] 파서 없음 — 건너뜀`)
-      continue
+      return
     }
-
     try {
-      console.log(`[${platform.name}] 크롤링 시작...`)
+      console.log(`[${platform.name}] 크롤링 시작...${isRetry ? ' (재시도)' : ''}`)
       const campaigns = await parser.fn(parser.url)
 
       if (campaigns.length > 0) {
         const { inserted } = await upsertCampaigns(
           supabase, platform.name, platform.id, campaigns
         )
-
         await supabase
           .from('platforms')
           .update({ last_crawled_at: new Date().toISOString() })
@@ -139,15 +138,31 @@ async function main() {
         console.log(`[${platform.name}] 완료: ${inserted}개 신규, 총 ${campaigns.length}개 수집`)
         totalInserted += inserted
       } else {
-        console.log(`[${platform.name}] 수집 결과 없음`)
+        if (!isRetry) {
+          retryTargets.push(platform)
+        }
+        console.log(`[${platform.name}] 수집 결과 없음${isRetry ? ' (재시도 후에도 0)' : ' → 재시도 예약'}`)
       }
     } catch (err) {
       console.error(`[${platform.name}] 실패:`, err.message)
-      totalErrors++
+      if (!isRetry) totalErrors++
     }
+  }
 
-    // 요청 간 딜레이
+  // 1차 순차 처리 (서버 부하 분산, 1초 간격)
+  for (const platform of targets) {
+    await crawlPlatform(platform)
     await new Promise(r => setTimeout(r, 1000))
+  }
+
+  // 2차: 0결과 플랫폼 재시도 (3초 대기 후)
+  if (retryTargets.length > 0) {
+    console.log(`\n[재시도] ${retryTargets.length}개 플랫폼 재시도 중...`)
+    await new Promise(r => setTimeout(r, 3000))
+    for (const platform of retryTargets) {
+      await crawlPlatform(platform, true)
+      await new Promise(r => setTimeout(r, 1500))
+    }
   }
 
   // 오래된 캠페인 정리 (30일 이상)

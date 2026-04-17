@@ -62,15 +62,30 @@ export function isCampaignUrl(href, origin) {
 /**
  * 지정 URL패턴으로 캠페인 링크 추출 (패턴 알 때)
  */
+// 불필요한 리소스 차단 (이미지/폰트/미디어만, CSS는 허용) → IP 요청수 감소
+async function blockResources(page) {
+  await page.route('**/*', (route) => {
+    const type = route.request().resourceType()
+    if (['image', 'font', 'media', 'ping', 'websocket'].includes(type)) {
+      route.abort()
+    } else {
+      route.continue()
+    }
+  })
+}
+
 export async function playwrightParse(url, hrefKeyword, opts = {}) {
   const br = await getBrowser()
   const page = await br.newPage()
   try {
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 })
+    await blockResources(page)
+    // 리소스 차단 시 networkidle 대신 load 사용 (타임아웃 방지)
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
     if (opts.waitSelector) {
       await page.waitForSelector(opts.waitSelector, { timeout: 12000 }).catch(() => {})
     }
-    if (opts.extraWaitMs) await page.waitForTimeout(opts.extraWaitMs)
+    // SPA 렌더링 대기 (최소 2초, extraWaitMs 우선)
+    await page.waitForTimeout(opts.extraWaitMs || 2000)
 
     const items = await page.evaluate(({keyword, titleSel}) => {
       const results = [], seen = new Set()
@@ -120,11 +135,12 @@ export async function playwrightParseHeuristic(url, opts = {}) {
   const br = await getBrowser()
   const page = await br.newPage()
   try {
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 })
+    await blockResources(page)
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
     if (opts.waitSelector) {
       await page.waitForSelector(opts.waitSelector, { timeout: 12000 }).catch(() => {})
     }
-    if (opts.extraWaitMs) await page.waitForTimeout(opts.extraWaitMs)
+    await page.waitForTimeout(opts.extraWaitMs || 2000)
 
     const origin = new URL(url).origin
     const items = await page.evaluate(({originStr, navWords}) => {
@@ -135,10 +151,17 @@ export async function playwrightParseHeuristic(url, opts = {}) {
           const u = new URL(href)
           if (u.origin !== originStr) return false
           const parts = u.pathname.split('/').filter(Boolean)
-          if (parts.length < 2) return false
-          const hasNum = /\d{3,}/.test(u.pathname)
-          const hasSlug = /[a-zA-Z0-9가-힣-]{6,}/.test(parts[parts.length-1])
-          if (!hasNum && !hasSlug) return false
+          if (parts.length < 1) return false
+          const last = parts[parts.length - 1]
+          const hasNumInPath = /\d{3,}/.test(u.pathname)
+          const hasNumInQuery = /[?&](idx|id|no|seq|num)=\d+/.test(u.search)
+          const hasSlug = /[a-zA-Z0-9가-힣-]{6,}/.test(last)
+          // 1단계 경로: 쿼리에 숫자 ID가 있으면 허용 (예: /shop_view/?idx=123)
+          if (parts.length === 1) {
+            if (!hasNumInPath && !hasNumInQuery && !hasSlug) return false
+          } else {
+            if (!hasNumInPath && !hasNumInQuery && !hasSlug) return false
+          }
           if (navWords.some(w => u.pathname.toLowerCase().includes(w))) return false
           return true
         } catch { return false }

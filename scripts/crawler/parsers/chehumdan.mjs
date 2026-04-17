@@ -22,11 +22,14 @@ export async function parse(baseUrl) {
         const href = $el.attr('href') || ''
         if (!href) return
 
-        const fullUrl = href.startsWith('http') ? href : `${baseUrl.replace(/\/$/, '')}/${href.replace(/^\//, '')}`
+        const origin = new URL(baseUrl).origin
+        const fullUrl = href.startsWith('http') ? href : href.startsWith('/') ? `${origin}${href}` : `${origin}/${href}`
 
+        // 제목: 텍스트 → img.alt → img.title 순서로 시도 (이미지 전용 링크 대응)
         const title = $el.text().replace(/\s+/g, ' ').trim()
+          || $el.find('img').attr('alt') || $el.find('img').attr('title') || ''
         if (!title || title.length < 6) return
-        // 중복 방지
+        // 중복 방지 (제목 확인 후)
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
 
