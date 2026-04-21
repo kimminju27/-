@@ -1,4 +1,4 @@
-name: 자동 글 생성
+name: 네이버 블로그 자동 임시저장 (mju427)
 
 on:
   schedule:
@@ -12,37 +12,18 @@ on:
 
   workflow_dispatch:
     inputs:
-      mode:
-        description: '생성 모드'
-        required: true
-        default: 'news'
-        type: choice
-        options:
-          - news
-          - product_review
       categories:
-        description: '뉴스 카테고리 (쉼표 구분) — news 모드용: 경제,주식,부동산,복지정책'
+        description: '카테고리 (쉼표 구분): 경제,주식,부동산,복지정책,보험,세금'
         required: false
         default: '경제,주식'
-      product_links:
-        description: |
-          제품 링크 목록 — product_review 모드용
-          한 줄에 하나씩 입력: URL|플랫폼
-          예) https://coupang.com/xxx|coupang
-              https://naver.com/xxx|naver
-        required: false
 
 jobs:
-  generate:
+  naver-draft:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Node.js 설정
         uses: actions/setup-node@v4
@@ -52,14 +33,9 @@ jobs:
       - name: 카테고리 결정 (스케줄 자동 배분)
         id: cats
         run: |
-          # github.event.schedule 로 슬롯 식별 — 실제 실행 시각이 아닌 cron 표현식 기준
-          # GitHub Actions 지연으로 HOUR가 달라져도 슬롯이 바뀌지 않음
           SCHEDULE="${{ github.event.schedule }}"
-          # 요일(1=월,...,7=일) — cron 등록 시각(UTC) 기준 요일
           DOW=$(date -u +%u)
-          # 규칙: 하루 3개 슬롯에서 카테고리가 겹치지 않도록 설계
           if [ "$SCHEDULE" = "0 20 * * *" ]; then
-            # 슬롯 A — 오전 9시 KST 목표 (UTC 20:00 등록)
             case $DOW in
               1) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=부동산,복지정책" >> $GITHUB_OUTPUT ;;
@@ -70,7 +46,6 @@ jobs:
               *) echo "CATS=세금,주식" >> $GITHUB_OUTPUT ;;
             esac
           elif [ "$SCHEDULE" = "0 0 * * *" ]; then
-            # 슬롯 B — 오후 1시 KST 목표 (UTC 00:00 등록)
             case $DOW in
               1) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
@@ -81,7 +56,6 @@ jobs:
               *) echo "CATS=보험,부동산" >> $GITHUB_OUTPUT ;;
             esac
           else
-            # 슬롯 C — 오후 7시 KST 목표 (UTC 10:00 등록)
             case $DOW in
               1) echo "CATS=세금,복지정책" >> $GITHUB_OUTPUT ;;
               2) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
@@ -93,25 +67,29 @@ jobs:
             esac
           fi
 
-      - name: 글 자동 생성
+      - name: 의존성 설치 (naver-blog-team)
+        working-directory: naver-blog-team
+        run: npm ci
+
+      - name: Playwright Chromium 설치
+        working-directory: naver-blog-team
+        run: npx playwright install chromium --with-deps
+
+      - name: 가상 디스플레이 설정 (Xvfb — 봇 감지 회피)
+        run: |
+          sudo apt-get install -y xvfb
+          Xvfb :99 -screen 0 1280x900x24 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: 글 생성 + 네이버 블로그 임시저장
+        working-directory: naver-blog-team
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
-          GENERATION_MODE: ${{ github.event.inputs.mode || 'news' }}
+          NAVER_ID: ${{ secrets.NAVER_ID }}
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
+          NAVER_BLOG_ID: mju427
           CATEGORIES: ${{ github.event.inputs.categories || steps.cats.outputs.CATS }}
-          PRODUCT_LINKS: ${{ github.event.inputs.product_links || '' }}
-        run: node scripts/auto-generate.mjs
-
-      - name: 변경사항 커밋 & 푸시
-        run: |
-          git config user.name "Auto Post Bot"
-          git config user.email "bot@bloginfo360.com"
-          git add posts/ index.html sitemap.xml feed.xml topics-history.json 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "변경사항 없음 — 스킵"
-            exit 0
-          fi
-          git commit -m "auto: 새 글 자동 생성 🤖"
-          git pull --rebase origin main
-          git push origin main
+          TARGET: naver
+          DRAFT_ONLY: 'true'
+          CI: 'true'
+        run: node scripts/run.mjs
