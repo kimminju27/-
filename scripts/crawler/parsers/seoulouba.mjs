@@ -1,12 +1,13 @@
-// 서울오빠 — div.item > a[href*="campaign/?c="] > strong
+// 서울오빠 — fetch 차단 시 Playwright 폴백
 import * as cheerio from 'cheerio'
 import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
+import { playwrightParse, playwrightParseHeuristic } from '../utils-playwright.mjs'
 
 export async function parse(baseUrl) {
-  const campaigns = []
-
-  for (let page = 1; page <= 3; page++) {
-    try {
+  // 1차: 정적 fetch 시도
+  try {
+    const campaigns = []
+    for (let page = 1; page <= 3; page++) {
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`
       const res = await fetchWithRetry(url)
       const html = await res.text()
@@ -19,23 +20,15 @@ export async function parse(baseUrl) {
         const $a = $el.find('a[href*="campaign/?c="]').first()
         const href = $a.attr('href') || ''
         if (!href) return
-
         const fullUrl = href.startsWith('http') ? href : `https://www.seoulouba.co.kr${href}`
         if (seen.has(fullUrl)) return
         seen.add(fullUrl)
-
-        const title = $a.find('strong').first().text().trim()
-          || $a.text().replace(/\s+/g, ' ').trim()
+        const title = $a.find('strong').first().text().trim() || $a.text().replace(/\s+/g, ' ').trim()
         if (!title || title.length < 4) return
-
-        const deadlineText = $el.find(
-          '[class*="dday"],[class*="d-day"],[class*="d_day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="day"],[class*="timer"],[class*="date"]'
-        ).first().text().trim()
+        const deadlineText = $el.find('[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="day"],[class*="date"]').first().text().trim()
         const typeImgSrc = $el.find('img[src*="thum_ch_"]').first().attr('src') || ''
-        // 매장방문형 등 카테고리 텍스트도 함께 전달 (다중 타입 감지)
-        const categoryText = $el.find('[class*="tag"],[class*="type"],[class*="category"],[class*="badge"],[class*="kind"]').first().text().trim()
-        const applyText = $el.find('[class*="apply"], [class*="cnt"]').first().text()
-
+        const categoryText = $el.find('[class*="tag"],[class*="type"],[class*="category"],[class*="badge"]').first().text().trim()
+        const applyText = $el.find('[class*="apply"],[class*="cnt"]').first().text()
         items.push({
           title,
           campaign_url: fullUrl,
@@ -45,15 +38,16 @@ export async function parse(baseUrl) {
           deadline_text: deadlineText || null,
         })
       })
-
       if (items.length === 0) break
       campaigns.push(...items)
-    } catch (err) {
-      console.warn(`[서울오빠] 페이지 ${page} 실패:`, err.message)
-      break
+      await new Promise(r => setTimeout(r, 800))
     }
-    await new Promise(r => setTimeout(r, 800))
-  }
-  return campaigns
+    if (campaigns.length > 0) return campaigns
+  } catch (_) {}
+
+  // 2차: Playwright 폴백 (fetch 차단 시)
+  const r = await playwrightParse(baseUrl, 'campaign/?c=', { extraWaitMs: 4000 })
+  if (r.length > 0) return r
+  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 4000 })
 }
 
