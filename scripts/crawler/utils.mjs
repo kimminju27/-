@@ -44,19 +44,27 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
   const seenHashes = new Set()
   const rows = campaigns
     .filter(c => c.title && c.campaign_url && isValidTitle(c.title))
-    .map(c => ({
-      platform_id: platformId || null,
-      platform_name: platformName,
-      title: sanitizeTitle(c.title).substring(0, 200),
-      campaign_url: c.campaign_url,
-      campaign_type: c.campaign_type || '블로그',
-      applicants: parseInt(c.applicants) || 0,
-      capacity: parseInt(c.capacity) || null,
-      deadline_text: c.deadline_text || null,
-      content_hash: makeHash(platformName, c.title.trim()),
-      // crawled_at 제외 → 신규 행은 DB DEFAULT(NOW()), 기존 행은 원래 값 유지
-      is_active: true,
-    }))
+    .map(c => {
+      // delivery_type을 제목 정제 전에 원본에서 추출
+      const rawForDetect = c.title + ' ' + (c.campaign_type || '')
+      const deliveryType = c.delivery_type || detectDelivery(rawForDetect)
+      const channelType = c.campaign_type || detectChannel(rawForDetect)
+
+      return {
+        platform_id: platformId || null,
+        platform_name: platformName,
+        title: sanitizeTitle(c.title).substring(0, 200),
+        campaign_url: c.campaign_url,
+        campaign_type: channelType,
+        delivery_type: deliveryType,
+        applicants: parseInt(c.applicants) || 0,
+        capacity: parseInt(c.capacity) || null,
+        deadline_text: c.deadline_text || null,
+        content_hash: makeHash(platformName, c.title.trim()),
+        // crawled_at 제외 → 신규 행은 DB DEFAULT(NOW()), 기존 행은 원래 값 유지
+        is_active: true,
+      }
+    })
     .filter(r => {
       if (seenHashes.has(r.content_hash)) return false
       seenHashes.add(r.content_hash)
@@ -105,11 +113,10 @@ export function parseNum(text) {
 }
 
 /**
- * 캠페인 타입 감지 — 모든 파서 공유
- * 타입: 블로그·인스타·릴스·유튜브·클립·틱톡·구매평
- * 방문형·배송형·재택 → 채널 타입 우선, 없으면 블로그로 통합
+ * 채널 타입 감지 (어디에 올리는가)
+ * 반환: 블로그 | 인스타 | 릴스 | 유튜브 | 클립 | 틱톡
  */
-export function detectType(text, imgSrcs = []) {
+export function detectChannel(text, imgSrcs = []) {
   // 1) 아이콘 기반 채널 감지
   if (imgSrcs.length) {
     if (imgSrcs.some(s => /insta_icon|insta-icon/i.test(s))) return '인스타'
@@ -119,17 +126,30 @@ export function detectType(text, imgSrcs = []) {
   }
 
   const t = (text || '').toLowerCase()
-
-  // 2) 구매평 (구매 후 쇼핑몰 리뷰)
-  if (t.includes('구매평') || t.includes('구매형') || t.includes('구매후기')) return '구매평'
-
-  // 3) 채널 텍스트 감지
   if (t.includes('릴스') || t.includes('reels')) return '릴스'
   if (t.includes('클립') || t.includes('naverclip')) return '클립'
   if (t.includes('인스타') || t.includes('instagram')) return '인스타'
   if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
   if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
-
-  // 4) 방문형·배송형·재택 모두 블로그로 통합
   return '블로그'
+}
+
+/**
+ * 수령 방식 감지 (어떻게 받는가)
+ * 반환: 배송형 | 방문형 | 구매평 | 재택형
+ */
+export function detectDelivery(text) {
+  const t = (text || '').toLowerCase()
+  if (t.includes('구매평') || t.includes('구매형') || t.includes('구매후기') || t.includes('구매 후') || t.includes('리얼구매')) return '구매평'
+  if (t.includes('방문') || t.includes('매장') || t.includes('현장') || t.includes('visit') || t.includes('방문형')) return '방문형'
+  if (t.includes('재택') || t.includes('온라인리뷰') || t.includes('재택형')) return '재택형'
+  return '배송형'
+}
+
+/**
+ * @deprecated detectChannel() 사용 권장
+ * 하위 호환을 위해 유지
+ */
+export function detectType(text, imgSrcs = []) {
+  return detectChannel(text, imgSrcs)
 }

@@ -20,7 +20,6 @@
   <meta name="twitter:description" content="37개 체험단 사이트 캠페인 통합 검색. 블로그·인스타·유튜브 체험단 무료 신청.">
   <link rel="canonical" href="https://bloginfo360.com/">
 
-  <!-- JSON-LD 구조화 데이터 -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -49,650 +48,481 @@
       {
         "@type": "FAQPage",
         "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "체험단 모아보기 사이트는 어디서 이용하나요?",
-            "acceptedAnswer": { "@type": "Answer", "text": "캠레이더(bloginfo360.com)에서 37개 체험단 사이트의 블로그·인스타·유튜브 캠페인을 한 번에 무료로 검색할 수 있습니다." }
-          },
-          {
-            "@type": "Question",
-            "name": "블로그 체험단은 어떻게 신청하나요?",
-            "acceptedAnswer": { "@type": "Answer", "text": "캠레이더에서 원하는 블로그 체험단을 검색한 뒤, 카드를 클릭해 상세 정보를 확인하고 '신청하러 가기' 버튼으로 해당 플랫폼에서 직접 신청할 수 있습니다." }
-          },
-          {
-            "@type": "Question",
-            "name": "뷰티·식품·맛집 체험단을 따로 찾을 수 있나요?",
-            "acceptedAnswer": { "@type": "Answer", "text": "캠레이더 검색창에 '뷰티', '식품', '맛집' 등 키워드를 입력하거나 채널(블로그·인스타) 필터를 사용하면 원하는 카테고리의 체험단만 모아볼 수 있습니다." }
-          },
-          {
-            "@type": "Question",
-            "name": "인스타그램 체험단도 검색되나요?",
-            "acceptedAnswer": { "@type": "Answer", "text": "네, 캠레이더는 블로그 체험단뿐 아니라 인스타그램·유튜브·방문형 체험단까지 통합 검색을 지원합니다." }
-          },
-          {
-            "@type": "Question",
-            "name": "체험단 정보는 얼마나 자주 업데이트되나요?",
-            "acceptedAnswer": { "@type": "Answer", "text": "1시간마다 자동으로 37개 체험단 사이트를 크롤링하여 최신 캠페인 정보를 제공합니다." }
-          }
+          { "@type": "Question", "name": "체험단 모아보기 사이트는 어디서 이용하나요?", "acceptedAnswer": { "@type": "Answer", "text": "캠레이더(bloginfo360.com)에서 37개 체험단 사이트의 블로그·인스타·유튜브 캠페인을 한 번에 무료로 검색할 수 있습니다." } },
+          { "@type": "Question", "name": "블로그 체험단은 어떻게 신청하나요?", "acceptedAnswer": { "@type": "Answer", "text": "원하는 캠페인 카드를 클릭해 상세 정보를 확인하고 신청하러 가기 버튼으로 해당 플랫폼에서 직접 신청하세요." } },
+          { "@type": "Question", "name": "체험단 정보는 얼마나 자주 업데이트되나요?", "acceptedAnswer": { "@type": "Answer", "text": "1시간마다 자동으로 37개 체험단 사이트를 크롤링하여 최신 캠페인 정보를 제공합니다." } }
         ]
       }
     ]
   }
   </script>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: { 50:'#fffbeb',100:'#fef3c7',200:'#fde68a',500:'#f59e0b',600:'#d97706',700:'#b45309' },
-            navy: { 900:'#080f1f',800:'#0c1830',700:'#102040',600:'#1a2f55' },
-            ink: { 900:'#0f172a',700:'#1e293b',500:'#475569',300:'#94a3b8',100:'#f1f5f9' },
-            gold: { light:'#fde68a',DEFAULT:'#d97706',dark:'#92400e' }
+            primary: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca' }
           },
-          fontFamily: { sans: ['Noto Sans KR','sans-serif'] },
-          boxShadow: {
-            'card': '0 2px 12px rgba(8,15,31,0.07)',
-            'card-hover': '0 16px 40px rgba(217,119,6,0.15)',
-          }
+          fontFamily: { sans: ['Noto Sans KR', 'sans-serif'] }
         }
       }
     }
   </script>
-
-  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <!-- D3 + D3-cloud -->
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1/build/d3.layout.cloud.js"></script>
 
   <style>
-    body { font-family: 'Noto Sans KR', sans-serif; background:#fdfcf7; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: #f4f6ff; }
     .line-clamp-2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
-    .campaign-card { transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s; border:1px solid #f0ece0; border-left:3px solid #e5e0d0; }
-    .campaign-card:hover { box-shadow:0 16px 40px rgba(217,119,6,0.13);transform:translateY(-3px);border-color:#d97706; border-left-color:#d97706; }
-    .tag-chip { cursor:pointer;transition:background 0.15s,color 0.15s; }
-    .skeleton { background:linear-gradient(90deg,#f5f0e8 25%,#ece7da 50%,#f5f0e8 75%);background-size:200% 100%;animation:shimmer 1.5s infinite; }
+    .skeleton { background:linear-gradient(90deg,#e2e8f0 25%,#eef2ff 50%,#e2e8f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite; }
     @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
-    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f5f0e8}::-webkit-scrollbar-thumb{background:#d97706;border-radius:3px}
-    .gold-btn { background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff; }
-    .gold-btn:hover { background:linear-gradient(135deg,#d97706,#b45309); }
-    .gold-line { background:linear-gradient(90deg,transparent,#d97706,transparent);height:1px; }
-    .hero-glow { background-image:radial-gradient(ellipse at 30% 60%,rgba(245,158,11,0.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(251,191,36,0.06) 0%,transparent 50%); }
-    .stat-card { border-bottom:2px solid transparent;transition:border-color 0.2s; }
-    .stat-card:hover { border-bottom-color:#d97706; }
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#6366f1;border-radius:3px}
+    .campaign-card { transition: box-shadow 0.2s, transform 0.2s; }
+    .campaign-card:hover { box-shadow: 0 8px 28px rgba(99,102,241,0.14); transform: translateY(-2px); }
+    .filter-chip { transition: background 0.15s, color 0.15s, border-color 0.15s; white-space: nowrap; cursor: pointer; }
+    .filter-chip.active { background: #4f46e5 !important; color: #fff !important; border-color: #4f46e5 !important; }
+    .filter-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .filter-scroll::-webkit-scrollbar { display: none; }
   </style>
 </head>
-<body class="text-ink-900" style="background:#fdfcf7;">
+<body class="text-slate-900">
 
 <!-- ===== 헤더 ===== -->
-<header class="sticky top-0 z-50" style="background:#080f1f;border-bottom:1px solid rgba(217,119,6,0.25);">
-  <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
-    <a href="/" class="flex items-center gap-2.5">
+<header class="sticky top-0 z-50 bg-white border-b border-slate-100" style="box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2">
       <span class="text-xl">📡</span>
-      <span class="text-lg font-black tracking-tight" style="color:#f5c842;">캠레이더</span>
-      <span class="text-xs font-medium px-2 py-0.5 rounded border text-xs" style="color:#d97706;border-color:rgba(217,119,6,0.4);background:rgba(217,119,6,0.08);">BETA</span>
+      <span class="text-lg font-black tracking-tight text-primary-600">캠레이더</span>
+      <span class="text-xs font-bold px-1.5 py-0.5 rounded bg-primary-50 text-primary-500 border border-primary-100">BETA</span>
     </a>
-    <nav class="flex items-center gap-1 text-sm">
-      <a href="/about.html" class="px-3 py-1.5 rounded-lg transition-colors" style="color:#9ca3af;" onmouseover="this.style.color='#f5c842'" onmouseout="this.style.color='#9ca3af'">소개</a>
-    </nav>
+    <div class="flex items-center gap-3 text-sm">
+      <span id="header-count" class="font-black text-primary-600 text-sm"></span>
+      <a href="/about.html" class="text-slate-400 hover:text-slate-700 transition-colors">소개</a>
+    </div>
   </div>
 </header>
 
 <!-- ===== 히어로 ===== -->
-<section class="hero-glow text-white py-14 px-4" style="background:#080f1f;">
-  <div class="max-w-3xl mx-auto text-center">
-    <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs mb-5" style="background:rgba(217,119,6,0.12);border:1px solid rgba(217,119,6,0.3);color:#fbbf24;">
+<section class="py-10 px-4" style="background:linear-gradient(135deg,#eef2ff 0%,#f4f6ff 55%,#fdf4ff 100%);">
+  <div class="max-w-2xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs mb-4 bg-white border border-primary-100 text-primary-600 font-bold shadow-sm">
       <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-      실시간 업데이트 중
+      1시간마다 자동 업데이트
     </div>
-    <h1 class="text-3xl md:text-5xl font-black mb-4 leading-tight" style="color:#fdfcf7;">체험단 캠페인<br><span style="color:#f5c842;">한 번에</span> 다 찾자</h1>
-    <p class="text-sm mb-8" style="color:#6b7280;">37개 체험단 사이트 캠페인을 실시간으로 통합 검색</p>
+    <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-2 leading-tight">
+      체험단 캠페인<br><span class="text-primary-600">한 번에</span> 다 찾자
+    </h1>
+    <p class="text-slate-400 text-sm mb-6">37개 체험단 사이트 · 실시간 통합 검색</p>
 
     <!-- 검색창 -->
-    <div class="flex gap-2 rounded-2xl p-1.5 mb-6" style="background:#fff;box-shadow:0 24px 64px rgba(0,0,0,0.4),0 0 0 1px rgba(217,119,6,0.2);">
-      <span class="pl-3 flex items-center text-lg" style="color:#d97706;">🔍</span>
+    <div class="flex gap-2 bg-white rounded-2xl p-1.5 shadow-md border border-primary-100 mb-5">
+      <span class="pl-3 flex items-center text-slate-300 text-lg">🔍</span>
       <input id="search-input" type="text"
-        placeholder="예) 뷰티 체험단, 서울 맛집, 강아지 간식..."
-        class="flex-1 text-gray-800 text-sm outline-none px-2 py-2.5 bg-transparent" autocomplete="off">
+        placeholder="뷰티, 맛집, 강아지 간식, 서울..."
+        class="flex-1 text-slate-800 text-sm outline-none px-2 py-2 bg-transparent" autocomplete="off">
       <button id="search-btn"
-        class="gold-btn active:scale-95 font-bold px-6 py-2 rounded-xl text-sm transition-all">
+        class="px-5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold transition-colors active:scale-95">
         검색
       </button>
     </div>
 
-    <!-- 추천 검색어 -->
-    <div class="mb-3">
-      <span class="text-xs" style="color:#6b7280;">💡 추천&nbsp;</span>
-      <span id="recommend-tags" class="inline-flex flex-wrap gap-1.5"></span>
-    </div>
-
     <!-- 인기 검색어 -->
+    <div id="popular-tags" class="flex flex-wrap justify-center gap-1.5"></div>
+  </div>
+</section>
+
+<!-- ===== 통계 ===== -->
+<div class="bg-white border-b border-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-3 grid grid-cols-3 divide-x divide-slate-100 text-center">
     <div>
-      <span class="text-xs" style="color:#6b7280;">🔥 인기&nbsp;</span>
-      <span id="popular-tags" class="inline-flex flex-wrap gap-1.5"></span>
+      <div id="stat-total" class="text-xl font-black text-primary-600">-</div>
+      <div class="text-xs text-slate-400 mt-0.5">총 캠페인</div>
+    </div>
+    <div>
+      <div id="stat-today" class="text-xl font-black text-primary-600">-</div>
+      <div class="text-xs text-slate-400 mt-0.5">오늘 신규</div>
+    </div>
+    <div>
+      <div id="stat-platforms" class="text-xl font-black text-primary-600">-</div>
+      <div class="text-xs text-slate-400 mt-0.5">연동 사이트</div>
     </div>
   </div>
-</section>
-<div class="gold-line"></div>
+</div>
 
-<!-- ===== 통계 배너 ===== -->
-<section class="py-6 px-4" style="background:#fff;border-bottom:1px solid #f0ece0;">
-  <div class="max-w-6xl mx-auto grid grid-cols-3 gap-4 text-center">
-    <div class="stat-card pb-2">
-      <div id="stat-total" class="text-2xl font-black" style="color:#d97706">-</div>
-      <div class="text-xs mt-1" style="color:#9ca3af;">총 캠페인</div>
-    </div>
-    <div class="stat-card pb-2">
-      <div id="stat-today" class="text-2xl font-black" style="color:#d97706">-</div>
-      <div class="text-xs mt-1" style="color:#9ca3af;">오늘 신규</div>
-    </div>
-    <div class="stat-card pb-2">
-      <div id="stat-platforms" class="text-2xl font-black" style="color:#d97706">-</div>
-      <div class="text-xs mt-1" style="color:#9ca3af;">연동 플랫폼</div>
-    </div>
-  </div>
-</section>
+<!-- ===== 필터 바 (sticky) ===== -->
+<div class="sticky top-14 z-40 bg-white border-b border-slate-100" style="box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+  <div class="max-w-6xl mx-auto px-4 py-3 space-y-2.5">
 
-<!-- ===== 대시보드 ===== -->
-<section class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div class="bg-white rounded-2xl shadow-card p-5" style="border:1px solid #f0ece0;">
-    <h2 class="text-sm font-bold mb-3 flex items-center gap-1.5" style="color:#b45309;">🔡 인기 검색어</h2>
-    <div id="wordcloud-container" style="height:200px;" class="flex items-center justify-center text-gray-400 text-sm">로딩 중...</div>
-  </div>
-  <div class="bg-white rounded-2xl shadow-card p-5" style="border:1px solid #f0ece0;">
-    <h2 class="text-sm font-bold mb-3 flex items-center gap-1.5" style="color:#b45309;">📈 일별 방문자 수</h2>
-    <div style="height:200px;"><canvas id="visitor-chart"></canvas></div>
-  </div>
-</section>
-
-<!-- ===== 필터 바 ===== -->
-<section class="max-w-6xl mx-auto px-4 mb-4">
-  <div class="bg-white rounded-2xl shadow-card p-4 space-y-3" style="border:1px solid #f0ece0;">
-    <!-- 채널 유형 -->
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-bold uppercase tracking-wider w-10 shrink-0" style="color:#b45309;">채널</span>
-      <div class="flex flex-wrap gap-1.5" id="type-filter">
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold text-white gold-btn" data-type="전체">전체</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200" data-type="블로그">📝 블로그</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-pink-100 text-pink-700 hover:bg-pink-200" data-type="인스타">📸 인스타</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-600 hover:bg-rose-200" data-type="릴스">🎞 릴스</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200" data-type="유튜브">▶ 유튜브</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 hover:bg-green-200" data-type="클립">📎 클립</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100" data-type="방문">🚶 방문</button>
-        <button class="type-btn px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200" data-type="재택">🏠 재택</button>
+    <!-- 채널 필터 -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-bold text-slate-400 shrink-0 w-8">채널</span>
+      <div class="filter-scroll flex gap-1.5">
+        <button class="channel-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600 active" data-channel="전체">전체</button>
+        <button class="channel-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-channel="블로그">📝 블로그</button>
+        <button class="channel-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-channel="인스타">📸 인스타</button>
+        <button class="channel-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-channel="릴스">🎞 릴스</button>
+        <button class="channel-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-channel="유튜브">▶ 유튜브</button>
+        <button class="channel-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-channel="클립">📎 클립</button>
       </div>
     </div>
 
-    <!-- 플랫폼 -->
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-bold uppercase tracking-wider w-10 shrink-0" style="color:#b45309;">사이트</span>
-      <div id="platform-filter" class="flex flex-wrap gap-1.5">
-        <button class="filter-btn px-3 py-1 rounded-full text-xs font-bold text-white gold-btn" data-platform="전체">전체</button>
+    <!-- 방식 필터 (delivery_type 컬럼 있을 때만 노출) -->
+    <div id="delivery-filter-row" class="flex items-center gap-2 hidden">
+      <span class="text-xs font-bold text-slate-400 shrink-0 w-8">방식</span>
+      <div class="filter-scroll flex gap-1.5">
+        <button class="delivery-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600 active" data-delivery="전체">전체</button>
+        <button class="delivery-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-delivery="배송형">📦 배송형</button>
+        <button class="delivery-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-delivery="방문형">🚶 방문형</button>
+        <button class="delivery-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-delivery="구매평">💳 구매평</button>
+        <button class="delivery-btn filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600" data-delivery="재택형">🏠 재택형</button>
       </div>
     </div>
 
-    <!-- 고급 필터 -->
-    <div class="flex flex-wrap items-center justify-between gap-2 pt-2" style="border-top:1px solid #f5efe0;">
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-bold uppercase tracking-wider w-10 shrink-0" style="color:#b45309;">옵션</span>
-        <button id="btn-available" onclick="toggleAvailable()"
-          class="px-3 py-1 rounded-full text-xs font-bold border transition-all"
-          style="background:#fdfcf7;color:#78716c;border-color:#e5e0d0;">
-          ✅ 여석있는 캠페인만
-        </button>
+    <!-- 옵션 행 -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-1.5 flex-wrap">
         <button id="btn-today" onclick="toggleToday()"
-          class="px-3 py-1 rounded-full text-xs font-bold border transition-all"
-          style="background:#fdfcf7;color:#78716c;border-color:#e5e0d0;">
+          class="filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600">
           🆕 오늘 신규
         </button>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-xs" style="color:#9ca3af;">정렬</span>
-        <select id="sort-select" onchange="onSortChange()"
-          class="text-xs rounded-lg px-2 py-1 outline-none bg-white"
-          style="border:1px solid #e5e0d0;color:#57534e;">
-          <option value="latest">최신순</option>
-          <option value="applicants">신청자 많은순</option>
-          <option value="available">여석 많은순</option>
+        <button id="btn-bookmarks" onclick="toggleBookmarks()"
+          class="filter-chip px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 text-slate-600">
+          ♥ 즐겨찾기
+        </button>
+        <select id="platform-select" onchange="onPlatformChange()"
+          class="text-xs rounded-full px-3 py-1.5 border border-slate-200 text-slate-600 outline-none bg-white font-bold cursor-pointer">
+          <option value="전체">전체 사이트</option>
         </select>
       </div>
-    </div>
-
-    <div class="flex items-center justify-between">
-      <span id="result-count" class="text-xs" style="color:#9ca3af;"></span>
-      <span id="last-update" class="text-xs" style="color:#c0bab0;"></span>
-    </div>
-  </div>
-</section>
-
-<!-- ===== 캠페인 상세 모달 ===== -->
-<div id="detail-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
-  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
-  <div class="absolute inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden" style="max-height:90vh;overflow-y:auto;">
-      <!-- 상단 핸들 (모바일) -->
-      <div class="sm:hidden flex justify-center pt-3 pb-1">
-        <div class="w-10 h-1 bg-gray-200 rounded-full"></div>
-      </div>
-      <!-- 닫기 버튼 -->
-      <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-lg transition-colors z-10">×</button>
-
-      <!-- 모달 내용 -->
-      <div class="p-6 pb-8">
-        <!-- 플랫폼 + 채널 뱃지 -->
-        <div class="flex items-center gap-2 mb-4" id="modal-badges"></div>
-
-        <!-- 제목 -->
-        <h2 id="modal-title" class="text-lg font-black text-gray-900 leading-snug mb-5"></h2>
-
-        <!-- 신청 진행률 -->
-        <div id="modal-progress" class="mb-5"></div>
-
-        <!-- 정보 그리드 -->
-        <div id="modal-info" class="grid grid-cols-2 gap-3 mb-6"></div>
-
-        <!-- 신청하기 버튼 -->
-        <a id="modal-apply-btn" href="#" target="_blank" rel="noopener noreferrer"
-          class="block w-full text-center text-white font-black py-4 rounded-2xl text-base transition-all active:scale-95"
-          style="background:linear-gradient(135deg,#f59e0b,#b45309);">
-          신청하러 가기 →
-        </a>
-        <p class="text-center text-xs text-gray-400 mt-3">해당 체험단 플랫폼 사이트로 이동합니다</p>
+      <div class="flex items-center gap-2">
+        <span id="result-count" class="text-xs text-slate-400"></span>
+        <select id="sort-select" onchange="onSortChange()"
+          class="text-xs rounded-full px-3 py-1.5 border border-slate-200 text-slate-600 outline-none bg-white font-bold cursor-pointer">
+          <option value="latest">최신순</option>
+          <option value="applicants">신청자 많은순</option>
+        </select>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ===== 캠페인 그리드 ===== -->
-<main class="max-w-6xl mx-auto px-4 pb-12">
+<main class="max-w-6xl mx-auto px-4 py-6">
   <div id="campaign-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    <div class="skeleton rounded-2xl h-44"></div>
-    <div class="skeleton rounded-2xl h-44"></div>
-    <div class="skeleton rounded-2xl h-44"></div>
-    <div class="skeleton rounded-2xl h-44"></div>
-    <div class="skeleton rounded-2xl h-44"></div>
-    <div class="skeleton rounded-2xl h-44"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
+    <div class="skeleton rounded-2xl h-40"></div>
   </div>
-  <div class="text-center mt-8">
-    <button id="load-more" class="hidden font-bold px-10 py-3 rounded-xl transition-all"
-      style="background:#fff;border:1.5px solid #d97706;color:#d97706;"
-      onmouseover="this.style.background='linear-gradient(135deg,#f59e0b,#d97706)';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#d97706'">
-      캠페인 더 보기
-    </button>
+  <div id="no-results" class="hidden text-center py-20">
+    <div class="text-5xl mb-4">🔍</div>
+    <p class="text-slate-500 font-bold text-lg">검색 결과가 없어요</p>
+    <p class="text-slate-400 text-sm mt-1">다른 키워드나 필터를 사용해보세요</p>
   </div>
-  <div id="no-results" class="hidden text-center py-16">
-    <div class="text-4xl mb-3">🔍</div>
-    <p class="text-gray-500 font-medium">검색 결과가 없습니다</p>
-    <p class="text-gray-400 text-sm mt-1">다른 키워드로 검색해보세요</p>
-  </div>
+  <!-- 무한 스크롤 센티넬 -->
+  <div id="scroll-sentinel" class="h-4 mt-4"></div>
 </main>
 
-<!-- ===== 키워드 / FAQ 섹션 ===== -->
-<section style="background:#0d1528;border-top:1px solid rgba(217,119,6,0.15);">
-  <div class="max-w-3xl mx-auto px-4 py-14">
-
-    <!-- 카테고리 바로가기 -->
-    <h2 class="text-xl font-black text-center mb-2" style="color:#f5c842;">카테고리별 체험단 모아보기</h2>
-    <p class="text-center text-sm mb-8" style="color:#9ca3af;">원하는 카테고리를 클릭해 바로 찾아보세요</p>
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-14">
-      <a href="/blog-chehumdan.html" class="flex flex-col items-center gap-2 rounded-xl py-5 px-3 text-center transition-all"
-         style="background:rgba(245,200,66,0.06);border:1px solid rgba(217,119,6,0.25);"
-         onmouseover="this.style.borderColor='#d97706';this.style.background='rgba(245,200,66,0.12)'"
-         onmouseout="this.style.borderColor='rgba(217,119,6,0.25)';this.style.background='rgba(245,200,66,0.06)'">
-        <span class="text-2xl">📝</span>
-        <span class="font-bold text-sm" style="color:#f5c842;">블로그 체험단</span>
-        <span class="text-xs" style="color:#9ca3af;">네이버·티스토리 블로거</span>
-      </a>
-      <a href="/insta-chehumdan.html" class="flex flex-col items-center gap-2 rounded-xl py-5 px-3 text-center transition-all"
-         style="background:rgba(245,200,66,0.06);border:1px solid rgba(217,119,6,0.25);"
-         onmouseover="this.style.borderColor='#d97706';this.style.background='rgba(245,200,66,0.12)'"
-         onmouseout="this.style.borderColor='rgba(217,119,6,0.25)';this.style.background='rgba(245,200,66,0.06)'">
-        <span class="text-2xl">📸</span>
-        <span class="font-bold text-sm" style="color:#f5c842;">인스타 체험단</span>
-        <span class="text-xs" style="color:#9ca3af;">인스타그램·릴스 인플루언서</span>
-      </a>
-      <a href="/beauty-chehumdan.html" class="flex flex-col items-center gap-2 rounded-xl py-5 px-3 text-center transition-all"
-         style="background:rgba(245,200,66,0.06);border:1px solid rgba(217,119,6,0.25);"
-         onmouseover="this.style.borderColor='#d97706';this.style.background='rgba(245,200,66,0.12)'"
-         onmouseout="this.style.borderColor='rgba(217,119,6,0.25)';this.style.background='rgba(245,200,66,0.06)'">
-        <span class="text-2xl">💄</span>
-        <span class="font-bold text-sm" style="color:#f5c842;">뷰티 체험단</span>
-        <span class="text-xs" style="color:#9ca3af;">화장품·스킨케어·헤어</span>
-      </a>
-      <a href="/food-chehumdan.html" class="flex flex-col items-center gap-2 rounded-xl py-5 px-3 text-center transition-all"
-         style="background:rgba(245,200,66,0.06);border:1px solid rgba(217,119,6,0.25);"
-         onmouseover="this.style.borderColor='#d97706';this.style.background='rgba(245,200,66,0.12)'"
-         onmouseout="this.style.borderColor='rgba(217,119,6,0.25)';this.style.background='rgba(245,200,66,0.06)'">
-        <span class="text-2xl">🍱</span>
-        <span class="font-bold text-sm" style="color:#f5c842;">식품 체험단</span>
-        <span class="text-xs" style="color:#9ca3af;">식품·건강식품·간식</span>
-      </a>
-      <a href="/visit-chehumdan.html" class="flex flex-col items-center gap-2 rounded-xl py-5 px-3 text-center transition-all"
-         style="background:rgba(245,200,66,0.06);border:1px solid rgba(217,119,6,0.25);"
-         onmouseover="this.style.borderColor='#d97706';this.style.background='rgba(245,200,66,0.12)'"
-         onmouseout="this.style.borderColor='rgba(217,119,6,0.25)';this.style.background='rgba(245,200,66,0.06)'">
-        <span class="text-2xl">🍽️</span>
-        <span class="font-bold text-sm" style="color:#f5c842;">맛집·방문 체험단</span>
-        <span class="text-xs" style="color:#9ca3af;">레스토랑·카페·팝업</span>
-      </a>
-      <a href="/?type=유튜브" onclick="event.preventDefault();currentType='유튜브';loadCampaigns(true);window.scrollTo({top:0,behavior:'smooth'})" class="flex flex-col items-center gap-2 rounded-xl py-5 px-3 text-center transition-all"
-         style="background:rgba(245,200,66,0.06);border:1px solid rgba(217,119,6,0.25);"
-         onmouseover="this.style.borderColor='#d97706';this.style.background='rgba(245,200,66,0.12)'"
-         onmouseout="this.style.borderColor='rgba(217,119,6,0.25)';this.style.background='rgba(245,200,66,0.06)'">
-        <span class="text-2xl">🎬</span>
-        <span class="font-bold text-sm" style="color:#f5c842;">유튜브 체험단</span>
-        <span class="text-xs" style="color:#9ca3af;">유튜버·영상 리뷰어</span>
-      </a>
+<!-- ===== 모달 ===== -->
+<div id="detail-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
+  <div class="absolute inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl" style="max-height:90vh;overflow-y:auto;">
+      <div class="sm:hidden flex justify-center pt-3 pb-1">
+        <div class="w-10 h-1 bg-slate-200 rounded-full"></div>
+      </div>
+      <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-lg z-10">×</button>
+      <div class="p-6 pb-8">
+        <div class="flex flex-wrap items-center gap-2 mb-4" id="modal-badges"></div>
+        <h2 id="modal-title" class="text-lg font-black text-slate-900 leading-snug mb-5"></h2>
+        <div id="modal-progress" class="mb-4"></div>
+        <div id="modal-info" class="grid grid-cols-2 gap-3 mb-6"></div>
+        <a id="modal-apply-btn" href="#" target="_blank" rel="noopener noreferrer"
+          class="block w-full text-center text-white font-black py-4 rounded-2xl text-base transition-all hover:opacity-90 active:scale-95"
+          style="background:linear-gradient(135deg,#6366f1,#4f46e5);">
+          신청하러 가기 →
+        </a>
+        <p class="text-center text-xs text-slate-400 mt-3">해당 체험단 플랫폼으로 이동합니다</p>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- FAQ -->
-    <h2 class="text-xl font-black text-center mb-2" style="color:#f5c842;">체험단 신청, 자주 묻는 질문</h2>
-    <p class="text-center text-sm mb-8" style="color:#9ca3af;">캠레이더 이용 방법 안내</p>
-    <div class="space-y-3">
-      <details class="rounded-xl overflow-hidden" style="background:rgba(255,255,255,0.04);border:1px solid rgba(217,119,6,0.2);">
-        <summary class="cursor-pointer px-5 py-4 font-bold text-sm select-none" style="color:#f5c842;">체험단 모아보기 사이트 캠레이더는 무엇인가요?</summary>
-        <div class="px-5 pb-4 text-sm leading-relaxed" style="color:#d1d5db;">
-          캠레이더는 어포스푼, 레뷰, 링블, 다이닝퀸 등 국내 37개 체험단 플랫폼의 블로그·인스타·유튜브 캠페인을 한 곳에서 검색할 수 있는 서비스입니다.
-          매 1시간마다 자동으로 최신 체험단 정보를 수집하므로, 여러 사이트를 일일이 방문하지 않아도 됩니다.
-        </div>
+<!-- ===== FAQ (SEO용) ===== -->
+<section class="bg-slate-50 border-t border-slate-100 py-12 px-4">
+  <div class="max-w-2xl mx-auto">
+    <h2 class="text-base font-black text-slate-600 text-center mb-5">자주 묻는 질문</h2>
+    <div class="space-y-2">
+      <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">캠레이더는 무엇인가요?</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">37개 체험단 플랫폼의 캠페인을 1시간마다 자동 수집하여 한 곳에서 검색할 수 있게 해주는 무료 서비스입니다. 블로그·인스타·유튜브 체험단을 모두 검색할 수 있습니다.</div>
       </details>
-      <details class="rounded-xl overflow-hidden" style="background:rgba(255,255,255,0.04);border:1px solid rgba(217,119,6,0.2);">
-        <summary class="cursor-pointer px-5 py-4 font-bold text-sm select-none" style="color:#f5c842;">블로그 체험단은 어떻게 신청하나요?</summary>
-        <div class="px-5 pb-4 text-sm leading-relaxed" style="color:#d1d5db;">
-          상단 필터에서 <strong style="color:#f5c842;">블로그</strong> 버튼을 클릭하거나, 검색창에 '뷰티', '식품', '맛집' 등 원하는 키워드를 입력하세요.
-          마음에 드는 캠페인 카드를 클릭하면 상세 정보와 신청 버튼이 나타납니다. '신청하러 가기'를 누르면 해당 플랫폼에서 직접 신청할 수 있습니다.
-        </div>
+      <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">체험단은 어떻게 신청하나요?</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">원하는 캠페인 카드를 클릭해 상세 정보를 확인한 뒤 <strong>신청하러 가기</strong> 버튼으로 해당 플랫폼에서 직접 신청하세요. 캠레이더는 정보 제공만 하며 신청은 각 플랫폼에서 진행됩니다.</div>
       </details>
-      <details class="rounded-xl overflow-hidden" style="background:rgba(255,255,255,0.04);border:1px solid rgba(217,119,6,0.2);">
-        <summary class="cursor-pointer px-5 py-4 font-bold text-sm select-none" style="color:#f5c842;">인스타그램 체험단도 찾을 수 있나요?</summary>
-        <div class="px-5 pb-4 text-sm leading-relaxed" style="color:#d1d5db;">
-          네, 상단 필터에서 <strong style="color:#f5c842;">인스타</strong> 버튼을 선택하면 인스타그램·릴스 기반 체험단만 모아볼 수 있습니다.
-          팔로워 수 조건 없이 누구나 신청 가능한 캠페인도 많으니 도전해보세요.
-        </div>
+      <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">뷰티·식품·맛집 체험단만 볼 수 있나요?</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">검색창에 원하는 키워드(뷰티, 식품, 맛집 등)를 입력하거나 채널 필터로 블로그·인스타를 선택하면 원하는 체험단만 모아볼 수 있습니다.</div>
       </details>
-      <details class="rounded-xl overflow-hidden" style="background:rgba(255,255,255,0.04);border:1px solid rgba(217,119,6,0.2);">
-        <summary class="cursor-pointer px-5 py-4 font-bold text-sm select-none" style="color:#f5c842;">뷰티·식품·맛집 체험단만 따로 볼 수 있나요?</summary>
-        <div class="px-5 pb-4 text-sm leading-relaxed" style="color:#d1d5db;">
-          검색창에 '뷰티', '식품', '맛집', '카페' 등의 키워드를 입력하면 해당 카테고리 체험단만 필터링됩니다.
-          또한 위 카테고리 바로가기를 클릭하면 각 카테고리 전용 페이지로 이동합니다.
-        </div>
-      </details>
-      <details class="rounded-xl overflow-hidden" style="background:rgba(255,255,255,0.04);border:1px solid rgba(217,119,6,0.2);">
-        <summary class="cursor-pointer px-5 py-4 font-bold text-sm select-none" style="color:#f5c842;">체험단 신청 비용이 있나요?</summary>
-        <div class="px-5 pb-4 text-sm leading-relaxed" style="color:#d1d5db;">
-          캠레이더 이용은 완전 무료입니다. 대부분의 체험단 캠페인은 무료로 신청하고 제품·서비스를 받은 뒤 블로그·인스타에 솔직한 후기를 작성하는 방식입니다.
-          일부 플랫폼은 회원가입이 필요하지만, 가입 자체는 무료입니다.
-        </div>
-      </details>
-      <details class="rounded-xl overflow-hidden" style="background:rgba(255,255,255,0.04);border:1px solid rgba(217,119,6,0.2);">
-        <summary class="cursor-pointer px-5 py-4 font-bold text-sm select-none" style="color:#f5c842;">캠페인 정보는 얼마나 자주 업데이트되나요?</summary>
-        <div class="px-5 pb-4 text-sm leading-relaxed" style="color:#d1d5db;">
-          매 1시간마다 37개 체험단 플랫폼을 자동으로 크롤링하여 최신 캠페인 정보를 업데이트합니다.
-          오늘 새로 올라온 캠페인만 보고 싶다면 <strong style="color:#f5c842;">오늘 신규</strong> 필터를 활용하세요.
-        </div>
+      <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">이용 비용이 있나요?</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">캠레이더 이용은 완전 무료입니다. 로그인 없이 바로 검색하고 즐겨찾기를 사용할 수 있습니다.</div>
       </details>
     </div>
-
-    <!-- 사이트 소개 텍스트 (SEO용) -->
-    <div class="mt-12 text-sm leading-relaxed" style="color:#6b7280;">
-      <p>캠레이더는 <strong style="color:#9ca3af;">블로그 체험단 신청</strong>부터 <strong style="color:#9ca3af;">인스타 체험단</strong>, <strong style="color:#9ca3af;">유튜브 체험단</strong>까지 통합 검색이 가능한 <strong style="color:#9ca3af;">체험단 모아보기</strong> 플랫폼입니다.
-      국내 주요 체험단 사이트 37곳의 최신 캠페인을 1시간마다 자동 수집하여, 뷰티 체험단·식품 체험단·맛집 체험단·생활용품 체험단·반려동물 체험단 등 다양한 카테고리의 무료 체험단을 한눈에 확인하세요.</p>
-    </div>
-
+    <p class="mt-8 text-xs text-slate-400 text-center leading-relaxed">
+      캠레이더는 <strong>블로그 체험단 신청</strong>부터 <strong>인스타 체험단</strong>, <strong>유튜브 체험단</strong>까지 통합 검색이 가능한 <strong>체험단 모아보기</strong> 플랫폼입니다. 국내 주요 체험단 사이트 37곳의 최신 캠페인을 1시간마다 자동 수집합니다.
+    </p>
   </div>
 </section>
 
 <!-- ===== 푸터 ===== -->
-<footer class="text-center py-8 text-xs" style="background:#080f1f;border-top:1px solid rgba(217,119,6,0.2);color:#6b7280;">
-  <p class="mb-1">캠레이더 — 체험단 캠페인 통합 검색 | bloginfo360.com</p>
-  <p>본 사이트는 각 체험단 플랫폼의 정보를 수집·제공하며, 캠페인 신청 및 관리 책임은 해당 플랫폼에 있습니다.</p>
-  <p class="mt-2">
-    <a href="mailto:bloginf0360@outlook.com" class="hover:text-white mr-3">bloginf0360@outlook.com</a>
-    <a href="/privacy.html" class="hover:text-white mr-3">개인정보처리방침</a>
-    <a href="/about.html" class="hover:text-white">사이트 소개</a>
+<footer class="bg-slate-900 text-center py-8 px-4 text-xs text-slate-500">
+  <p class="text-slate-300 font-bold mb-1">캠레이더 — 체험단 캠페인 통합 검색</p>
+  <p class="mb-3">본 사이트는 각 체험단 플랫폼의 정보를 수집·제공하며, 캠페인 신청 및 관리 책임은 해당 플랫폼에 있습니다.</p>
+  <p>
+    <a href="mailto:bloginf0360@outlook.com" class="hover:text-white transition-colors mr-3">bloginf0360@outlook.com</a>
+    <a href="/privacy.html" class="hover:text-white transition-colors mr-3">개인정보처리방침</a>
+    <a href="/about.html" class="hover:text-white transition-colors">사이트 소개</a>
   </p>
 </footer>
 
 <script>
-// =============================================
-// Supabase 설정 — Supabase 정보 받은 후 교체
-// =============================================
+// ============================================================
+// Supabase
+// ============================================================
 const SUPABASE_URL = 'https://krmlhcsnpswxavxcskvq.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWxoY3NucHN3eGF2eGNza3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA5ODksImV4cCI6MjA5MTcxNjk4OX0.I5t6b6rjuj3dOxmcSzVpTPz5cU00_6JWSQYGd-P-YDY'
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// =============================================
-// 상수
-// =============================================
-const RECOMMEND_TAGS = ['뷰티','식품','맛집','생활용품','반려동물','유아','패션','강남','제주','서울','인테리어','건강식품']
+// ============================================================
+// 상태
+// ============================================================
 const PAGE_SIZE = 30
-
 let currentKeyword = ''
 let currentPlatform = '전체'
-let currentType = '전체'
+let currentChannel = '전체'
+let currentDelivery = '전체'
 let currentSort = 'latest'
 let currentPage = 0
 let isLoading = false
-let filterAvailable = false
+let hasMore = true
 let filterToday = false
+let showBookmarksOnly = false
+let hasDeliveryType = false
+const campaignCache = {}
 
-// =============================================
+// ============================================================
+// 북마크 (localStorage, 로그인 불필요)
+// ============================================================
+const BM_KEY = 'camradar_bookmarks'
+const getBookmarks = () => JSON.parse(localStorage.getItem(BM_KEY) || '{}')
+const saveBookmarks = bm => localStorage.setItem(BM_KEY, JSON.stringify(bm))
+const isBookmarked = id => !!getBookmarks()[id]
+
+function toggleBookmark(id, e) {
+  e.stopPropagation()
+  const bm = getBookmarks()
+  if (bm[id]) { delete bm[id] } else { bm[id] = campaignCache[id] }
+  saveBookmarks(bm)
+  document.querySelectorAll(`[data-bm="${id}"]`).forEach(el => {
+    el.textContent = bm[id] ? '♥' : '♡'
+    el.style.color = bm[id] ? '#ef4444' : '#cbd5e1'
+  })
+}
+
+function toggleBookmarks() {
+  showBookmarksOnly = !showBookmarksOnly
+  document.getElementById('btn-bookmarks').classList.toggle('active', showBookmarksOnly)
+  loadCampaigns(true)
+}
+
+// ============================================================
 // 초기화
-// =============================================
+// ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
-  trackVisit()
-  renderRecommendTags()
   setupEventListeners()
+  setupInfiniteScroll()
   await Promise.all([
+    checkDeliveryTypeColumn(),
     loadStats(),
     loadPopularKeywords(),
     loadPlatformFilter(),
-    loadVisitorChart(),
     loadCampaigns(true),
   ])
 })
 
-// =============================================
-// 방문자 카운팅
-// =============================================
-async function trackVisit() {
-  try { await sb.rpc('increment_visitor') } catch(e) {}
+// ============================================================
+// delivery_type 컬럼 체크 (없으면 방식 필터 숨김)
+// ============================================================
+async function checkDeliveryTypeColumn() {
+  try {
+    const { error } = await sb.from('campaigns').select('delivery_type').limit(1)
+    hasDeliveryType = !error
+  } catch { hasDeliveryType = false }
+  if (hasDeliveryType) {
+    document.getElementById('delivery-filter-row').classList.remove('hidden')
+  }
 }
 
-// =============================================
+// ============================================================
 // 통계
-// =============================================
+// ============================================================
 async function loadStats() {
   try {
     const today = new Date().toISOString().split('T')[0]
-    const [r1,r2,r3] = await Promise.all([
-      sb.from('campaigns').select('id',{count:'exact',head:true}).eq('is_active',true),
-      sb.from('campaigns').select('id',{count:'exact',head:true}).eq('is_active',true).gte('crawled_at',today+'T00:00:00'),
-      sb.from('platforms').select('id',{count:'exact',head:true}).eq('is_active',true),
+    const [r1, r2, r3] = await Promise.all([
+      sb.from('campaigns').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      sb.from('campaigns').select('id', { count: 'exact', head: true }).eq('is_active', true).gte('crawled_at', today + 'T00:00:00'),
+      sb.from('platforms').select('id', { count: 'exact', head: true }).eq('is_active', true),
     ])
-    document.getElementById('stat-total').textContent = (r1.count||0).toLocaleString()
-    document.getElementById('stat-today').textContent = (r2.count||0).toLocaleString()
-    document.getElementById('stat-platforms').textContent = (r3.count||0).toLocaleString()
+    const total = r1.count || 0
+    document.getElementById('stat-total').textContent = total.toLocaleString()
+    document.getElementById('stat-today').textContent = (r2.count || 0).toLocaleString()
+    document.getElementById('stat-platforms').textContent = (r3.count || 0).toLocaleString()
+    document.getElementById('header-count').textContent = total.toLocaleString() + '개'
   } catch(e) {}
 }
 
-// =============================================
-// 인기 검색어 + 워드클라우드
-// =============================================
+// ============================================================
+// 인기 검색어
+// ============================================================
 async function loadPopularKeywords() {
   try {
-    const {data} = await sb.from('popular_keywords').select('keyword,count').limit(30)
-    if (!data || !data.length) return
-
-    // 인기 태그 칩
-    document.getElementById('popular-tags').innerHTML = data.slice(0,12).map(k =>
-      `<button class="tag-chip px-2.5 py-1 rounded-full text-xs font-medium border transition-all" style="background:rgba(217,119,6,0.12);border-color:rgba(217,119,6,0.3);color:#fbbf24;" onmouseover="this.style.background='#d97706';this.style.color='#fff'" onmouseout="this.style.background='rgba(217,119,6,0.12)';this.style.color='#fbbf24'" onclick="doSearch('${escapeHtml(k.keyword)}')">#${escapeHtml(k.keyword)}</button>`
+    const { data } = await sb.from('popular_keywords').select('keyword,count').order('count', { ascending: false }).limit(12)
+    if (!data?.length) return
+    document.getElementById('popular-tags').innerHTML = data.map(k =>
+      `<button onclick="doSearch('${escapeHtml(k.keyword)}')"
+        class="px-3 py-1 rounded-full text-xs font-bold bg-white border border-primary-100 text-primary-600 hover:bg-primary-50 transition-colors">
+        #${escapeHtml(k.keyword)}
+      </button>`
     ).join('')
-
-    renderWordCloud(data)
-  } catch(e) { console.warn('인기 검색어 실패',e) }
+  } catch(e) {}
 }
 
-function renderWordCloud(words) {
-  const container = document.getElementById('wordcloud-container')
-  container.innerHTML = ''
-  const w = container.clientWidth || 400, h = 190
-  const maxCnt = Math.max(...words.map(d=>+d.count))
-  const colors = d3.schemeTableau10
-
-  d3.layout.cloud()
-    .size([w, h])
-    .words(words.map((d,i)=>({text:d.keyword,size:12+(d.count/maxCnt)*28,color:colors[i%10]})))
-    .padding(4).rotate(0).fontSize(d=>d.size)
-    .on('end', drawn => {
-      const svg = d3.select('#wordcloud-container').append('svg')
-        .attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%').attr('height','100%')
-      svg.append('g').attr('transform',`translate(${w/2},${h/2})`)
-        .selectAll('text').data(drawn).enter().append('text')
-        .style('font-size',d=>`${d.size}px`).style('font-weight','700')
-        .style('fill',d=>d.color).style('cursor','pointer')
-        .attr('text-anchor','middle')
-        .attr('transform',d=>`translate(${d.x},${d.y})`)
-        .text(d=>d.text)
-        .on('click',(_,d)=>doSearch(d.text))
-    }).start()
-}
-
-// =============================================
-// 추천 태그
-// =============================================
-function renderRecommendTags() {
-  document.getElementById('recommend-tags').innerHTML = RECOMMEND_TAGS.map(t =>
-    `<button class="tag-chip px-2.5 py-1 rounded-full text-xs font-medium border transition-all" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:#d1d5db;" onmouseover="this.style.background='#d97706';this.style.color='#fff';this.style.borderColor='#d97706'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.color='#d1d5db';this.style.borderColor='rgba(255,255,255,0.15)'" onclick="doSearch('${t}')">#${t}</button>`
-  ).join('')
-}
-
-// =============================================
-// 플랫폼 필터
-// =============================================
+// ============================================================
+// 플랫폼 필터 (드롭다운)
+// ============================================================
 async function loadPlatformFilter() {
   try {
-    const {data} = await sb.from('platforms').select('name,badge_color').eq('is_active',true).order('name')
+    const { data } = await sb.from('platforms').select('name').eq('is_active', true).order('name')
     if (!data) return
-    const pf = document.getElementById('platform-filter')
+    const sel = document.getElementById('platform-select')
     data.forEach(p => {
-      const btn = document.createElement('button')
-      btn.className = 'filter-btn px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 hover:bg-brand-100 transition-colors'
-      btn.dataset.platform = p.name
-      btn.textContent = p.name
-      pf.appendChild(btn)
-    })
-    pf.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        pf.querySelectorAll('.filter-btn').forEach(b=>{b.style.background='';b.style.color='';b.classList.remove('text-white');b.classList.add('bg-gray-100','text-gray-600')})
-        btn.classList.remove('bg-gray-100','text-gray-600');btn.classList.add('text-white');btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'
-        currentPlatform = btn.dataset.platform
-        loadCampaigns(true)
-      })
+      const opt = document.createElement('option')
+      opt.value = p.name
+      opt.textContent = p.name
+      sel.appendChild(opt)
     })
   } catch(e) {}
 }
 
-// =============================================
-// 방문자 차트
-// =============================================
-async function loadVisitorChart() {
-  try {
-    const {data} = await sb.from('visitor_stats').select('date,visit_count').order('date',{ascending:false}).limit(14)
-    const sorted = (data||[]).reverse()
-    new Chart(document.getElementById('visitor-chart'), {
-      type:'line',
-      data:{
-        labels: sorted.map(d=>d.date.slice(5).replace('-','/')),
-        datasets:[{data:sorted.map(d=>d.visit_count),borderColor:'#d97706',backgroundColor:'rgba(217,119,6,0.06)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#d97706',tension:0.3,fill:true}]
-      },
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#f3e8ff'},ticks:{font:{size:10},stepSize:1}}}}
-    })
-  } catch(e) {}
-}
-
-// =============================================
+// ============================================================
 // 캠페인 로드
-// =============================================
-async function loadCampaigns(reset=false) {
+// ============================================================
+async function loadCampaigns(reset = false) {
   if (isLoading) return
   isLoading = true
+
   if (reset) {
     currentPage = 0
-    document.getElementById('campaign-grid').innerHTML = Array(6).fill('<div class="skeleton rounded-2xl h-44"></div>').join('')
+    hasMore = true
+    document.getElementById('campaign-grid').innerHTML =
+      Array(6).fill('<div class="skeleton rounded-2xl h-40"></div>').join('')
     document.getElementById('no-results').classList.add('hidden')
-    document.getElementById('load-more').classList.add('hidden')
   }
+
+  // 북마크 전용 뷰
+  if (showBookmarksOnly) {
+    const items = Object.values(getBookmarks())
+    const grid = document.getElementById('campaign-grid')
+    grid.innerHTML = ''
+    if (!items.length) {
+      document.getElementById('no-results').classList.remove('hidden')
+      document.getElementById('no-results').querySelector('p').textContent = '즐겨찾기한 캠페인이 없어요'
+    } else {
+      items.forEach(c => { campaignCache[c.id] = c; grid.insertAdjacentHTML('beforeend', renderCard(c)) })
+      document.getElementById('result-count').textContent = `즐겨찾기 ${items.length}개`
+    }
+    isLoading = false
+    hasMore = false
+    return
+  }
+
   try {
     let q = sb.from('campaigns')
-      .select('id,platform_name,title,campaign_url,campaign_type,applicants,capacity,deadline_text,crawled_at')
-      .eq('is_active',true)
-      .range(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE-1)
+      .select('id,platform_name,title,campaign_url,campaign_type,delivery_type,applicants,capacity,deadline_text,crawled_at')
+      .eq('is_active', true)
+      .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1)
 
     if (currentKeyword) q = q.ilike('title', `%${currentKeyword}%`)
-    if (currentPlatform!=='전체') q = q.eq('platform_name',currentPlatform)
-    // 타입 필터: .or()에서 ilike 와일드카드는 * 사용 (PostgREST 규칙)
-    if (currentType!=='전체') {
-      if (currentType==='블로그') {
-        // 블로그 + 재택 + "방문,블로그" 같은 복합 타입 포함
-        q = q.or('campaign_type.eq.블로그,campaign_type.eq.재택,campaign_type.ilike.*블로그*')
-      } else {
-        // 단일 타입 정확 매칭 + 복합 타입(콤마 포함) 포함
-        q = q.or(`campaign_type.eq.${currentType},campaign_type.ilike.*${currentType}*`)
-      }
+    if (currentPlatform !== '전체') q = q.eq('platform_name', currentPlatform)
+    if (currentChannel !== '전체') {
+      q = q.or(`campaign_type.eq.${currentChannel},campaign_type.ilike.*${currentChannel}*`)
     }
-    if (filterAvailable) q = q.not('capacity','is',null).gt('capacity',0)
+    if (currentDelivery !== '전체' && hasDeliveryType) {
+      q = q.eq('delivery_type', currentDelivery)
+    }
     if (filterToday) {
       const today = new Date().toISOString().split('T')[0]
-      q = q.gte('crawled_at', today+'T00:00:00')
+      q = q.gte('crawled_at', today + 'T00:00:00')
     }
+    if (currentSort === 'applicants') q = q.order('applicants', { ascending: false })
+    else q = q.order('crawled_at', { ascending: false })
 
-    // 정렬
-    if (currentSort === 'applicants') q = q.order('applicants',{ascending:false})
-    else if (currentSort === 'available') q = q.not('capacity','is',null).order('capacity',{ascending:false})
-    else q = q.order('crawled_at',{ascending:false})
-
-    const {data,error} = await q
+    const { data, error } = await q
     if (error) throw error
+
     const grid = document.getElementById('campaign-grid')
     if (reset) grid.innerHTML = ''
-    if (!data||!data.length) {
-      if (currentPage===0) document.getElementById('no-results').classList.remove('hidden')
-      document.getElementById('load-more').classList.add('hidden')
+
+    if (!data?.length) {
+      if (currentPage === 0) document.getElementById('no-results').classList.remove('hidden')
+      hasMore = false
     } else {
-      data.forEach(c => grid.insertAdjacentHTML('beforeend',renderCard(c)))
-      document.getElementById('result-count').textContent = `${(currentPage*PAGE_SIZE+data.length).toLocaleString()}개 표시`
-      document.getElementById('last-update').textContent = `업데이트: ${formatAgo(data[0]?.crawled_at)}`
-      document.getElementById('load-more').classList[data.length===PAGE_SIZE?'remove':'add']('hidden')
+      data.forEach(c => { campaignCache[c.id] = c; grid.insertAdjacentHTML('beforeend', renderCard(c)) })
+      document.getElementById('result-count').textContent =
+        `${(currentPage * PAGE_SIZE + data.length).toLocaleString()}개 표시`
+      hasMore = data.length === PAGE_SIZE
+      currentPage++
     }
-    currentPage++
   } catch(e) {
     console.error(e)
-    document.getElementById('campaign-grid').innerHTML = '<div class="col-span-3 text-center py-10 text-gray-400">데이터를 불러오지 못했습니다.</div>'
+    document.getElementById('campaign-grid').innerHTML =
+      '<div class="col-span-3 text-center py-10 text-slate-400">데이터를 불러오지 못했습니다.</div>'
   } finally {
     isLoading = false
   }
 }
 
-// 캠페인 데이터 캐시 (모달용)
-const campaignCache = {}
+// ============================================================
+// 카드 렌더링
+// ============================================================
+const CHANNEL_STYLE = {
+  '블로그': { cls: 'bg-blue-50 text-blue-600',     border: '#3b82f6' },
+  '인스타': { cls: 'bg-pink-50 text-pink-600',     border: '#ec4899' },
+  '릴스':   { cls: 'bg-purple-50 text-purple-600', border: '#a855f7' },
+  '유튜브': { cls: 'bg-red-50 text-red-600',       border: '#ef4444' },
+  '클립':   { cls: 'bg-green-50 text-green-600',   border: '#22c55e' },
+  '틱톡':   { cls: 'bg-slate-100 text-slate-700',  border: '#475569' },
+}
+const DELIVERY_STYLE = {
+  '배송형': 'bg-slate-100 text-slate-500',
+  '방문형': 'bg-orange-50 text-orange-600',
+  '구매평': 'bg-violet-50 text-violet-600',
+  '재택형': 'bg-sky-50 text-sky-600',
+}
 
-// deadline_text → D-day 변환 (카드 썸네일용)
 function calcDday(text) {
   if (!text) return null
   const t = text.trim()
-  if (/^D[-+]?\d+$/i.test(t)) return t  // 이미 D-day 포맷
+  if (/^D[-+]?\d+$/i.test(t)) return t
   let year, month, day
-  // 범위 "~" 포함 시 종료일 사용 (예: "26-04-15 ~ 26-04-21")
   const rangeMatch = t.match(/~\s*(\d{2,4})[-\/](\d{1,2})[-\/](\d{1,2})/)
   if (rangeMatch) {
     year = parseInt(rangeMatch[1]); if (year < 100) year += 2000
@@ -703,7 +533,7 @@ function calcDday(text) {
     year = parseInt(m[1]); if (year < 100) year += 2000
     month = parseInt(m[2]); day = parseInt(m[3])
   }
-  const target = new Date(year, month-1, day)
+  const target = new Date(year, month - 1, day)
   const now = new Date(); now.setHours(0,0,0,0); target.setHours(0,0,0,0)
   const diff = Math.round((target - now) / 86400000)
   if (diff < 0) return '마감'
@@ -712,120 +542,108 @@ function calcDday(text) {
 }
 
 function renderCard(c) {
-  campaignCache[c.id] = c
-  const pct = c.capacity ? Math.min(100,Math.round((c.applicants/c.capacity)*100)) : 0
-  const barColor = pct>=80?'bg-red-500':pct>=50?'bg-amber-400':'bg-violet-500'
-  const typeMap = {
-    블로그:{cls:'bg-blue-100 text-blue-700'},
-    인스타:{cls:'bg-pink-100 text-pink-700'},
-    릴스:{cls:'bg-rose-100 text-rose-600'},
-    유튜브:{cls:'bg-red-100 text-red-700'},
-    클립:{cls:'bg-green-100 text-green-700'},
-    방문:{cls:'bg-violet-100 text-violet-700'},
-    재택:{cls:'bg-emerald-100 text-emerald-700'},
-    틱톡:{cls:'bg-gray-100 text-gray-700'},
-  }
-  // 다중 타입 지원 (콤마 구분, 예: "방문,블로그")
-  const types = (c.campaign_type||'블로그').split(',').map(t=>t.trim()).filter(Boolean)
-  const typeBadges = types.map(t=>{const ti=typeMap[t]||{cls:'bg-gray-100 text-gray-600'};return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${ti.cls}">${escapeHtml(t)}</span>`}).join('')
-  const remaining = c.capacity ? c.capacity - (c.applicants||0) : null
-  const remainBadge = remaining !== null && remaining <= 5 && remaining > 0
-    ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-600 animate-pulse">잔여 ${remaining}명</span>`
-    : ''
-  // 카드에는 D-day 형식, 색상은 긴박도에 따라 변경
+  const channel = (c.campaign_type || '블로그').split(',')[0].trim()
+  const cs = CHANNEL_STYLE[channel] || { cls: 'bg-primary-50 text-primary-600', border: '#6366f1' }
+  const deliveryStyle = c.delivery_type ? (DELIVERY_STYLE[c.delivery_type] || DELIVERY_STYLE['배송형']) : null
   const dday = calcDday(c.deadline_text)
-  const ddayColor = !dday ? '' : dday==='마감'||dday==='D-0' ? '#ef4444' : dday.startsWith('D-') && parseInt(dday.slice(2))<=3 ? '#f59e0b' : '#d97706'
-  const deadlineRow = dday
-    ? `<div class="text-xs font-semibold" style="color:${ddayColor};">⏰ ${dday}</div>`
-    : ''
-  return `<article class="campaign-card bg-white rounded-2xl shadow-card p-4 flex flex-col gap-2.5 cursor-pointer" data-type="${escapeHtml(c.campaign_type||'블로그')}" onclick="openModal('${c.id}')">
-  <div class="flex items-center justify-between gap-2">
-    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold truncate max-w-[110px]" style="background:#fef3c7;color:#92400e;">${escapeHtml(c.platform_name)}</span>
-    <div class="flex items-center gap-1 flex-wrap shrink-0 justify-end">
-      ${remainBadge}
-      ${typeBadges}
+  const isUrgent = dday && dday !== '마감' && dday.startsWith('D-') && parseInt(dday.slice(2)) <= 3
+  const isToday = c.crawled_at?.startsWith(new Date().toISOString().split('T')[0])
+  const bmed = isBookmarked(c.id)
+  const pct = c.capacity ? Math.min(100, Math.round(((c.applicants || 0) / c.capacity) * 100)) : null
+
+  return `
+<article class="campaign-card bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden cursor-pointer"
+  style="border-left:3px solid ${cs.border};"
+  onclick="openModal('${c.id}')">
+  <div class="p-4 flex flex-col gap-2.5 flex-1">
+
+    <!-- 플랫폼 + NEW뱃지 + 북마크 -->
+    <div class="flex items-center justify-between gap-1">
+      <span class="text-xs font-bold text-slate-400 truncate">${escapeHtml(c.platform_name)}</span>
+      <div class="flex items-center gap-1.5 shrink-0">
+        ${isToday ? '<span class="text-xs font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md leading-none">NEW</span>' : ''}
+        <button data-bm="${c.id}" onclick="toggleBookmark('${c.id}',event)"
+          class="text-base leading-none transition-colors select-none"
+          style="color:${bmed ? '#ef4444' : '#cbd5e1'};">${bmed ? '♥' : '♡'}</button>
+      </div>
     </div>
-  </div>
-  <h3 class="font-bold text-gray-900 text-sm leading-snug line-clamp-2 flex-1">${escapeHtml(c.title)}</h3>
-  ${deadlineRow}
-  ${c.capacity
-    ?`<div>
-        <div class="flex justify-between text-xs mb-1">
-          <span class="text-gray-500">신청 ${(c.applicants||0).toLocaleString()}명</span>
-          <span class="font-bold ${pct>=80?'text-red-500':pct>=50?'text-amber-500':'text-violet-600'}">${pct}%</span>
-        </div>
-        <div class="w-full bg-gray-100 rounded-full h-1.5"><div class="${barColor} h-1.5 rounded-full" style="width:${pct}%"></div></div>
-        <div class="text-right text-xs text-gray-400 mt-0.5">모집 ${c.capacity}명</div>
-      </div>`
-    :`<div class="text-xs text-gray-400">신청 ${(c.applicants||0).toLocaleString()}명</div>`}
-  <div class="flex justify-end pt-1 border-t border-gray-50">
-    <span class="text-xs font-bold" style="color:#d97706;">상세보기 →</span>
+
+    <!-- 제목 -->
+    <h3 class="font-bold text-slate-800 text-sm leading-snug line-clamp-2 flex-1">${escapeHtml(c.title)}</h3>
+
+    <!-- 채널 + 방식 + 마감 -->
+    <div class="flex items-center flex-wrap gap-1">
+      <span class="px-2 py-0.5 rounded-md text-xs font-bold ${cs.cls}">${escapeHtml(channel)}</span>
+      ${deliveryStyle ? `<span class="px-2 py-0.5 rounded-md text-xs font-bold ${deliveryStyle}">${escapeHtml(c.delivery_type)}</span>` : ''}
+      ${dday ? `<span class="ml-auto text-xs font-bold ${isUrgent ? 'text-orange-500' : 'text-slate-400'}">⏰ ${dday}</span>` : ''}
+    </div>
+
+    <!-- 신청 현황 -->
+    ${pct !== null ? `
+    <div>
+      <div class="flex justify-between text-xs mb-1.5">
+        <span class="text-slate-400">신청 ${(c.applicants||0).toLocaleString()}명</span>
+        <span class="font-bold ${pct>=80?'text-red-500':pct>=50?'text-amber-500':'text-primary-500'}">${pct}%</span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-1.5">
+        <div class="h-1.5 rounded-full ${pct>=80?'bg-red-400':pct>=50?'bg-amber-400':'bg-primary-400'}" style="width:${pct}%"></div>
+      </div>
+      <div class="text-right text-xs text-slate-300 mt-0.5">모집 ${c.capacity}명</div>
+    </div>` : `<div class="text-xs text-slate-400">신청 ${(c.applicants||0).toLocaleString()}명</div>`}
+
   </div>
 </article>`
 }
 
-// =============================================
+// ============================================================
 // 모달
-// =============================================
+// ============================================================
 function openModal(id) {
   const c = campaignCache[id]
   if (!c) return
-
-  const typeMap = {
-    블로그:{cls:'bg-blue-100 text-blue-700'},
-    인스타:{cls:'bg-pink-100 text-pink-700'},
-    릴스:{cls:'bg-rose-100 text-rose-600'},
-    유튜브:{cls:'bg-red-100 text-red-700'},
-    클립:{cls:'bg-green-100 text-green-700'},
-    방문:{cls:'bg-violet-100 text-violet-700'},
-    재택:{cls:'bg-emerald-100 text-emerald-700'},
-    틱톡:{cls:'bg-gray-100 text-gray-700'},
-  }
-  const types = (c.campaign_type||'블로그').split(',').map(t=>t.trim()).filter(Boolean)
-  const typeBadgesModal = types.map(t=>{const ti=typeMap[t]||{cls:'bg-gray-100 text-gray-600'};return `<span class="px-3 py-1 rounded-full text-xs font-bold ${ti.cls}">${escapeHtml(t)}</span>`}).join('')
+  const channel = (c.campaign_type || '블로그').split(',')[0].trim()
+  const cs = CHANNEL_STYLE[channel] || { cls: 'bg-primary-50 text-primary-600', border: '#6366f1' }
+  const deliveryStyle = c.delivery_type ? (DELIVERY_STYLE[c.delivery_type] || DELIVERY_STYLE['배송형']) : null
 
   document.getElementById('modal-badges').innerHTML = `
-    <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#fef3c7;color:#92400e;">${escapeHtml(c.platform_name)}</span>
-    ${typeBadgesModal}
+    <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">${escapeHtml(c.platform_name)}</span>
+    <span class="px-3 py-1 rounded-full text-xs font-bold ${cs.cls}">${escapeHtml(channel)}</span>
+    ${deliveryStyle ? `<span class="px-3 py-1 rounded-full text-xs font-bold ${deliveryStyle}">${escapeHtml(c.delivery_type)}</span>` : ''}
   `
   document.getElementById('modal-title').textContent = c.title
 
-  // 진행률
-  const pct = c.capacity ? Math.min(100,Math.round((c.applicants/c.capacity)*100)) : 0
-  const barColor = pct>=80?'#ef4444':pct>=50?'#f59e0b':'#9333ea'
-  document.getElementById('modal-progress').innerHTML = c.capacity ? `
-    <div class="bg-gray-50 rounded-2xl p-4">
+  const pct = c.capacity ? Math.min(100, Math.round(((c.applicants||0)/c.capacity)*100)) : null
+  const barColor = pct >= 80 ? '#ef4444' : pct >= 50 ? '#f59e0b' : '#6366f1'
+  document.getElementById('modal-progress').innerHTML = pct !== null ? `
+    <div class="bg-slate-50 rounded-2xl p-4">
       <div class="flex justify-between text-sm font-bold mb-2">
-        <span class="text-gray-600">신청 현황</span>
+        <span class="text-slate-600">신청 현황</span>
         <span style="color:${barColor}">${pct}%</span>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
-        <div class="h-3 rounded-full transition-all" style="width:${pct}%;background:${barColor}"></div>
+      <div class="w-full bg-slate-200 rounded-full h-2.5 mb-2">
+        <div class="h-2.5 rounded-full" style="width:${pct}%;background:${barColor}"></div>
       </div>
-      <div class="flex justify-between text-xs text-gray-500">
+      <div class="flex justify-between text-xs text-slate-500">
         <span>신청 <strong>${(c.applicants||0).toLocaleString()}명</strong></span>
         <span>모집 <strong>${c.capacity}명</strong></span>
         <span>잔여 <strong style="color:${barColor}">${Math.max(0,c.capacity-(c.applicants||0))}명</strong></span>
       </div>
     </div>
-  ` : `<div class="bg-gray-50 rounded-2xl p-4 text-sm text-gray-500">신청 ${(c.applicants||0).toLocaleString()}명</div>`
+  ` : `<div class="bg-slate-50 rounded-2xl p-4 text-sm text-slate-500">신청 ${(c.applicants||0).toLocaleString()}명</div>`
 
-  // 정보 그리드
+  const dday = calcDday(c.deadline_text)
   document.getElementById('modal-info').innerHTML = `
-    <div class="bg-gray-50 rounded-xl p-3 text-center">
-      <div class="text-xs text-gray-400 mb-1">마감일</div>
-      <div class="text-sm font-bold text-gray-700">${c.deadline_text || '상시'}</div>
+    <div class="bg-slate-50 rounded-xl p-3 text-center">
+      <div class="text-xs text-slate-400 mb-1">마감</div>
+      <div class="text-sm font-bold text-slate-700">${dday || c.deadline_text || '상시'}</div>
     </div>
-    <div class="bg-gray-50 rounded-xl p-3 text-center">
-      <div class="text-xs text-gray-400 mb-1">채널</div>
-      <div class="text-sm font-bold text-gray-700">${(c.campaign_type||'블로그').split(',').map(t=>t.trim()).join(' · ')}</div>
+    <div class="bg-slate-50 rounded-xl p-3 text-center">
+      <div class="text-xs text-slate-400 mb-1">등록</div>
+      <div class="text-sm font-bold text-slate-700">${formatAgo(c.crawled_at)}</div>
     </div>
   `
-
   document.getElementById('modal-apply-btn').href = c.campaign_url
-
-  const modal = document.getElementById('detail-modal')
-  modal.classList.remove('hidden')
+  document.getElementById('detail-modal').classList.remove('hidden')
   document.body.style.overflow = 'hidden'
 }
 
@@ -834,25 +652,14 @@ function closeModal() {
   document.body.style.overflow = ''
 }
 
-// ESC 키로 모달 닫기
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal() })
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal() })
 
-// =============================================
-// 고급 필터 토글
-// =============================================
-function toggleAvailable() {
-  filterAvailable = !filterAvailable
-  const btn = document.getElementById('btn-available')
-  if (filterAvailable) { btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; btn.style.color='white'; btn.style.borderColor='#d97706' }
-  else { btn.style.background='#fdfcf7'; btn.style.color='#78716c'; btn.style.borderColor='#e5e0d0' }
-  loadCampaigns(true)
-}
-
+// ============================================================
+// 필터 토글
+// ============================================================
 function toggleToday() {
   filterToday = !filterToday
-  const btn = document.getElementById('btn-today')
-  if (filterToday) { btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; btn.style.color='white'; btn.style.borderColor='#d97706' }
-  else { btn.style.background='#fdfcf7'; btn.style.color='#78716c'; btn.style.borderColor='#e5e0d0' }
+  document.getElementById('btn-today').classList.toggle('active', filterToday)
   loadCampaigns(true)
 }
 
@@ -861,42 +668,71 @@ function onSortChange() {
   loadCampaigns(true)
 }
 
-// =============================================
+function onPlatformChange() {
+  currentPlatform = document.getElementById('platform-select').value
+  loadCampaigns(true)
+}
+
+// ============================================================
 // 검색
-// =============================================
+// ============================================================
 async function doSearch(kw) {
   currentKeyword = kw !== undefined ? kw : document.getElementById('search-input').value.trim()
   document.getElementById('search-input').value = currentKeyword
   await loadCampaigns(true)
-  if (currentKeyword) sb.from('search_logs').insert({keyword:currentKeyword}).then(()=>{})
+  if (currentKeyword) sb.from('search_logs').insert({ keyword: currentKeyword }).then(() => {})
 }
 
-// =============================================
-// 이벤트
-// =============================================
+// ============================================================
+// 이벤트 설정
+// ============================================================
 function setupEventListeners() {
-  document.getElementById('search-btn').addEventListener('click', ()=>doSearch())
-  document.getElementById('search-input').addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch() })
-  document.getElementById('load-more').addEventListener('click', ()=>loadCampaigns(false))
-  document.querySelectorAll('.type-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.type-btn').forEach(b=>{b.style.background='';b.style.color='';b.classList.remove('text-white')})
-      btn.classList.add('text-white');btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';btn.style.color='white'
-      currentType=btn.dataset.type;loadCampaigns(true)
+  document.getElementById('search-btn').addEventListener('click', () => doSearch())
+  document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch() })
+
+  document.querySelectorAll('.channel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      currentChannel = btn.dataset.channel
+      loadCampaigns(true)
+    })
+  })
+
+  document.querySelectorAll('.delivery-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.delivery-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      currentDelivery = btn.dataset.delivery
+      loadCampaigns(true)
     })
   })
 }
 
-// =============================================
+// ============================================================
+// 무한 스크롤 (IntersectionObserver)
+// ============================================================
+function setupInfiniteScroll() {
+  const sentinel = document.getElementById('scroll-sentinel')
+  new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && hasMore && !isLoading && !showBookmarksOnly) {
+      loadCampaigns(false)
+    }
+  }, { rootMargin: '300px' }).observe(sentinel)
+}
+
+// ============================================================
 // 유틸
-// =============================================
-function escapeHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function formatAgo(iso){
-  if(!iso)return''
-  const d=new Date(iso),diff=Math.floor((Date.now()-d)/60000)
-  if(diff<60)return `${diff}분 전`
-  if(diff<1440)return `${Math.floor(diff/60)}시간 전`
-  return d.toLocaleDateString('ko-KR',{month:'long',day:'numeric'})
+// ============================================================
+function escapeHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+function formatAgo(iso) {
+  if (!iso) return ''
+  const diff = Math.floor((Date.now() - new Date(iso)) / 60000)
+  if (diff < 60) return `${diff}분 전`
+  if (diff < 1440) return `${Math.floor(diff / 60)}시간 전`
+  return new Date(iso).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
 }
 </script>
 </body>
