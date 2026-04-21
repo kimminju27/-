@@ -195,6 +195,36 @@
       </table>
       <div id="postCount" class="px-6 py-3 border-t border-ink-100 text-xs text-ink-300 bg-ink-100/50"></div>
     </div>
+
+    <!-- 페이지 파일 수정 -->
+    <div class="mt-10">
+      <h2 class="text-lg font-black text-ink-900 mb-4">📄 사이트 페이지 수정</h2>
+      <div class="bg-white rounded-2xl border border-ink-100 shadow-sm p-6">
+        <div class="flex flex-wrap gap-2 mb-5">
+          <button onclick="loadPageFile('homepage-team/index.html')" class="btn-edit">🏠 index.html</button>
+          <button onclick="loadPageFile('homepage-team/about.html')" class="btn-edit">ℹ️ about.html</button>
+          <button onclick="loadPageFile('homepage-team/privacy.html')" class="btn-edit">🔒 privacy.html</button>
+          <button onclick="loadPageFile('homepage-team/robots.txt')" class="btn-edit">🤖 robots.txt</button>
+          <button onclick="loadPageFile('homepage-team/sitemap.xml')" class="btn-edit">🗺️ sitemap.xml</button>
+        </div>
+        <div id="pageEditorArea" class="hidden">
+          <div class="flex items-center justify-between mb-3">
+            <span id="pageEditorFilename" class="text-sm font-bold text-ink-500 font-mono"></span>
+            <button onclick="savePageFile()" class="btn-primary" style="padding:8px 18px;font-size:0.85rem;">
+              <span id="pageEditorSaveTxt">저장 (GitHub 커밋)</span>
+              <span id="pageEditorSaveSpin" class="hidden"><span class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></span></span>
+            </button>
+          </div>
+          <textarea id="pageEditorTextarea"
+            class="w-full font-mono text-xs text-ink-900 border border-ink-100 rounded-xl p-4 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 resize-y"
+            style="min-height:400px;"></textarea>
+        </div>
+        <div id="pageEditorLoading" class="hidden text-center py-8">
+          <div class="spinner mx-auto mb-2"></div>
+          <p class="text-sm text-ink-400">파일 불러오는 중...</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 삭제 확인 모달 -->
@@ -751,6 +781,64 @@
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('dashboardSection').classList.remove('hidden');
     loadPosts();
+  }
+
+  // ── 페이지 파일 편집 ────────────────────────────────
+  let currentPageFileSha = null;
+  let currentPageFilePath = null;
+
+  async function loadPageFile(filepath) {
+    currentPageFilePath = filepath;
+    document.getElementById('pageEditorArea').classList.add('hidden');
+    document.getElementById('pageEditorLoading').classList.remove('hidden');
+    try {
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filepath}`);
+      if (!res.ok) throw new Error(`파일 로드 실패 (${res.status})`);
+      const data = await res.json();
+      currentPageFileSha = data.sha;
+      const raw = atob(data.content.replace(/\n/g, ''));
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      const content = new TextDecoder('utf-8').decode(bytes);
+      document.getElementById('pageEditorFilename').textContent = filepath;
+      document.getElementById('pageEditorTextarea').value = content;
+      document.getElementById('pageEditorLoading').classList.add('hidden');
+      document.getElementById('pageEditorArea').classList.remove('hidden');
+    } catch (e) {
+      document.getElementById('pageEditorLoading').classList.add('hidden');
+      showToast('파일 로드 실패: ' + e.message, false);
+    }
+  }
+
+  async function savePageFile() {
+    if (!currentPageFilePath || !currentPageFileSha) return;
+    const content = document.getElementById('pageEditorTextarea').value;
+    const saveTxt = document.getElementById('pageEditorSaveTxt');
+    const saveSpin = document.getElementById('pageEditorSaveSpin');
+    saveTxt.classList.add('hidden'); saveSpin.classList.remove('hidden');
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(content)));
+      const filename = currentPageFilePath.split('/').pop();
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${currentPageFilePath}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `fix: ${filename} 내용 수정 (관리자)`,
+          content: encoded,
+          sha: currentPageFileSha,
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `저장 실패 (${res.status})`);
+      }
+      const result = await res.json();
+      currentPageFileSha = result.content.sha;
+      showToast(`✅ ${filename} 저장 완료 — Vercel에서 자동 배포됩니다`, true);
+    } catch (e) {
+      showToast('저장 실패: ' + e.message, false);
+    } finally {
+      saveTxt.classList.remove('hidden'); saveSpin.classList.add('hidden');
+    }
   }
 </script>
 </body>

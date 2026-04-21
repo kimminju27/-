@@ -288,7 +288,8 @@
   <p>
     <a href="mailto:bloginf0360@outlook.com" class="hover:text-white transition-colors mr-3">bloginf0360@outlook.com</a>
     <a href="/privacy.html" class="hover:text-white transition-colors mr-3">개인정보처리방침</a>
-    <a href="/about.html" class="hover:text-white transition-colors">사이트 소개</a>
+    <a href="/about.html" class="hover:text-white transition-colors mr-3">사이트 소개</a>
+    <a href="/admin.html" class="hover:text-white transition-colors opacity-30 hover:opacity-100">관리자</a>
   </p>
 </footer>
 
@@ -523,12 +524,13 @@ function calcDday(text) {
   const t = text.trim()
   if (/^D[-+]?\d+$/i.test(t)) return t
   let year, month, day
-  const rangeMatch = t.match(/~\s*(\d{2,4})[-\/](\d{1,2})[-\/](\d{1,2})/)
+  const sep = '[-\\/.]'
+  const rangeMatch = t.match(new RegExp(`~\\s*(\\d{2,4})${sep}(\\d{1,2})${sep}(\\d{1,2})`))
   if (rangeMatch) {
     year = parseInt(rangeMatch[1]); if (year < 100) year += 2000
     month = parseInt(rangeMatch[2]); day = parseInt(rangeMatch[3])
   } else {
-    const m = t.match(/(\d{2,4})[-\/](\d{1,2})[-\/](\d{1,2})/)
+    const m = t.match(new RegExp(`(\\d{2,4})${sep}(\\d{1,2})${sep}(\\d{1,2})`))
     if (!m) return null
     year = parseInt(m[1]); if (year < 100) year += 2000
     month = parseInt(m[2]); day = parseInt(m[3])
@@ -537,16 +539,29 @@ function calcDday(text) {
   const now = new Date(); now.setHours(0,0,0,0); target.setHours(0,0,0,0)
   const diff = Math.round((target - now) / 86400000)
   if (diff < 0) return '마감'
-  if (diff === 0) return 'D-0'
+  if (diff === 0) return 'D-day'
   return `D-${diff}`
 }
 
+function fmtDeadline(text) {
+  if (!text) return null
+  const dday = calcDday(text)
+  if (dday) return dday
+  // D-day 계산 불가 → 원문 그대로 (단 '상시' 등 짧은 값만)
+  const t = text.trim()
+  return t.length <= 10 ? t : null
+}
+
 function renderCard(c) {
-  const channel = (c.campaign_type || '블로그').split(',')[0].trim()
-  const cs = CHANNEL_STYLE[channel] || { cls: 'bg-primary-50 text-primary-600', border: '#6366f1' }
+  // 구매평 전용 캠페인은 채널 뱃지 숨김 (블로그+구매평 포스팅은 유지)
+  const rawChannel = (c.campaign_type || '').split(',')[0].trim()
+  const isPureReview = c.delivery_type === '구매평' && rawChannel === '블로그' && !c.campaign_type?.includes('+')
+  const channel = isPureReview ? null : (rawChannel || '블로그')
+  const cs = channel ? (CHANNEL_STYLE[channel] || { cls: 'bg-primary-50 text-primary-600', border: '#6366f1' })
+                     : { cls: '', border: '#e2e8f0' }
   const deliveryStyle = c.delivery_type ? (DELIVERY_STYLE[c.delivery_type] || DELIVERY_STYLE['배송형']) : null
-  const dday = calcDday(c.deadline_text)
-  const isUrgent = dday && dday !== '마감' && dday.startsWith('D-') && parseInt(dday.slice(2)) <= 3
+  const ddayStr = fmtDeadline(c.deadline_text)
+  const isUrgent = ddayStr && ddayStr !== '마감' && ddayStr.startsWith('D-') && parseInt(ddayStr.slice(2)) <= 3
   const isToday = c.crawled_at?.startsWith(new Date().toISOString().split('T')[0])
   const bmed = isBookmarked(c.id)
   const pct = c.capacity ? Math.min(100, Math.round(((c.applicants || 0) / c.capacity) * 100)) : null
@@ -573,22 +588,21 @@ function renderCard(c) {
 
     <!-- 채널 + 방식 + 마감 -->
     <div class="flex items-center flex-wrap gap-1">
-      <span class="px-2 py-0.5 rounded-md text-xs font-bold ${cs.cls}">${escapeHtml(channel)}</span>
+      ${channel ? `<span class="px-2 py-0.5 rounded-md text-xs font-bold ${cs.cls}">${escapeHtml(channel)}</span>` : ''}
       ${deliveryStyle ? `<span class="px-2 py-0.5 rounded-md text-xs font-bold ${deliveryStyle}">${escapeHtml(c.delivery_type)}</span>` : ''}
-      ${dday ? `<span class="ml-auto text-xs font-bold ${isUrgent ? 'text-orange-500' : 'text-slate-400'}">⏰ ${dday}</span>` : ''}
+      ${ddayStr ? `<span class="ml-auto text-xs font-bold ${ddayStr==='마감'?'text-slate-300':isUrgent?'text-orange-500':'text-slate-400'}">⏰ ${ddayStr}</span>` : ''}
     </div>
 
     <!-- 신청 현황 -->
     ${pct !== null ? `
     <div>
       <div class="flex justify-between text-xs mb-1.5">
-        <span class="text-slate-400">신청 ${(c.applicants||0).toLocaleString()}명</span>
+        <span class="text-slate-500 font-bold">신청 ${(c.applicants||0).toLocaleString()}명 / ${c.capacity}명</span>
         <span class="font-bold ${pct>=80?'text-red-500':pct>=50?'text-amber-500':'text-primary-500'}">${pct}%</span>
       </div>
       <div class="w-full bg-slate-100 rounded-full h-1.5">
         <div class="h-1.5 rounded-full ${pct>=80?'bg-red-400':pct>=50?'bg-amber-400':'bg-primary-400'}" style="width:${pct}%"></div>
       </div>
-      <div class="text-right text-xs text-slate-300 mt-0.5">모집 ${c.capacity}명</div>
     </div>` : `<div class="text-xs text-slate-400">신청 ${(c.applicants||0).toLocaleString()}명</div>`}
 
   </div>
@@ -631,11 +645,11 @@ function openModal(id) {
     </div>
   ` : `<div class="bg-slate-50 rounded-2xl p-4 text-sm text-slate-500">신청 ${(c.applicants||0).toLocaleString()}명</div>`
 
-  const dday = calcDday(c.deadline_text)
+  const dday = fmtDeadline(c.deadline_text)
   document.getElementById('modal-info').innerHTML = `
     <div class="bg-slate-50 rounded-xl p-3 text-center">
       <div class="text-xs text-slate-400 mb-1">마감</div>
-      <div class="text-sm font-bold text-slate-700">${dday || c.deadline_text || '상시'}</div>
+      <div class="text-sm font-bold ${dday==='마감'?'text-slate-300':dday?.startsWith('D-')&&parseInt(dday.slice(2))<=3?'text-orange-500':'text-slate-700'}">${dday || c.deadline_text || '상시'}</div>
     </div>
     <div class="bg-slate-50 rounded-xl p-3 text-center">
       <div class="text-xs text-slate-400 mb-1">등록</div>
