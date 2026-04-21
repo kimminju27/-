@@ -45,10 +45,15 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
   const rows = campaigns
     .filter(c => c.title && c.campaign_url && isValidTitle(c.title))
     .map(c => {
-      // delivery_type을 제목 정제 전에 원본에서 추출
+      // delivery_type: 파서가 명시하면 우선, 없으면 제목+파서값에서 감지
       const rawForDetect = c.title + ' ' + (c.campaign_type || '')
       const deliveryType = c.delivery_type || detectDelivery(rawForDetect)
-      const channelType = c.campaign_type || detectChannel(rawForDetect)
+
+      // channel: 파서 값이 유효 채널 타입일 때만 사용, 그 외(방문·배송 등)는 제목에서 재감지
+      const VALID_CHANNELS = ['블로그', '인스타', '릴스', '유튜브', '클립', '틱톡']
+      const channelType = (c.campaign_type && VALID_CHANNELS.includes(c.campaign_type))
+        ? c.campaign_type
+        : detectChannel(c.title)
 
       return {
         platform_id: platformId || null,

@@ -1,8 +1,15 @@
 // 다이닝퀸 — swiper-slide > a[href*="/taste/"]
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum, detectType as _detectType } from '../utils.mjs'
-// 다이닝퀸 기본값은 '방문' (맛집 특화 사이트)
-function detectType(text) { if (!text) return '방문'; const r = _detectType(text); return r === '블로그' ? '방문' : r }
+import { fetchWithRetry, parseNum, detectChannel } from '../utils.mjs'
+// 다이닝퀸은 항상 방문형. 채널은 typeText + 제목에서 감지
+function detectDQChannel(typeText, title) {
+  const combined = (typeText + ' ' + title).toLowerCase()
+  if (combined.includes('릴스') || combined.includes('reels')) return '릴스'
+  if (combined.includes('클립')) return '클립'
+  if (combined.includes('인스타') || combined.includes('instagram')) return '인스타'
+  if (combined.includes('유튜브') || combined.includes('youtube')) return '유튜브'
+  return '블로그'
+}
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -46,7 +53,8 @@ export async function parse(baseUrl) {
         items.push({
           title,
           campaign_url: fullUrl,
-          campaign_type: detectType(typeText),
+          campaign_type: detectDQChannel(typeText, title),
+          delivery_type: '방문형',
           applicants: parseNum(applyText),
           capacity: parseNum(capacityText) || null,
           deadline_text: deadlineText || null,
