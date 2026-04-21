@@ -37,7 +37,11 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
     .replace(/\d+\s*일\s*남음/g, '')
     .replace(/D-\d+/gi, '')
     .replace(/\s*오늘\s*마감/g, '')
+    .replace(/^(Blog|SNS)\s+(배송형|방문형|재택형|구매평형|체험단)\s*/i, '')
     .replace(/^(매장방문형|배송형|구매형|방문형|재택형|구매평형|기자단형)\s*/g, '')
+    .replace(/제공\s*포인트[:\s]*[\d]*\s*[A-Za-z]{0,4}/gi, '')
+    .replace(/\b\d+\s*PD\b/gi, '')
+    .replace(/\s*[-–]\s*day\s*$/i, '')
     .replace(/\s+/g, ' ')
     .trim()
 

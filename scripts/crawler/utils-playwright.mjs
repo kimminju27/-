@@ -88,12 +88,31 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
     await page.waitForTimeout(opts.extraWaitMs || 2000)
 
     const items = await page.evaluate(({keyword, titleSel}) => {
+      function extractCardMeta(card) {
+        if (!card) return { deadline_text: null, applicants: 0, capacity: null }
+        // 마감일
+        const ddEl = card.querySelector(
+          '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"]'
+        )
+        const deadline_text = ddEl ? ddEl.textContent.trim().slice(0, 30) : null
+        // 신청인원
+        const apEl = card.querySelector(
+          '[class*="apply"],[class*="applicant"],[class*="count"],[class*="people"],[class*="participant"],[class*="join"]'
+        )
+        const applicants = apEl ? (parseInt(apEl.textContent.replace(/[^0-9]/g,'')) || 0) : 0
+        // 모집인원
+        const capEl = card.querySelector(
+          '[class*="limit"],[class*="capacity"],[class*="quota"],[class*="max"],[class*="total"],[class*="recruit"]'
+        )
+        const capacity = capEl ? (parseInt(capEl.textContent.replace(/[^0-9]/g,'')) || null) : null
+        return { deadline_text, applicants, capacity }
+      }
+
       const results = [], seen = new Set()
       document.querySelectorAll('a[href]').forEach(el => {
         const href = el.href
         if (!href.includes(keyword)) return
         if (seen.has(href)) return
-        // seen.add는 유효한 제목 확인 후 (이미지링크+제목링크 중 후자를 놓치지 않도록)
         let title = ''
         if (titleSel) {
           const t = el.querySelector(titleSel) ||
@@ -108,7 +127,6 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
           }
         }
         if (!title) title = el.innerText.replace(/\s+/g, ' ').trim()
-        // 앵커 외부(부모 카드)에 제목이 있는 경우 탐색
         if (!title || title.length < 5) {
           const parent = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"],tr')
           if (parent) {
@@ -121,7 +139,8 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
         }
         if (!title || title.length < 5 || title.length > 200) return
         seen.add(href)
-        results.push({ title, campaign_url: href })
+        const card = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"],tr')
+        results.push({ title, campaign_url: href, ...extractCardMeta(card) })
       })
       return results
     }, {keyword: hrefKeyword, titleSel: opts.titleSelector || ''})
@@ -129,7 +148,6 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
     return items.map(r => ({
       ...r,
       campaign_type: opts.campaignType || '블로그',
-      applicants: 0, capacity: null, deadline_text: null,
     }))
   } catch (err) {
     console.warn(`[PW] ${url} 실패: ${err.message}`)
@@ -179,6 +197,23 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         } catch { return false }
       }
 
+      function extractCardMeta(card) {
+        if (!card) return { deadline_text: null, applicants: 0, capacity: null }
+        const ddEl = card.querySelector(
+          '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"]'
+        )
+        const deadline_text = ddEl ? ddEl.textContent.trim().slice(0, 30) : null
+        const apEl = card.querySelector(
+          '[class*="apply"],[class*="applicant"],[class*="count"],[class*="people"],[class*="participant"],[class*="join"]'
+        )
+        const applicants = apEl ? (parseInt(apEl.textContent.replace(/[^0-9]/g,'')) || 0) : 0
+        const capEl = card.querySelector(
+          '[class*="limit"],[class*="capacity"],[class*="quota"],[class*="max"],[class*="total"],[class*="recruit"]'
+        )
+        const capacity = capEl ? (parseInt(capEl.textContent.replace(/[^0-9]/g,'')) || null) : null
+        return { deadline_text, applicants, capacity }
+      }
+
       document.querySelectorAll('a[href]').forEach(el => {
         const href = el.href
         if (!isCampaignHref(href)) return
@@ -186,13 +221,11 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         seen.add(href)
 
         let title = ''
-        // 링크 내부
         const cands = el.querySelectorAll('h1,h2,h3,h4,strong,b,[class*="title"],[class*="name"],[class*="subject"],[class*="camp"]')
         for (const t of cands) {
           const txt = t.textContent.replace(/\s+/g, ' ').trim()
           if (txt.length >= 5 && txt.length <= 150) { title = txt; break }
         }
-        // 부모에서 탐색
         if (!title) {
           const parent = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"]')
           if (parent) {
@@ -205,7 +238,8 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         }
         if (!title) title = el.innerText.replace(/\s+/g, ' ').trim()
         if (!title || title.length < 5 || title.length > 200) return
-        results.push({ title, campaign_url: href })
+        const card = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"]')
+        results.push({ title, campaign_url: href, ...extractCardMeta(card) })
       })
       return results
     }, {originStr: origin, navWords: ['login','logout','signup','register','about','contact','faq',
@@ -214,7 +248,6 @@ export async function playwrightParseHeuristic(url, opts = {}) {
     return items.map(r => ({
       ...r,
       campaign_type: opts.campaignType || '블로그',
-      applicants: 0, capacity: null, deadline_text: null,
     }))
   } catch (err) {
     console.warn(`[PW 휴리스틱] ${url} 실패: ${err.message}`)
