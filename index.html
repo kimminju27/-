@@ -603,13 +603,13 @@ function renderCard(c) {
     ${pct !== null ? `
     <div>
       <div class="flex justify-between text-xs mb-1.5">
-        <span class="text-slate-500 font-bold">신청 ${(c.applicants||0).toLocaleString()}명 / ${c.capacity}명</span>
+        <span class="text-slate-500 font-bold">모집 ${(c.applicants||0).toLocaleString()}명 / ${c.capacity}명</span>
         <span class="font-bold ${pct>=80?'text-red-500':pct>=50?'text-amber-500':'text-primary-500'}">${pct}%</span>
       </div>
       <div class="w-full bg-slate-100 rounded-full h-1.5">
         <div class="h-1.5 rounded-full ${pct>=80?'bg-red-400':pct>=50?'bg-amber-400':'bg-primary-400'}" style="width:${pct}%"></div>
       </div>
-    </div>` : `<div class="text-xs text-slate-400">신청 ${(c.applicants||0).toLocaleString()}명</div>`}
+    </div>` : `<div class="text-xs text-slate-400">모집 ${(c.applicants||0).toLocaleString()}명</div>`}
 
   </div>
 </article>`
@@ -637,19 +637,19 @@ function openModal(id) {
   document.getElementById('modal-progress').innerHTML = pct !== null ? `
     <div class="bg-slate-50 rounded-2xl p-4">
       <div class="flex justify-between text-sm font-bold mb-2">
-        <span class="text-slate-600">신청 현황</span>
+        <span class="text-slate-600">모집 현황</span>
         <span style="color:${barColor}">${pct}%</span>
       </div>
       <div class="w-full bg-slate-200 rounded-full h-2.5 mb-2">
         <div class="h-2.5 rounded-full" style="width:${pct}%;background:${barColor}"></div>
       </div>
       <div class="flex justify-between text-xs text-slate-500">
-        <span>신청 <strong>${(c.applicants||0).toLocaleString()}명</strong></span>
+        <span>참여 <strong>${(c.applicants||0).toLocaleString()}명</strong></span>
         <span>모집 <strong>${c.capacity}명</strong></span>
         <span>잔여 <strong style="color:${barColor}">${Math.max(0,c.capacity-(c.applicants||0))}명</strong></span>
       </div>
     </div>
-  ` : `<div class="bg-slate-50 rounded-2xl p-4 text-sm text-slate-500">신청 ${(c.applicants||0).toLocaleString()}명</div>`
+  ` : `<div class="bg-slate-50 rounded-2xl p-4 text-sm text-slate-500">모집 ${(c.applicants||0).toLocaleString()}명</div>`
 
   const dday = fmtDeadline(c.deadline_text)
   document.getElementById('modal-info').innerHTML = `
