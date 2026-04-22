@@ -19,7 +19,7 @@ on:
 
 jobs:
   naver-draft:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: 코드 체크아웃
@@ -32,6 +32,7 @@ jobs:
 
       - name: 카테고리 결정 (스케줄 자동 배분)
         id: cats
+        shell: bash
         run: |
           SCHEDULE="${{ github.event.schedule }}"
           DOW=$(date -u +%u)
@@ -73,13 +74,7 @@ jobs:
 
       - name: Playwright Chromium 설치
         working-directory: naver-blog-team
-        run: npx playwright install chromium --with-deps
-
-      - name: 가상 디스플레이 설정 (Xvfb — 봇 감지 회피)
-        run: |
-          sudo apt-get install -y xvfb
-          Xvfb :99 -screen 0 1280x900x24 &
-          echo "DISPLAY=:99" >> $GITHUB_ENV
+        run: npx playwright install chromium
 
       - name: 글 생성 + 네이버 블로그 임시저장
         working-directory: naver-blog-team
