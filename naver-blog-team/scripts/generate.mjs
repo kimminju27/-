@@ -29,7 +29,7 @@ function getKSTDate() {
 // ─────────────────────────────────────────
 // Groq API 호출
 // ─────────────────────────────────────────
-async function callGroq(prompt, { maxTokens = 8000, systemMsg = '', model = 'llama-3.3-70b-versatile' } = {}) {
+async function callGroq(prompt, { maxTokens = 8000, systemMsg = '', model = 'llama-3.3-70b-versatile', _retry = 0 } = {}) {
   const GROQ_API_KEY = process.env.GROQ_API_KEY;
   if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY가 없습니다.');
 
@@ -43,7 +43,19 @@ async function callGroq(prompt, { maxTokens = 8000, systemMsg = '', model = 'lla
     body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.7 }),
     signal: AbortSignal.timeout(90000),
   });
-  if (!res.ok) throw new Error(`Groq 오류: ${res.status} ${await res.text()}`);
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    // 429 Rate limit → 65초 대기 후 최대 3회 재시도
+    if (res.status === 429 && _retry < 3) {
+      const waitSec = 65 * (_retry + 1);
+      console.warn(`   ⏳ Groq 429 rate limit → ${waitSec}초 대기 후 재시도 (${_retry + 1}/3)...`);
+      await new Promise(r => setTimeout(r, waitSec * 1000));
+      return callGroq(prompt, { maxTokens, systemMsg, model, _retry: _retry + 1 });
+    }
+    throw new Error(`Groq 오류: ${res.status} ${errorText}`);
+  }
+
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';
 }
