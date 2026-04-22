@@ -1,6 +1,6 @@
 // 링블 — detail.php?number=
 import * as cheerio from 'cheerio'
-import { fetchWithRetry } from '../utils.mjs'
+import { fetchWithRetry, parseNum } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -24,7 +24,15 @@ export async function parse(baseUrl) {
         if (/^\d+일\s*남음$|^D-?\d+$/.test(title.trim())) return
         if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
-        items.push({ title, campaign_url: fullUrl, campaign_type: '블로그', applicants: 0, capacity: null, deadline_text: null })
+        const $card = $a.closest('li, [class*="card"], [class*="item"], tr')
+        const deadlineText = $card.find('[class*="day"],[class*="dday"],[class*="remain"],[class*="deadline"],[class*="date"]').first().text().trim()
+        const applyText = $card.find('[class*="apply"],[class*="cnt"],[class*="count"]').first().text()
+        const capacityText = $card.find('[class*="limit"],[class*="total"],[class*="quota"]').first().text()
+        items.push({ title, campaign_url: fullUrl, campaign_type: '블로그',
+          applicants: parseNum(applyText),
+          capacity: parseNum(capacityText) || null,
+          deadline_text: deadlineText || null,
+        })
       })
 
       if (items.length === 0) break

@@ -41,10 +41,16 @@ export async function parseCpId(baseUrl, name, hrefKey) {
         if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
         const typeText = $a.find('span.sns, span.channel, .option2 span').first().text().trim()
+        const $card = $a.closest('li, [class*="card"], [class*="item"], tr')
+        const deadlineText = $card.find('[class*="day"],[class*="dday"],[class*="remain"],[class*="deadline"],[class*="date"]').first().text().trim()
+        const applyText = $card.find('[class*="apply"],[class*="cnt"],[class*="count"]').first().text()
+        const capacityText = $card.find('[class*="limit"],[class*="total"],[class*="quota"]').first().text()
         items.push({
           title, campaign_url: fullUrl,
           campaign_type: detectType(typeText),
-          applicants: 0, capacity: null, deadline_text: null,
+          applicants: parseNum(applyText),
+          capacity: parseNum(capacityText) || null,
+          deadline_text: deadlineText || null,
         })
       })
 

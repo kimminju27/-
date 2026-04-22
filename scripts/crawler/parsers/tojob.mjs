@@ -1,6 +1,6 @@
 // 토잡 — 체험단 게시판 /bbs/board.php?bo_table=blog_go
 import * as cheerio from 'cheerio'
-import { fetchWithRetry } from '../utils.mjs'
+import { fetchWithRetry, parseNum } from '../utils.mjs'
 
 const BOARD_URL = 'https://www.tojobcn.com/bbs/board.php?bo_table=blog_go'
 
@@ -33,7 +33,14 @@ export async function parse(_baseUrl) {
         if (!title || title.length < 4) return
         if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
-        items.push({ title, campaign_url: fullUrl, campaign_type: '블로그', applicants: 0, capacity: null, deadline_text: null })
+        const deadlineText = $card.find('[class*="day"],[class*="dday"],[class*="remain"],[class*="deadline"],[class*="date"]').first().text().trim()
+        const applyText = $card.find('[class*="apply"],[class*="cnt"],[class*="count"]').first().text()
+        const capacityText = $card.find('[class*="limit"],[class*="total"],[class*="quota"]').first().text()
+        items.push({ title, campaign_url: fullUrl, campaign_type: '블로그',
+          applicants: parseNum(applyText),
+          capacity: parseNum(capacityText) || null,
+          deadline_text: deadlineText || null,
+        })
       })
 
       if (items.length === 0) break
