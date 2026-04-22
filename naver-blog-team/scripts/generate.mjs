@@ -171,6 +171,13 @@ async function generateBlogContent(category, newsItems, slot = 1) {
 오늘의 뉴스:
 ${newsContext}
 
+⚠️ 절대 규칙 (위반 시 무효):
+1. "title": 반드시 구체적 수치 포함. 예) "2026년 코스피 2,580p 돌파 — ETF 투자 전략 총정리"
+2. '%' 단독 사용 절대 금지. 반드시 숫자와 함께: 3.5%, +1.2%, 12% 형태로만
+3. card4 rows의 "left"/"right": "수치/값" 그대로 두지 말고 실제 수치로 채울 것. 뉴스에 없으면 해당 분야 실제 시장 데이터 사용
+4. card6 stats의 "value": 실제 수치 입력. 예) "2,580pt", "+3.2%", "15조 원", "연 5.0%"
+5. 연도/월/일은 반드시 아라비아 숫자: 2026년 4월 22일
+
 가장 실용적인 이슈 하나를 선택해 아래 JSON으로만 응답:
 {
   "title": "SEO 제목(55-70자, 구체적 수치 포함, 롱테일 키워드)",
@@ -263,6 +270,20 @@ ${newsContext}
     console.warn('   ⚠️  카드 한자 감지 → 12초 대기 후 재생성...');
     await new Promise(r => setTimeout(r, 12000));
     cardData = parseJson(await callGroq(cardPrompt + '\n한글/영문/숫자/특수문자만 사용하세요.', { maxTokens: 3000, systemMsg: baseSystemMsg }));
+  }
+
+  // 플레이스홀더 검증 (단독 %, "수치/값" 텍스트 감지)
+  const cardJson = JSON.stringify(cardData);
+  const hasPlaceholder = /(?<!\d)%(?!\d)|수치\/값|^\s*%\s*$/.test(cardJson) ||
+    (cardData.card4?.rows || []).some(r => !r.left || !r.right || r.left === '수치/값' || r.right === '수치/값');
+  if (hasPlaceholder) {
+    console.warn('   ⚠️  플레이스홀더 감지 → 12초 대기 후 재생성...');
+    await new Promise(r => setTimeout(r, 12000));
+    cardData = parseJson(await callGroq(
+      cardPrompt + '\n\n재강조: % 단독 사용 절대 금지. 모든 수치 칸에 실제 숫자값을 채울 것. "수치/값" 텍스트 그대로 두지 말 것.',
+      { maxTokens: 3000, systemMsg: baseSystemMsg }
+    ));
+    console.log('   ✅ 플레이스홀더 재생성 완료');
   }
 
   await new Promise(r => setTimeout(r, 5000));
