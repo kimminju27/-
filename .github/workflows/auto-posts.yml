@@ -69,7 +69,7 @@ jobs:
 
       - name: 의존성 설치 (naver-blog-team)
         working-directory: naver-blog-team
-        run: npm ci
+        run: npm install
 
       - name: Playwright Chromium 설치
         working-directory: naver-blog-team
