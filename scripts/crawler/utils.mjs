@@ -16,8 +16,32 @@ function isValidTitle(title) {
   return !BAD_TITLE_PATTERNS.some(p => p.test(t))
 }
 
-export function makeHash(platformName, title) {
-  return crypto.createHash('md5').update(`${platformName}::${title}`).digest('hex')
+export function makeHash(platformName, url) {
+  return crypto.createHash('md5').update(`${platformName}::${url}`).digest('hex')
+}
+
+/**
+ * deadline_text(D-N, N일 남음 등)를 DATE 문자열로 변환
+ * 반환: "YYYY-MM-DD" 또는 null
+ */
+function parseDeadlineDate(text) {
+  if (!text) return null
+  const dMatch = text.match(/D-(\d+)/i)
+  if (dMatch) {
+    const d = new Date()
+    d.setDate(d.getDate() + parseInt(dMatch[1]))
+    return d.toISOString().split('T')[0]
+  }
+  const dayMatch = text.match(/(\d+)\s*일\s*남음/)
+  if (dayMatch) {
+    const d = new Date()
+    d.setDate(d.getDate() + parseInt(dayMatch[1]))
+    return d.toISOString().split('T')[0]
+  }
+  // YYYY-MM-DD 또는 YYYY.MM.DD 직접 포함된 경우
+  const dateMatch = text.match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  if (dateMatch) return `${dateMatch[1]}-${dateMatch[2].padStart(2,'0')}-${dateMatch[3].padStart(2,'0')}`
+  return null
 }
 
 /**
@@ -69,7 +93,8 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
         applicants: parseInt(c.applicants) || 0,
         capacity: parseInt(c.capacity) || null,
         deadline_text: c.deadline_text || null,
-        content_hash: makeHash(platformName, c.title.trim()),
+        deadline_date: parseDeadlineDate(c.deadline_text),
+        content_hash: makeHash(platformName, c.campaign_url),
         // crawled_at 제외 → 신규 행은 DB DEFAULT(NOW()), 기존 행은 원래 값 유지
         is_active: true,
       }

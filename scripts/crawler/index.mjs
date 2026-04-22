@@ -165,14 +165,24 @@ async function main() {
     }
   }
 
-  // 오래된 캠페인 정리 (30일 이상)
-  const { error: cleanErr } = await supabase
+  // 마감일 지난 캠페인 삭제 (deadline_date 기준)
+  const today = new Date().toISOString().split('T')[0]
+  const { error: e1 } = await supabase
     .from('campaigns')
     .delete()
-    .lt('crawled_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .lt('deadline_date', today)
+    .not('deadline_date', 'is', null)
+  if (e1) console.warn('마감일 정리 실패:', e1.message)
+  else console.log('[정리] 마감일 지난 캠페인 삭제 완료')
 
-  if (cleanErr) console.warn('정리 실패:', cleanErr.message)
-  else console.log('[정리] 30일 이상 캠페인 삭제 완료')
+  // 마감일 정보 없는 캠페인은 30일 이상 시 삭제
+  const { error: e2 } = await supabase
+    .from('campaigns')
+    .delete()
+    .is('deadline_date', null)
+    .lt('crawled_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+  if (e2) console.warn('오래된 캠페인 정리 실패:', e2.message)
+  else console.log('[정리] 마감일 미상 30일 이상 캠페인 삭제 완료')
 
   console.log(`\n[크롤러 완료] 신규: ${totalInserted}개, 실패: ${totalErrors}개`)
 

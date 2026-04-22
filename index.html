@@ -570,7 +570,7 @@ function renderCard(c) {
   const isUrgent = ddayStr && ddayStr !== '마감' && ddayStr.startsWith('D-') && parseInt(ddayStr.slice(2)) <= 3
   const isToday = c.crawled_at?.startsWith(new Date().toISOString().split('T')[0])
   const bmed = isBookmarked(c.id)
-  const pct = c.capacity ? Math.min(100, Math.round(((c.applicants || 0) / c.capacity) * 100)) : null
+  const pct = null // 카드에서 신청률 제거 (capacity만 표시)
 
   return `
 <article class="campaign-card bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden cursor-pointer"
@@ -599,17 +599,8 @@ function renderCard(c) {
       ${ddayStr ? `<span class="ml-auto text-xs font-bold ${ddayStr==='마감'?'text-slate-300':isUrgent?'text-orange-500':'text-slate-400'}">⏰ ${ddayStr}</span>` : ''}
     </div>
 
-    <!-- 신청 현황 -->
-    ${pct !== null ? `
-    <div>
-      <div class="flex justify-between text-xs mb-1.5">
-        <span class="text-slate-500 font-bold">모집 ${(c.applicants||0).toLocaleString()}명 / ${c.capacity}명</span>
-        <span class="font-bold ${pct>=80?'text-red-500':pct>=50?'text-amber-500':'text-primary-500'}">${pct}%</span>
-      </div>
-      <div class="w-full bg-slate-100 rounded-full h-1.5">
-        <div class="h-1.5 rounded-full ${pct>=80?'bg-red-400':pct>=50?'bg-amber-400':'bg-primary-400'}" style="width:${pct}%"></div>
-      </div>
-    </div>` : `<div class="text-xs text-slate-400">모집 ${(c.applicants||0).toLocaleString()}명</div>`}
+    <!-- 모집인원 -->
+    ${c.capacity ? `<div class="text-xs font-bold text-slate-500">모집 ${c.capacity.toLocaleString()}명</div>` : ''}
 
   </div>
 </article>`
