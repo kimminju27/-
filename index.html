@@ -224,8 +224,13 @@
     <p class="text-slate-500 font-bold text-lg">검색 결과가 없어요</p>
     <p class="text-slate-400 text-sm mt-1">다른 키워드나 필터를 사용해보세요</p>
   </div>
-  <!-- 무한 스크롤 센티넬 -->
-  <div id="scroll-sentinel" class="h-4 mt-4"></div>
+  <!-- 더보기 버튼 -->
+  <div id="load-more-wrap" class="flex justify-center mt-6 mb-4 hidden">
+    <button id="load-more-btn" onclick="loadCampaigns(false)"
+      class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 active:scale-95 transition-all text-sm shadow">
+      더보기
+    </button>
+  </div>
 </main>
 
 <!-- ===== 모달 ===== -->
@@ -348,7 +353,6 @@ function toggleBookmarks() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners()
-  setupInfiniteScroll()
   await Promise.all([
     checkDeliveryTypeColumn(),
     loadStats(),
@@ -498,6 +502,8 @@ async function loadCampaigns(reset = false) {
       '<div class="col-span-3 text-center py-10 text-slate-400">데이터를 불러오지 못했습니다.</div>'
   } finally {
     isLoading = false
+    const wrap = document.getElementById('load-more-wrap')
+    if (wrap) wrap.classList.toggle('hidden', !hasMore || showBookmarksOnly)
   }
 }
 
@@ -723,17 +729,6 @@ function setupEventListeners() {
   })
 }
 
-// ============================================================
-// 무한 스크롤 (IntersectionObserver)
-// ============================================================
-function setupInfiniteScroll() {
-  const sentinel = document.getElementById('scroll-sentinel')
-  new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting && hasMore && !isLoading && !showBookmarksOnly) {
-      loadCampaigns(false)
-    }
-  }, { rootMargin: '300px' }).observe(sentinel)
-}
 
 // ============================================================
 // 유틸

@@ -1,12 +1,12 @@
 // 리뷰노트 파서
 // 캠페인 URL 패턴: /campaigns/[ID]
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
+import { fetchWithRetry, detectType } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
 
-  for (let page = 1; page <= 3; page++) {
+  for (let page = 1; page <= 10; page++) {
     try {
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`
       const res = await fetchWithRetry(url)
@@ -24,6 +24,15 @@ export async function parse(baseUrl) {
 
         // 제목: 내부 텍스트 정제 (공백/개행 압축)
         const rawText = $el.text().replace(/\s+/g, ' ').trim()
+
+        // rawText에서 마감일·신청인원 추출 (제거 전에 먼저)
+        const daysMatch = rawText.match(/(\d+)\s*일\s*남음/)
+        const deadlineText = daysMatch ? `D-${daysMatch[1]}` : null
+
+        const applyMatch = rawText.match(/신청\s*(\d+)\s*\/\s*(\d+)/)
+        const applicants = applyMatch ? parseInt(applyMatch[1]) : 0
+        const capacity = applyMatch ? (parseInt(applyMatch[2]) || null) : null
+
         // 날짜/숫자/상태 텍스트를 제거하고 순수 제목만 추출
         const title = rawText
           .replace(/\d+\s*일\s*남음/g, '')
@@ -34,18 +43,15 @@ export async function parse(baseUrl) {
 
         if (!title || title.length < 6) return
 
-        const deadlineText = $el.find('[class*="dday"],[class*="d-day"],[class*="remain"],[class*="day"],[class*="deadline"],[class*="timer"],[class*="date"],[class*="expire"]').first().text().trim()
         const typeText = $el.find('[class*="type"],[class*="channel"],[class*="media"],[class*="tag"],[class*="badge"],[class*="kind"],[class*="category"]').first().text().trim()
-        const applyText = $el.find('[class*="apply"], [class*="count"]').first().text()
-        const capacityText = $el.find('[class*="limit"], [class*="total"]').first().text()
 
         items.push({
           title,
           campaign_url: href.startsWith('http') ? href : `https://www.reviewnote.co.kr${href}`,
           campaign_type: detectType(typeText),
-          applicants: parseNum(applyText),
-          capacity: parseNum(capacityText) || null,
-          deadline_text: deadlineText || null,
+          applicants,
+          capacity,
+          deadline_text: deadlineText,
         })
       })
 
