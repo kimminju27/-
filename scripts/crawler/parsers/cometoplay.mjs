@@ -4,7 +4,7 @@ import { fetchWithRetry, parseNum } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
-  for (let page = 1; page <= 3; page++) {
+  for (let page = 1; page <= 10; page++) {
     try {
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`
       const res = await fetchWithRetry(url)
