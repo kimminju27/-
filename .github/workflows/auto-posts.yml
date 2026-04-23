@@ -32,22 +32,17 @@ jobs:
 
       - name: 카테고리 결정 (스케줄 자동 배분)
         id: cats
-        shell: powershell
         run: |
-          $schedule = "${{ github.event.schedule }}"
-          $dow = [int](Get-Date).ToUniversalTime().DayOfWeek
-          if ($dow -eq 0) { $dow = 7 }  # 일요일=0 → 7로 변환
-
-          $slotA = @{1="보험,세금";2="부동산,복지정책";3="주식,보험";4="세금,부동산";5="복지정책,주식";6="보험,부동산";7="세금,주식"}
-          $slotB = @{1="복지정책,주식";2="보험,세금";3="부동산,복지정책";4="주식,보험";5="세금,부동산";6="복지정책,주식";7="보험,부동산"}
-          $slotC = @{1="세금,복지정책";2="주식,보험";3="세금,부동산";4="복지정책,주식";5="보험,세금";6="부동산,복지정책";7="주식,보험"}
-
-          if ($schedule -eq "0 20 * * *")     { $cats = $slotA[$dow] }
-          elseif ($schedule -eq "0 0 * * *")  { $cats = $slotB[$dow] }
-          else                                 { $cats = $slotC[$dow] }
-
-          echo "CATS=$cats" >> $env:GITHUB_OUTPUT
-          Write-Host "선택된 카테고리: $cats"
+          node -e "
+          const schedule = '${{ github.event.schedule }}';
+          const dow = new Date().getUTCDay() || 7;
+          const slotA = {1:'보험,세금',2:'부동산,복지정책',3:'주식,보험',4:'세금,부동산',5:'복지정책,주식',6:'보험,부동산',7:'세금,주식'};
+          const slotB = {1:'복지정책,주식',2:'보험,세금',3:'부동산,복지정책',4:'주식,보험',5:'세금,부동산',6:'복지정책,주식',7:'보험,부동산'};
+          const slotC = {1:'세금,복지정책',2:'주식,보험',3:'세금,부동산',4:'복지정책,주식',5:'보험,세금',6:'부동산,복지정책',7:'주식,보험'};
+          const cats = schedule==='0 20 * * *' ? slotA[dow] : schedule==='0 0 * * *' ? slotB[dow] : slotC[dow];
+          console.log('CATS=' + cats);
+          require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'CATS=' + cats + '\n');
+          "
 
       - name: 의존성 설치 (naver-blog-team)
         working-directory: naver-blog-team
