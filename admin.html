@@ -320,6 +320,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden')
     if (btn.dataset.tab === 'campaigns') loadCampaignStats()
     if (btn.dataset.tab === 'stats') loadKeywordStats()
+    if (btn.dataset.tab === 'files') loadPageFile('homepage-team/index.html')
   })
 })
 
@@ -397,7 +398,7 @@ async function loadPlatforms() {
         ? new Date(p.last_crawled_at).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
         : '-'
       return `
-      <div class="grid grid-cols-12 gap-2 items-center px-5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+      <div id="row-${p.id}" class="grid grid-cols-12 gap-2 items-center px-5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
         <div class="col-span-3 flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${p.badge_color || '#6366f1'}"></span>
           <span class="font-bold text-sm truncate">${escHtml(p.name)}</span>
@@ -413,6 +414,8 @@ async function loadPlatforms() {
         <div class="col-span-2 flex justify-end gap-1">
           <button onclick="triggerCrawl('${escHtml(p.name)}')" title="크롤링 실행"
             class="text-xs px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg font-bold transition-colors">🚀</button>
+          <button onclick="editPlatform('${p.id}', '${escHtml(p.name)}', '${escHtml(p.url)}')"
+            class="text-xs px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg font-bold transition-colors">✏️</button>
           <button onclick="deletePlatform('${p.id}', '${escHtml(p.name)}')"
             class="text-xs px-2 py-1 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg font-bold transition-colors">삭제</button>
         </div>
@@ -442,6 +445,38 @@ async function togglePlatform(id, currentActive) {
   const { error } = await c.from('platforms').update({ is_active: !currentActive }).eq('id', id)
   if (error) { showToast('변경 실패: ' + error.message, 'error'); return }
   showToast(currentActive ? '비활성화되었습니다' : '활성화되었습니다', 'success')
+  loadPlatforms()
+}
+
+function editPlatform(id, name, url) {
+  const row = document.getElementById('row-' + id)
+  if (!row) return
+  row.innerHTML = `
+    <div class="col-span-3">
+      <input id="edit-name-${id}" type="text" value="${escHtml(name)}"
+        class="w-full px-2 py-1 border border-brand-500 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 font-bold">
+    </div>
+    <div class="col-span-5">
+      <input id="edit-url-${id}" type="url" value="${escHtml(url)}"
+        class="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-500">
+    </div>
+    <div class="col-span-4 flex justify-end gap-2">
+      <button onclick="updatePlatform('${id}')"
+        class="text-xs px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold transition-colors">저장</button>
+      <button onclick="loadPlatforms()"
+        class="text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold transition-colors">취소</button>
+    </div>`
+  document.getElementById('edit-name-' + id).focus()
+}
+
+async function updatePlatform(id) {
+  const c = requireAdmin(); if (!c) return
+  const name = document.getElementById('edit-name-' + id)?.value.trim()
+  const url = document.getElementById('edit-url-' + id)?.value.trim()
+  if (!name) { showToast('이름을 입력해주세요', 'error'); return }
+  const { error } = await c.from('platforms').update({ name, url }).eq('id', id)
+  if (error) { showToast('수정 실패: ' + error.message, 'error'); return }
+  showToast('수정되었습니다', 'success')
   loadPlatforms()
 }
 
