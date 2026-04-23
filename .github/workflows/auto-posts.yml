@@ -32,7 +32,7 @@ jobs:
 
       - name: 카테고리 결정 (스케줄 자동 배분)
         id: cats
-        shell: pwsh
+        shell: powershell
         run: |
           $schedule = "${{ github.event.schedule }}"
           $dow = [int](Get-Date).ToUniversalTime().DayOfWeek
