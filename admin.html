@@ -1,845 +1,672 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>관리자 - 나만 모르는 요즘 소식</title>
+  <title>관리자 — 캠레이더</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: { 50:"#f0fdf4", 100:"#dcfce7", 600:"#16a34a", 700:"#15803d" },
-            gold:  { 400:"#fbbf24", 500:"#f59e0b" },
-            ink:   { 900:"#0f172a", 700:"#1e293b", 500:"#475569", 300:"#94a3b8", 100:"#f1f5f9" }
+            brand: { 50:'#eef2ff', 100:'#e0e7ff', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca' }
           },
-          fontFamily: { sans: ["Noto Sans KR", "sans-serif"] }
+          fontFamily: { sans: ['Noto Sans KR','sans-serif'] }
         }
       }
     }
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
-    body { font-family: "Noto Sans KR", sans-serif; }
-    .spinner {
-      border: 3px solid #f1f5f9;
-      border-top: 3px solid #16a34a;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .btn-primary {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: #16a34a; color: #fff;
-      padding: 10px 20px; border-radius: 8px;
-      font-weight: 700; font-size: 0.9rem;
-      border: none; cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-    }
-    .btn-primary:hover { background: #15803d; transform: scale(1.01); }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:focus { outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,0.3); }
-    .btn-danger {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: #fff; color: #ef4444;
-      padding: 6px 12px; border-radius: 6px;
-      font-weight: 600; font-size: 0.8rem;
-      border: 1.5px solid #fca5a5; cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, transform 0.1s;
-    }
-    .btn-danger:hover { background: #fef2f2; border-color: #ef4444; }
-    .btn-danger:active { transform: scale(0.97); }
-    .btn-edit {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: #fff; color: #16a34a;
-      padding: 6px 12px; border-radius: 6px;
-      font-weight: 600; font-size: 0.8rem;
-      border: 1.5px solid #bbf7d0; cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, transform 0.1s;
-      text-decoration: none;
-    }
-    .btn-edit:hover { background: #f0fdf4; border-color: #16a34a; }
-    .btn-edit:active { transform: scale(0.97); }
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      padding: 12px 20px; border-radius: 10px;
-      font-size: 0.875rem; font-weight: 600;
-      z-index: 1000; opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.25s, transform 0.25s;
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast-success { background: #16a34a; color: #fff; }
-    .toast-error { background: #ef4444; color: #fff; }
+    body { font-family: 'Noto Sans KR', sans-serif; }
+    .spinner { border:3px solid #e0e7ff;border-top:3px solid #6366f1;border-radius:50%;width:22px;height:22px;animation:spin 0.8s linear infinite;display:inline-block; }
+    @keyframes spin { to { transform:rotate(360deg) } }
+    .toast { position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:.875rem;font-weight:600;z-index:1000;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s; }
+    .toast.show { opacity:1;transform:translateY(0) }
+    .toast-success { background:#4f46e5;color:#fff }
+    .toast-error { background:#ef4444;color:#fff }
   </style>
 </head>
-<body class="bg-ink-100 text-ink-900 min-h-screen">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
-  <header class="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="index.html" class="text-xl font-black text-brand-600 leading-tight">나만 모르는<br class="sm:hidden"> 요즘 소식</a>
-      <span class="text-sm font-bold text-ink-500 bg-ink-100 px-3 py-1 rounded-full">관리자</span>
+<!-- 헤더 -->
+<header class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-lg font-black text-brand-600">캠레이더 📡</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-sm font-bold text-slate-500">관리자</span>
     </div>
-  </header>
+    <button id="logout-btn" class="hidden text-sm text-slate-400 hover:text-slate-600 px-2 transition-colors">로그아웃</button>
+  </div>
+</header>
 
-  <!-- 로그인 화면 -->
-  <div id="loginSection" class="min-h-[calc(100vh-73px)] flex items-center justify-center px-4">
-    <div class="bg-white rounded-2xl shadow-sm border border-ink-100 p-8 w-full max-w-md">
-      <h1 class="text-2xl font-black text-ink-900 mb-2">관리자 로그인</h1>
-      <p class="text-ink-500 text-sm mb-8">블로그 관리자 페이지입니다.</p>
+<!-- 로그인 -->
+<div id="login-section" class="min-h-[calc(100vh-57px)] flex items-center justify-center px-4">
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 w-full max-w-sm">
+    <h1 class="text-xl font-black mb-1">관리자 로그인</h1>
+    <p class="text-slate-400 text-sm mb-6">캠레이더 관리자 페이지입니다.</p>
+    <div class="mb-4">
+      <label class="block text-sm font-bold mb-1.5 text-slate-700">비밀번호</label>
+      <input id="pw-input" type="password" placeholder="비밀번호 입력"
+        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition">
+    </div>
+    <div id="login-error" class="hidden text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3 border border-red-100"></div>
+    <button id="login-btn" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl transition-colors">
+      로그인
+    </button>
+  </div>
+</div>
 
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="mb-5">
-          <label class="block text-sm font-bold text-ink-700 mb-1.5" for="passwordInput">비밀번호</label>
-          <input
-            id="passwordInput"
-            type="password"
-            placeholder="관리자 비밀번호 입력"
-            class="w-full px-4 py-3 rounded-xl border border-ink-100 text-ink-900 text-sm focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition"
-            autocomplete="current-password"
-          >
+<!-- 메인 대시보드 -->
+<div id="main-section" class="hidden max-w-5xl mx-auto px-4 py-8">
+
+  <!-- 탭 -->
+  <div class="flex gap-1 bg-white rounded-xl p-1 shadow-sm border border-slate-200 mb-6 w-fit">
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-brand-600 text-white transition-all" data-tab="platforms">🖥 플랫폼</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all" data-tab="campaigns">📋 캠페인</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all" data-tab="stats">📊 통계</button>
+    <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all" data-tab="files">📄 파일편집</button>
+  </div>
+
+  <!-- ===== 탭1: 플랫폼 관리 ===== -->
+  <div id="tab-platforms" class="tab-content space-y-4">
+
+    <!-- 키 설정 카드 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+      <!-- Supabase 서비스 키 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="font-bold text-sm">Supabase 서비스 키</h3>
+            <p class="text-xs text-slate-400">플랫폼 추가/수정/삭제 시 필요 (service_role)</p>
+          </div>
+          <span id="sb-key-status" class="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-600">미설정</span>
         </div>
-        <div class="mb-6">
-          <label class="block text-sm font-bold text-ink-700 mb-1.5" for="tokenInput">GitHub Token</label>
-          <input
-            id="tokenInput"
-            type="password"
-            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-            class="w-full px-4 py-3 rounded-xl border border-ink-100 text-ink-900 text-sm focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition"
-            autocomplete="off"
-          >
-          <p class="text-xs text-ink-300 mt-1.5">Contents 읽기/쓰기 권한이 있는 Personal Access Token</p>
+        <div class="flex gap-2">
+          <input id="sb-key-input" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..."
+            class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+          <button id="sb-key-save-btn" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors">저장</button>
+          <button id="sb-key-clear-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-2 rounded-lg text-sm transition-colors">초기화</button>
         </div>
-        <div id="loginError" class="hidden mb-4 text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3 border border-red-100"></div>
-        <button type="submit" class="btn-primary w-full justify-center py-3 text-base">
-          <span id="loginBtnText">로그인</span>
-          <span id="loginSpinner" class="hidden"><span class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff"></span></span>
+      </div>
+      <!-- GitHub 토큰 -->
+      <div class="pt-3 border-t border-slate-100">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="font-bold text-sm">GitHub 토큰</h3>
+            <p class="text-xs text-slate-400">크롤링 실행 + 파일 편집 (workflow, contents 권한 필요)</p>
+          </div>
+          <span id="token-status" class="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-600">미설정</span>
+        </div>
+        <div class="flex gap-2">
+          <input id="github-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+            class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+          <button id="token-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors">저장</button>
+          <button id="token-clear-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-2 rounded-lg text-sm transition-colors">초기화</button>
+        </div>
+        <p class="text-xs text-slate-400 mt-1.5">
+          📌 <a href="https://github.com/settings/tokens/new?scopes=workflow,repo" target="_blank" class="text-blue-500 underline">GitHub → Settings → Developer settings → Personal access tokens (classic)</a> 에서 <strong>workflow + repo</strong> 체크 후 생성
+        </p>
+      </div>
+    </div>
+
+    <!-- 플랫폼 목록 헤더 -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-black">플랫폼 목록</h2>
+      <div class="flex gap-2">
+        <button id="crawl-all-btn" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+          🚀 전체 크롤링
         </button>
-      </form>
+        <button id="add-platform-btn" class="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+          + 플랫폼 추가
+        </button>
+      </div>
+    </div>
+
+    <!-- 플랫폼 추가 폼 -->
+    <div id="add-form" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold mb-4">새 플랫폼 추가</h3>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">플랫폼 이름 *</label>
+          <input id="form-name" type="text" placeholder="리뷰쉐어" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">사이트 URL *</label>
+          <input id="form-url" type="url" placeholder="https://reviewshare.io/" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-500">
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button id="save-platform-btn" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors">저장</button>
+        <button id="cancel-form-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-5 py-2 rounded-xl text-sm transition-colors">취소</button>
+      </div>
+    </div>
+
+    <!-- 플랫폼 목록 테이블 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-5 py-3 border-b border-slate-100 bg-slate-50 text-xs font-bold text-slate-500 grid grid-cols-12 gap-2">
+        <span class="col-span-3">플랫폼명</span>
+        <span class="col-span-3">URL</span>
+        <span class="col-span-3">최근 크롤링</span>
+        <span class="col-span-1">상태</span>
+        <span class="col-span-2 text-right">액션</span>
+      </div>
+      <div id="platform-rows">
+        <div class="text-center py-8 text-slate-400 text-sm">로딩 중...</div>
+      </div>
     </div>
   </div>
 
-  <!-- 관리자 대시보드 -->
-  <div id="dashboardSection" class="hidden max-w-5xl mx-auto px-4 py-10">
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-2xl font-black text-ink-900">포스트 관리</h1>
-        <p class="text-ink-500 text-sm mt-1">kimminju27/-  ·  posts/ 폴더</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button onclick="loadPosts()" class="btn-edit" style="border-color:#e2e8f0; color:#475569;">
+  <!-- ===== 탭2: 캠페인 관리 ===== -->
+  <div id="tab-campaigns" class="tab-content hidden space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-black">캠페인 관리</h2>
+      <div class="flex gap-2">
+        <button id="cleanup-btn" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2 rounded-xl text-sm border border-red-200 transition-colors">
+          🗑️ 만료 캠페인 정리
+        </button>
+        <button id="refresh-campaigns-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-4 py-2 rounded-xl text-sm transition-colors">
           🔄 새로고침
         </button>
-        <button id="syncBtn" onclick="syncHomepage()" class="btn-edit" style="border-color:#fbbf24; color:#d97706;">
-          🏠 홈페이지 동기화
-        </button>
-        <a href="admin-editor.html" class="btn-primary">
-          ✏️ 새 글 작성
-        </a>
-        <button onclick="handleLogout()" class="text-sm text-ink-300 hover:text-ink-500 transition-colors px-2">로그아웃</button>
       </div>
     </div>
 
-    <!-- 일괄 삭제 툴바 (선택 시 표시) -->
-    <div id="bulkToolbar" class="hidden mb-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-5 py-3">
-      <span id="bulkCount" class="text-sm font-bold text-red-600"></span>
-      <span class="text-red-300">|</span>
-      <button onclick="openBulkDeleteModal()" class="btn-danger" style="padding:6px 14px;">
-        🗑️ 선택 항목 삭제
-      </button>
-      <button onclick="clearSelection()" class="text-sm text-ink-400 hover:text-ink-600 transition ml-auto">선택 해제</button>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm text-center">
+        <div id="camp-total" class="text-2xl font-black text-brand-600">-</div>
+        <div class="text-xs text-slate-500 mt-1">총 캠페인</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm text-center">
+        <div id="camp-today" class="text-2xl font-black text-blue-600">-</div>
+        <div class="text-xs text-slate-500 mt-1">오늘 수집</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm text-center">
+        <div id="camp-platforms" class="text-2xl font-black text-purple-600">-</div>
+        <div class="text-xs text-slate-500 mt-1">활성 플랫폼</div>
+      </div>
     </div>
 
-    <!-- 로딩 -->
-    <div id="loadingState" class="text-center py-16">
-      <div class="spinner mx-auto mb-4"></div>
-      <p class="text-ink-500 text-sm">포스트 목록을 불러오는 중...</p>
-    </div>
-
-    <!-- 에러 -->
-    <div id="errorState" class="hidden text-center py-16">
-      <div class="text-4xl mb-4">⚠️</div>
-      <p id="errorMsg" class="text-ink-500 text-sm mb-4"></p>
-      <button onclick="loadPosts()" class="btn-primary">다시 시도</button>
-    </div>
-
-    <!-- 빈 목록 -->
-    <div id="emptyState" class="hidden text-center py-16">
-      <div class="text-4xl mb-4">📝</div>
-      <p class="text-ink-500 text-sm mb-4">아직 작성된 포스트가 없습니다.</p>
-      <a href="admin-editor.html" class="btn-primary inline-flex">첫 글 작성하기</a>
-    </div>
-
-    <!-- 포스트 테이블 -->
-    <div id="postTable" class="hidden bg-white rounded-2xl border border-ink-100 overflow-hidden shadow-sm">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-ink-100 bg-ink-100">
-            <th class="px-4 py-3.5 w-10">
-              <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)"
-                class="w-4 h-4 accent-red-500 cursor-pointer rounded">
-            </th>
-            <th class="text-left px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide">제목</th>
-            <th class="text-left px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide hidden sm:table-cell">파일명</th>
-            <th class="text-center px-4 py-3.5 font-bold text-ink-500 text-xs uppercase tracking-wide">관리</th>
-          </tr>
-        </thead>
-        <tbody id="postTableBody">
-        </tbody>
-      </table>
-      <div id="postCount" class="px-6 py-3 border-t border-ink-100 text-xs text-ink-300 bg-ink-100/50"></div>
-    </div>
-
-    <!-- 페이지 파일 수정 -->
-    <div class="mt-10">
-      <h2 class="text-lg font-black text-ink-900 mb-4">📄 사이트 페이지 수정</h2>
-      <div class="bg-white rounded-2xl border border-ink-100 shadow-sm p-6">
-        <div class="flex flex-wrap gap-2 mb-5">
-          <button onclick="loadPageFile('homepage-team/index.html')" class="btn-edit">🏠 index.html</button>
-          <button onclick="loadPageFile('homepage-team/about.html')" class="btn-edit">ℹ️ about.html</button>
-          <button onclick="loadPageFile('homepage-team/privacy.html')" class="btn-edit">🔒 privacy.html</button>
-          <button onclick="loadPageFile('homepage-team/robots.txt')" class="btn-edit">🤖 robots.txt</button>
-          <button onclick="loadPageFile('homepage-team/sitemap.xml')" class="btn-edit">🗺️ sitemap.xml</button>
-        </div>
-        <div id="pageEditorArea" class="hidden">
-          <div class="flex items-center justify-between mb-3">
-            <span id="pageEditorFilename" class="text-sm font-bold text-ink-500 font-mono"></span>
-            <button onclick="savePageFile()" class="btn-primary" style="padding:8px 18px;font-size:0.85rem;">
-              <span id="pageEditorSaveTxt">저장 (GitHub 커밋)</span>
-              <span id="pageEditorSaveSpin" class="hidden"><span class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></span></span>
-            </button>
-          </div>
-          <textarea id="pageEditorTextarea"
-            class="w-full font-mono text-xs text-ink-900 border border-ink-100 rounded-xl p-4 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 resize-y"
-            style="min-height:400px;"></textarea>
-        </div>
-        <div id="pageEditorLoading" class="hidden text-center py-8">
-          <div class="spinner mx-auto mb-2"></div>
-          <p class="text-sm text-ink-400">파일 불러오는 중...</p>
-        </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-sm mb-4">플랫폼별 수집량</h3>
+      <div id="platform-stats" class="space-y-2">
+        <div class="text-center py-4 text-slate-400 text-sm">캠페인 탭 클릭 시 로드됩니다</div>
       </div>
     </div>
   </div>
 
-  <!-- 삭제 확인 모달 -->
-  <div id="deleteModal" class="hidden fixed inset-0 bg-ink-900/40 z-50 flex items-center justify-center px-4">
-    <div class="bg-white rounded-2xl shadow-xl p-7 w-full max-w-sm">
-      <h3 class="font-black text-ink-900 text-lg mb-2">포스트 삭제</h3>
-      <p class="text-ink-500 text-sm mb-1">정말로 이 포스트를 삭제하시겠습니까?</p>
-      <p id="deleteFileName" class="text-xs font-mono text-red-500 bg-red-50 px-3 py-2 rounded-lg mt-3 mb-6"></p>
-      <div class="flex gap-3">
-        <button onclick="closeDeleteModal()" class="flex-1 py-2.5 rounded-xl border border-ink-100 text-ink-500 font-bold text-sm hover:bg-ink-100 transition">취소</button>
-        <button id="confirmDeleteBtn" onclick="confirmDelete()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition">
-          <span id="deleteBtnText">삭제</span>
-          <span id="deleteSpinner" class="hidden"><span class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></span></span>
-        </button>
+  <!-- ===== 탭3: 통계 ===== -->
+  <div id="tab-stats" class="tab-content hidden space-y-4">
+    <h2 class="text-lg font-black">검색 통계</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <h3 class="font-bold text-sm mb-4">🔍 인기 검색어 TOP 20 (최근 7일)</h3>
+      <div id="keyword-stats" class="space-y-2">
+        <div class="text-center py-4 text-slate-400 text-sm">통계 탭 클릭 시 로드됩니다</div>
       </div>
     </div>
   </div>
 
-  <!-- 일괄 삭제 확인 모달 -->
-  <div id="bulkDeleteModal" class="hidden fixed inset-0 bg-ink-900/40 z-50 flex items-center justify-center px-4">
-    <div class="bg-white rounded-2xl shadow-xl p-7 w-full max-w-sm">
-      <h3 class="font-black text-ink-900 text-lg mb-2">일괄 삭제</h3>
-      <p id="bulkDeleteDesc" class="text-ink-500 text-sm mb-1"></p>
-      <p class="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg mt-3 mb-6">삭제된 파일은 복구할 수 없습니다.</p>
-      <div class="flex gap-3">
-        <button onclick="closeBulkDeleteModal()" class="flex-1 py-2.5 rounded-xl border border-ink-100 text-ink-500 font-bold text-sm hover:bg-ink-100 transition">취소</button>
-        <button id="confirmBulkDeleteBtn" onclick="confirmBulkDelete()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition">
-          <span id="bulkDeleteBtnText">전체 삭제</span>
-          <span id="bulkDeleteSpinner" class="hidden"><span class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></span></span>
-        </button>
+  <!-- ===== 탭4: 파일 편집 ===== -->
+  <div id="tab-files" class="tab-content hidden space-y-4">
+    <h2 class="text-lg font-black">사이트 파일 편집</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <p class="text-xs text-slate-400 mb-4">GitHub 토큰이 설정된 경우 파일을 직접 수정하고 저장할 수 있습니다. 저장 시 GitHub 커밋 → Vercel 자동 배포됩니다.</p>
+      <div class="flex flex-wrap gap-2 mb-5">
+        <button onclick="loadPageFile('homepage-team/index.html')" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">🏠 index.html</button>
+        <button onclick="loadPageFile('homepage-team/admin.html')" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">⚙️ admin.html</button>
+        <button onclick="loadPageFile('homepage-team/about.html')" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">ℹ️ about.html</button>
+        <button onclick="loadPageFile('homepage-team/privacy.html')" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">🔒 privacy.html</button>
+        <button onclick="loadPageFile('homepage-team/robots.txt')" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">🤖 robots.txt</button>
+      </div>
+      <div id="page-editor-loading" class="hidden text-center py-8">
+        <div class="spinner mx-auto mb-2"></div>
+        <p class="text-sm text-slate-400">파일 불러오는 중...</p>
+      </div>
+      <div id="page-editor-area" class="hidden">
+        <div class="flex items-center justify-between mb-3">
+          <span id="page-editor-filename" class="text-sm font-bold text-slate-500 font-mono bg-slate-100 px-2 py-1 rounded"></span>
+          <button onclick="savePageFile()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
+            <span id="page-editor-save-txt">저장 (GitHub 커밋)</span>
+            <span id="page-editor-save-spin" class="hidden"><div class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></div></span>
+          </button>
+        </div>
+        <textarea id="page-editor-textarea"
+          class="w-full font-mono text-xs text-slate-900 border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 resize-y"
+          style="min-height:500px;"></textarea>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- 토스트 -->
-  <div id="toast" class="toast"></div>
-
-  <footer class="border-t border-ink-100 bg-white mt-16">
-    <div class="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-300">
-      <span class="font-bold text-ink-500">나만 모르는 요즘 소식</span>
-      <span>2026. All rights reserved.</span>
-    </div>
-  </footer>
+<!-- 토스트 -->
+<div id="toast" class="toast"></div>
 
 <script>
-  const OWNER = 'kimminju27';
-  const REPO = '-';
-  const API_BASE = 'https://api.github.com';
-  const CORRECT_HASH = '7f4533b56bc1e88871538df344b04b8c057be4f8287e4a1e188a9f498dadf73d';
+// =======================================
+// 설정
+// =======================================
+const SUPABASE_URL = 'https://krmlhcsnpswxavxcskvq.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWxoY3NucHN3eGF2eGNza3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA5ODksImV4cCI6MjA5MTcxNjk4OX0.I5t6b6rjuj3dOxmcSzVpTPz5cU00_6JWSQYGd-P-YDY'
+const GITHUB_OWNER = 'kimminju27'
+const GITHUB_REPO = '-'
+const CRAWL_WORKFLOW = 'crawl-campaigns.yml'
+// sha256("관리자비밀번호") — admin-platforms.html과 동일
+const ADMIN_PW_HASH = 'cdfa2aac702320116321895722f624af9c1220932ce94afbb277268b6b4194b9'
 
-  let pendingDeleteFile = null;
-  let pendingDeleteSha = null;
-  let postsData = [];
-  let selectedFiles = new Set(); // 일괄 삭제용 선택 목록
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+let sbAdmin = null
 
-  // ── SHA-256 해시 ──────────────────────────────────
-  async function sha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+function getAdminClient() {
+  const key = localStorage.getItem('sb_service_key') || ''
+  if (!key) return null
+  if (!sbAdmin) sbAdmin = window.supabase.createClient(SUPABASE_URL, key)
+  return sbAdmin
+}
+function requireAdmin() {
+  const c = getAdminClient()
+  if (!c) { showToast('먼저 Supabase 서비스 키를 설정해주세요', 'error'); return null }
+  return c
+}
+function getGhToken() { return localStorage.getItem('gh_token') || '' }
+
+// =======================================
+// 인증
+// =======================================
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const pw = document.getElementById('pw-input').value
+  const hash = await sha256(pw)
+  if (hash === ADMIN_PW_HASH) {
+    sessionStorage.setItem('admin_auth', hash)
+    showDashboard()
+  } else {
+    const err = document.getElementById('login-error')
+    err.textContent = '비밀번호가 올바르지 않습니다'
+    err.classList.remove('hidden')
   }
+})
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-btn').click() })
+document.getElementById('logout-btn').addEventListener('click', () => {
+  sessionStorage.removeItem('admin_auth')
+  location.reload()
+})
 
-  // ── 로그인 ────────────────────────────────────────
-  async function handleLogin(e) {
-    e.preventDefault();
-    const pw = document.getElementById('passwordInput').value.trim();
-    const token = document.getElementById('tokenInput').value.trim();
-    const errDiv = document.getElementById('loginError');
-    errDiv.classList.add('hidden');
+function showDashboard() {
+  document.getElementById('login-section').classList.add('hidden')
+  document.getElementById('main-section').classList.remove('hidden')
+  document.getElementById('logout-btn').classList.remove('hidden')
+  loadPlatforms()
+}
 
-    if (!pw || !token) {
-      showLoginError('비밀번호와 GitHub Token을 모두 입력해주세요.');
-      return;
+// =======================================
+// 탭
+// =======================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('bg-brand-600', 'text-white')
+      b.classList.add('text-slate-500')
+    })
+    btn.classList.add('bg-brand-600', 'text-white')
+    btn.classList.remove('text-slate-500')
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'))
+    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden')
+    if (btn.dataset.tab === 'campaigns') loadCampaignStats()
+    if (btn.dataset.tab === 'stats') loadKeywordStats()
+  })
+})
+
+// =======================================
+// 키 설정 UI
+// =======================================
+function updateSbKeyStatus() {
+  const el = document.getElementById('sb-key-status')
+  const key = localStorage.getItem('sb_service_key') || ''
+  el.textContent = key ? '설정됨 ✓' : '미설정'
+  el.className = `text-xs font-bold px-2 py-1 rounded-full ${key ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`
+}
+function updateTokenStatus() {
+  const el = document.getElementById('token-status')
+  const token = getGhToken()
+  el.textContent = token ? '설정됨 ✓' : '미설정'
+  el.className = `text-xs font-bold px-2 py-1 rounded-full ${token ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`
+}
+
+document.getElementById('sb-key-save-btn').addEventListener('click', () => {
+  const val = document.getElementById('sb-key-input').value.trim()
+  if (!val) { showToast('서비스 키를 입력해주세요', 'error'); return }
+  localStorage.setItem('sb_service_key', val)
+  sbAdmin = null
+  document.getElementById('sb-key-input').value = ''
+  updateSbKeyStatus()
+  showToast('서비스 키가 저장되었습니다', 'success')
+})
+document.getElementById('sb-key-clear-btn').addEventListener('click', () => {
+  localStorage.removeItem('sb_service_key')
+  sbAdmin = null
+  updateSbKeyStatus()
+  showToast('초기화되었습니다', 'success')
+})
+document.getElementById('token-save-btn').addEventListener('click', () => {
+  const val = document.getElementById('github-token-input').value.trim()
+  if (!val) { showToast('토큰을 입력해주세요', 'error'); return }
+  localStorage.setItem('gh_token', val)
+  document.getElementById('github-token-input').value = ''
+  updateTokenStatus()
+  showToast('토큰이 저장되었습니다', 'success')
+})
+document.getElementById('token-clear-btn').addEventListener('click', () => {
+  localStorage.removeItem('gh_token')
+  updateTokenStatus()
+  showToast('토큰이 초기화되었습니다', 'success')
+})
+
+// =======================================
+// 플랫폼 관리
+// =======================================
+document.getElementById('add-platform-btn').addEventListener('click', () => {
+  document.getElementById('add-form').classList.toggle('hidden')
+})
+document.getElementById('cancel-form-btn').addEventListener('click', () => {
+  document.getElementById('add-form').classList.add('hidden')
+})
+document.getElementById('save-platform-btn').addEventListener('click', savePlatform)
+document.getElementById('crawl-all-btn').addEventListener('click', () => triggerCrawl(''))
+document.getElementById('cleanup-btn').addEventListener('click', cleanupCampaigns)
+document.getElementById('refresh-campaigns-btn').addEventListener('click', loadCampaignStats)
+
+async function loadPlatforms() {
+  const rows = document.getElementById('platform-rows')
+  rows.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm">로딩 중...</div>'
+  try {
+    const { data, error } = await sb.from('platforms').select('*').order('name')
+    if (error) throw error
+    if (!data?.length) {
+      rows.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm">등록된 플랫폼이 없습니다</div>'
+      return
     }
-
-    setLoginLoading(true);
-    const hash = await sha256(pw);
-    if (hash !== CORRECT_HASH) {
-      setLoginLoading(false);
-      showLoginError('비밀번호가 올바르지 않습니다.');
-      return;
-    }
-
-    sessionStorage.setItem('gh_token', token);
-    setLoginLoading(false);
-    document.getElementById('loginSection').classList.add('hidden');
-    document.getElementById('dashboardSection').classList.remove('hidden');
-    loadPosts();
+    rows.innerHTML = data.map(p => {
+      const lastCrawled = p.last_crawled_at
+        ? new Date(p.last_crawled_at).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+        : '-'
+      return `
+      <div class="grid grid-cols-12 gap-2 items-center px-5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+        <div class="col-span-3 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${p.badge_color || '#6366f1'}"></span>
+          <span class="font-bold text-sm truncate">${escHtml(p.name)}</span>
+        </div>
+        <div class="col-span-3 text-xs text-slate-400 truncate">${escHtml(p.url)}</div>
+        <div class="col-span-3 text-xs text-slate-400">${lastCrawled}</div>
+        <div class="col-span-1">
+          <button onclick="togglePlatform('${p.id}', ${p.is_active})"
+            class="px-2 py-0.5 rounded-full text-xs font-bold cursor-pointer ${p.is_active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'} transition-colors">
+            ${p.is_active ? '활성' : '비활성'}
+          </button>
+        </div>
+        <div class="col-span-2 flex justify-end gap-1">
+          <button onclick="triggerCrawl('${escHtml(p.name)}')" title="크롤링 실행"
+            class="text-xs px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg font-bold transition-colors">🚀</button>
+          <button onclick="deletePlatform('${p.id}', '${escHtml(p.name)}')"
+            class="text-xs px-2 py-1 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg font-bold transition-colors">삭제</button>
+        </div>
+      </div>`
+    }).join('')
+  } catch (e) {
+    rows.innerHTML = `<div class="text-center py-6 text-red-400 text-sm">오류: ${escHtml(e.message)}</div>`
   }
+}
 
-  function showLoginError(msg) {
-    const el = document.getElementById('loginError');
-    el.textContent = msg;
-    el.classList.remove('hidden');
-  }
+async function savePlatform() {
+  const c = requireAdmin(); if (!c) return
+  const name = document.getElementById('form-name').value.trim()
+  const url = document.getElementById('form-url').value.trim()
+  if (!name || !url) { showToast('이름과 URL은 필수입니다', 'error'); return }
+  const { error } = await c.from('platforms').insert({ name, url, badge_color: '#6366f1', crawler_type: 'html_parser', is_active: true })
+  if (error) { showToast('저장 실패: ' + error.message, 'error'); return }
+  showToast('플랫폼이 추가되었습니다', 'success')
+  document.getElementById('add-form').classList.add('hidden')
+  document.getElementById('form-name').value = ''
+  document.getElementById('form-url').value = ''
+  loadPlatforms()
+}
 
-  function setLoginLoading(on) {
-    document.getElementById('loginBtnText').classList.toggle('hidden', on);
-    document.getElementById('loginSpinner').classList.toggle('hidden', !on);
-  }
+async function togglePlatform(id, currentActive) {
+  const c = requireAdmin(); if (!c) return
+  const { error } = await c.from('platforms').update({ is_active: !currentActive }).eq('id', id)
+  if (error) { showToast('변경 실패: ' + error.message, 'error'); return }
+  showToast(currentActive ? '비활성화되었습니다' : '활성화되었습니다', 'success')
+  loadPlatforms()
+}
 
-  function handleLogout() {
-    sessionStorage.removeItem('gh_token');
-    location.reload();
-  }
+async function deletePlatform(id, name) {
+  const c = requireAdmin(); if (!c) return
+  if (!confirm(`"${name}" 플랫폼을 삭제하시겠습니까?\n관련 캠페인 데이터도 함께 삭제됩니다.`)) return
+  const { error } = await c.from('platforms').delete().eq('id', id)
+  if (error) { showToast('삭제 실패: ' + error.message, 'error'); return }
+  showToast('삭제되었습니다', 'success')
+  loadPlatforms()
+}
 
-  // ── GitHub API ────────────────────────────────────
-  function getToken() {
-    return sessionStorage.getItem('gh_token') || '';
-  }
-
-  async function ghFetch(path, opts = {}) {
-    const token = getToken();
-    const res = await fetch(`${API_BASE}${path}`, {
-      ...opts,
+// =======================================
+// 크롤링 실행 (GitHub Actions)
+// =======================================
+async function triggerCrawl(platformName) {
+  const token = getGhToken()
+  if (!token) { showToast('먼저 GitHub 토큰을 설정해주세요', 'error'); return }
+  try {
+    showToast('크롤링 요청 중...', 'success')
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${CRAWL_WORKFLOW}/dispatches`, {
+      method: 'POST',
       headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        ...(opts.headers || {})
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
       },
-      signal: opts.signal || AbortSignal.timeout(20000)
-    });
-    return res;
-  }
-
-  // ── 포스트 목록 로드 ──────────────────────────────
-  async function loadPosts() {
-    showState('loading');
-    try {
-      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts`);
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || `GitHub API 오류 (${res.status})`);
-      }
-      const files = await res.json();
-      const htmlFiles = files.filter(f =>
-        f.name.endsWith('.html') &&
-        f.name !== '_template.html' &&
-        f.type === 'file'
-      );
-
-      if (htmlFiles.length === 0) {
-        showState('empty');
-        return;
-      }
-
-      // 각 파일의 내용에서 title 파싱
-      postsData = await Promise.all(htmlFiles.map(async (f) => {
-        try {
-          const fileRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts/${f.name}`);
-          if (!fileRes.ok) return { name: f.name, sha: f.sha, title: f.name, date: '' };
-          const fileData = await fileRes.json();
-          const raw = atob(fileData.content.replace(/\n/g, ''));
-          const bytes = new Uint8Array(raw.length);
-          for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-          const content = new TextDecoder('utf-8').decode(bytes);
-          const titleMatch = content.match(/<title>([^<]+)<\/title>/i);
-          const rawTitle = titleMatch ? titleMatch[1] : f.name;
-          const title = rawTitle.replace(/\s*-\s*나만 모르는 요즘 소식\s*$/, '').trim();
-
-          // published_time 메타에서 날짜 추출
-          const dateMatch = content.match(/article:published_time"\s+content="([^"]+)"/);
-          let date = '';
-          if (dateMatch) {
-            date = dateMatch[1].slice(0, 10).replace(/-/g, '.');
-          }
-          return { name: f.name, sha: f.sha, title, date };
-        } catch {
-          return { name: f.name, sha: f.sha, title: f.name, date: '' };
-        }
-      }));
-
-      // 날짜 내림차순 정렬
-      postsData.sort((a, b) => {
-        if (a.date && b.date) return b.date.localeCompare(a.date);
-        return 0;
-      });
-
-      renderTable(postsData);
-      showState('table');
-    } catch (err) {
-      document.getElementById('errorMsg').textContent = err.message;
-      showState('error');
+      body: JSON.stringify({ ref: 'main', inputs: { platform: platformName || '' } })
+    })
+    if (res.status === 204) {
+      showToast(platformName ? `"${platformName}" 크롤링 요청 완료!` : '전체 크롤링 요청 완료! GitHub Actions에서 실행됩니다.', 'success')
+    } else {
+      const err = await res.json().catch(() => ({}))
+      showToast('오류: ' + (err.message || res.status), 'error')
     }
+  } catch (e) {
+    showToast('크롤링 요청 실패: ' + e.message, 'error')
   }
+}
 
-  function renderTable(posts) {
-    selectedFiles.clear();
-    updateBulkToolbar();
-    document.getElementById('selectAllCheckbox').checked = false;
-    const tbody = document.getElementById('postTableBody');
-    tbody.innerHTML = posts.map(post => `
-      <tr class="border-b border-ink-100 last:border-0 hover:bg-ink-100/50 transition-colors">
-        <td class="px-4 py-4 w-10">
-          <input type="checkbox" class="row-checkbox w-4 h-4 accent-red-500 cursor-pointer rounded"
-            data-name="${escHtml(post.name)}" data-sha="${escHtml(post.sha)}">
-        </td>
-        <td class="px-4 py-4">
-          <div class="font-semibold text-ink-900 line-clamp-1">${escHtml(post.title)}</div>
-          ${post.date ? `<div class="text-xs text-ink-300 mt-0.5">${post.date}</div>` : ''}
-        </td>
-        <td class="px-4 py-4 hidden sm:table-cell">
-          <span class="text-xs font-mono text-ink-500 bg-ink-100 px-2 py-0.5 rounded">${escHtml(post.name)}</span>
-        </td>
-        <td class="px-4 py-4">
-          <div class="flex items-center justify-center gap-2">
-            <a href="admin-editor.html?file=${encodeURIComponent(post.name)}" class="btn-edit">✏️ 수정</a>
-            <button class="btn-danger btn-delete-row" data-name="${escHtml(post.name)}" data-sha="${escHtml(post.sha)}">🗑️ 삭제</button>
+// =======================================
+// 캠페인 통계
+// =======================================
+async function loadCampaignStats() {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    const [r1, r2, r3] = await Promise.all([
+      sb.from('campaigns').select('id', { count: 'exact', head: true }),
+      sb.from('campaigns').select('id', { count: 'exact', head: true }).gte('crawled_at', today + 'T00:00:00'),
+      sb.from('platforms').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    ])
+    document.getElementById('camp-total').textContent = (r1.count || 0).toLocaleString()
+    document.getElementById('camp-today').textContent = (r2.count || 0).toLocaleString()
+    document.getElementById('camp-platforms').textContent = (r3.count || 0).toLocaleString()
+
+    const { data } = await sb.from('campaigns').select('platform_name')
+    if (data) {
+      const counts = {}
+      data.forEach(d => { counts[d.platform_name] = (counts[d.platform_name] || 0) + 1 })
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+      const maxVal = sorted[0]?.[1] || 1
+      document.getElementById('platform-stats').innerHTML = sorted.map(([name, cnt]) => `
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold text-slate-600 w-24 truncate shrink-0">${escHtml(name)}</span>
+          <div class="flex-1 bg-slate-100 rounded-full h-2">
+            <div class="bg-brand-500 h-2 rounded-full transition-all" style="width:${Math.round(cnt / maxVal * 100)}%"></div>
           </div>
-        </td>
-      </tr>
-    `).join('');
-    document.getElementById('postCount').textContent = `총 ${posts.length}개의 포스트`;
-  }
-
-  // ── 체크박스 + 삭제버튼 이벤트 위임 ─────────────
-  document.getElementById('postTableBody').addEventListener('change', function(e) {
-    if (!e.target.classList.contains('row-checkbox')) return;
-    const { name, sha } = e.target.dataset;
-    if (e.target.checked) {
-      selectedFiles.add({ name, sha });
-    } else {
-      selectedFiles.forEach(f => { if (f.name === name) selectedFiles.delete(f); });
+          <span class="text-xs text-slate-500 w-12 text-right shrink-0">${cnt.toLocaleString()}개</span>
+        </div>
+      `).join('')
     }
-    updateBulkToolbar();
-    const all = document.querySelectorAll('.row-checkbox');
-    const checked = document.querySelectorAll('.row-checkbox:checked');
-    document.getElementById('selectAllCheckbox').checked = all.length > 0 && all.length === checked.length;
-    document.getElementById('selectAllCheckbox').indeterminate = checked.length > 0 && checked.length < all.length;
-  });
+  } catch (e) { console.warn(e) }
+}
 
-  document.getElementById('postTableBody').addEventListener('click', function(e) {
-    const btn = e.target.closest('.btn-delete-row');
-    if (btn) openDeleteModal(btn.dataset.name, btn.dataset.sha);
-  });
+async function cleanupCampaigns() {
+  const c = requireAdmin(); if (!c) return
+  const today = new Date().toISOString().split('T')[0]
+  if (!confirm('마감일이 지난 캠페인과 30일 이상 된 캠페인을 삭제합니다.\n계속하시겠습니까?')) return
+  const { error: e1, count: c1 } = await c.from('campaigns').delete({ count: 'exact' }).lt('deadline_date', today).not('deadline_date', 'is', null)
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const { error: e2, count: c2 } = await c.from('campaigns').delete({ count: 'exact' }).is('deadline_date', null).lt('crawled_at', cutoff)
+  if (e1 || e2) { showToast('일부 삭제 실패: ' + (e1?.message || e2?.message), 'error'); return }
+  showToast(`마감일 지난 ${c1 || 0}개 + 오래된 ${c2 || 0}개 삭제 완료`, 'success')
+  loadCampaignStats()
+}
 
-  function toggleSelectAll(checked) {
-    selectedFiles.clear();
-    document.querySelectorAll('.row-checkbox').forEach(cb => {
-      cb.checked = checked;
-      if (checked) selectedFiles.add({ name: cb.dataset.name, sha: cb.dataset.sha });
-    });
-    updateBulkToolbar();
-  }
-
-  function clearSelection() {
-    selectedFiles.clear();
-    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
-    document.getElementById('selectAllCheckbox').checked = false;
-    document.getElementById('selectAllCheckbox').indeterminate = false;
-    updateBulkToolbar();
-  }
-
-  function updateBulkToolbar() {
-    const toolbar = document.getElementById('bulkToolbar');
-    const count = selectedFiles.size;
-    if (count > 0) {
-      toolbar.classList.remove('hidden');
-      document.getElementById('bulkCount').textContent = `${count}개 선택됨`;
-    } else {
-      toolbar.classList.add('hidden');
+// =======================================
+// 검색어 통계
+// =======================================
+async function loadKeywordStats() {
+  try {
+    const { data } = await sb.from('popular_keywords').select('keyword,count').limit(20)
+    if (!data?.length) {
+      document.getElementById('keyword-stats').innerHTML = '<div class="text-center py-4 text-slate-400 text-sm">검색 데이터가 없습니다</div>'
+      return
     }
-  }
+    const max = data[0].count
+    document.getElementById('keyword-stats').innerHTML = data.map((k, i) => `
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-bold text-slate-400 w-5 text-right shrink-0">${i + 1}</span>
+        <span class="text-sm font-bold text-slate-700 w-20 truncate shrink-0">${escHtml(k.keyword)}</span>
+        <div class="flex-1 bg-slate-100 rounded-full h-2">
+          <div class="bg-brand-500 h-2 rounded-full" style="width:${Math.round(k.count / max * 100)}%"></div>
+        </div>
+        <span class="text-xs text-slate-500 w-12 text-right shrink-0">${k.count}회</span>
+      </div>
+    `).join('')
+  } catch (e) {}
+}
 
-  function showState(state) {
-    ['loading', 'error', 'empty', 'table'].forEach(s => {
-      const map = { loading: 'loadingState', error: 'errorState', empty: 'emptyState', table: 'postTable' };
-      document.getElementById(map[s]).classList.toggle('hidden', s !== state);
-    });
-  }
+// =======================================
+// 파일 편집 (GitHub API)
+// =======================================
+let currentPageFileSha = null
+let currentPageFilePath = null
 
-  // ── 삭제 모달 ─────────────────────────────────────
-  function openDeleteModal(fileName, sha) {
-    pendingDeleteFile = fileName;
-    pendingDeleteSha = sha;
-    document.getElementById('deleteFileName').textContent = `posts/${fileName}`;
-    document.getElementById('deleteModal').classList.remove('hidden');
-  }
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  bytes.forEach(b => binary += String.fromCharCode(b))
+  return btoa(binary)
+}
+function decodeBase64Content(b64) {
+  const raw = atob(b64.replace(/\n/g, ''))
+  const bytes = new Uint8Array(raw.length)
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+  return new TextDecoder('utf-8').decode(bytes)
+}
 
-  function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
-    pendingDeleteFile = null;
-    pendingDeleteSha = null;
-  }
-
-  async function confirmDelete() {
-    if (!pendingDeleteFile) return;
-    setDeleteLoading(true);
-    try {
-      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts/${pendingDeleteFile}`, {
-        method: 'DELETE',
-        body: JSON.stringify({
-          message: `Delete post: ${pendingDeleteFile}`,
-          sha: pendingDeleteSha
-        })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || '삭제 실패');
-      }
-      const deletedFile = pendingDeleteFile;
-      closeDeleteModal();
-      showToast('홈페이지 카드 제거 중...', 'success');
-      try {
-        await syncAfterDelete([deletedFile]);
-        showToast('삭제 완료! 홈페이지에서도 제거됐습니다.', 'success');
-      } catch (syncErr) {
-        showToast(`포스트 삭제됨, 그러나 카드 제거 실패: ${syncErr.message}`, 'error');
-      }
-      await loadPosts();
-    } catch (err) {
-      setDeleteLoading(false);
-      showToast(err.message, 'error');
+async function ghFetch(path, opts = {}) {
+  const token = getGhToken()
+  if (!token) { showToast('GitHub 토큰을 먼저 설정해주세요', 'error'); throw new Error('토큰 없음') }
+  return fetch(`https://api.github.com${path}`, {
+    ...opts,
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      ...(opts.headers || {})
     }
+  })
+}
+
+async function loadPageFile(filepath) {
+  currentPageFilePath = filepath
+  const loadingEl = document.getElementById('page-editor-loading')
+  const areaEl = document.getElementById('page-editor-area')
+  areaEl.classList.add('hidden')
+  loadingEl.classList.remove('hidden')
+  // 파일편집 탭으로 전환
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('bg-brand-600', 'text-white')
+    b.classList.add('text-slate-500')
+  })
+  document.querySelector('[data-tab="files"]').classList.add('bg-brand-600', 'text-white')
+  document.querySelector('[data-tab="files"]').classList.remove('text-slate-500')
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'))
+  document.getElementById('tab-files').classList.remove('hidden')
+
+  try {
+    const res = await ghFetch(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filepath}`)
+    if (!res.ok) throw new Error(`파일 로드 실패 (${res.status})`)
+    const data = await res.json()
+    currentPageFileSha = data.sha
+    document.getElementById('page-editor-filename').textContent = filepath
+    document.getElementById('page-editor-textarea').value = decodeBase64Content(data.content)
+    loadingEl.classList.add('hidden')
+    areaEl.classList.remove('hidden')
+    document.getElementById('page-editor-textarea').focus()
+  } catch (e) {
+    loadingEl.classList.add('hidden')
+    showToast('파일 로드 실패: ' + e.message, 'error')
   }
+}
 
-  function setDeleteLoading(on) {
-    document.getElementById('deleteBtnText').classList.toggle('hidden', on);
-    document.getElementById('deleteSpinner').classList.toggle('hidden', !on);
-    document.getElementById('confirmDeleteBtn').disabled = on;
-  }
-
-  // ── 홈페이지 동기화 (index.html 재빌드) ──────────
-  async function syncHomepage() {
-    const btn = document.getElementById('syncBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ 동기화 중...';
-    try {
-      // 1. 현재 posts/ 폴더의 실제 파일 목록 가져오기
-      const listRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts`);
-      if (!listRes.ok) throw new Error('posts 폴더 읽기 실패');
-      const files = await listRes.json();
-      const existingFiles = new Set(
-        files.filter(f => f.name.endsWith('.html') && f.name !== '_template.html')
-             .map(f => f.name)
-      );
-
-      // 2. index.html 불러오기
-      const idx = await getFileShaAndContent('index.html');
-      if (!idx) throw new Error('index.html 읽기 실패');
-
-      // 3. <!-- AUTO: --> 블록 중 파일이 없는 것 제거
-      const parts = idx.content.split('<!-- AUTO:');
-      const kept = parts.filter((part, i) => {
-        if (i === 0) return true; // 헤더 부분
-        // 이 블록이 참조하는 파일명 추출
-        const match = part.match(/onclick="location\.href='posts\/([^'"]+)'"/);
-        if (!match) return true; // 패턴 없으면 유지
-        const refFile = match[1]; // 예: ai-financial-technology-2026-03-22-1957.html
-        return existingFiles.has(refFile);
-      });
-
-      const newHtml = kept.join('<!-- AUTO:');
-      const removedCount = parts.length - kept.length;
-
-      if (removedCount === 0) {
-        showToast('이미 동기화되어 있습니다.', 'success');
-        return;
-      }
-
-      // 4. sitemap.xml도 동기화
-      const sm = await getFileShaAndContent('sitemap.xml');
-      if (sm) {
-        const newXml = sm.content.replace(/<url>[\s\S]*?<\/url>/g, (match) => {
-          const m = match.match(/<loc>https:\/\/bloginfo360\.com\/posts\/([^<]+)<\/loc>/);
-          if (!m) return match;
-          const slugName = m[1].endsWith('.html') ? m[1] : m[1] + '.html';
-          return existingFiles.has(slugName) ? match : '';
-        }).replace(/\n\s*\n\s*\n/g, '\n\n');
-        await putFile('sitemap.xml', newXml, sm.sha, 'admin: sitemap 동기화');
-      }
-
-      // 5. index.html 저장
-      const ok = await putFile('index.html', newHtml, idx.sha,
-        `admin: 홈페이지 동기화 (카드 ${removedCount}개 제거)`);
-      if (!ok) throw new Error('index.html 저장 실패');
-
-      showToast(`✅ 완료! 카드 ${removedCount}개 제거. Vercel 배포 후 반영됩니다.`, 'success');
-    } catch (e) {
-      showToast('❌ ' + e.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '🏠 홈페이지 동기화';
-    }
-  }
-
-  // ── 일괄 삭제 모달 ────────────────────────────────
-  function openBulkDeleteModal() {
-    const count = selectedFiles.size;
-    if (count === 0) return;
-    document.getElementById('bulkDeleteDesc').textContent = `선택한 ${count}개 포스트를 삭제하시겠습니까?`;
-    document.getElementById('bulkDeleteModal').classList.remove('hidden');
-  }
-
-  function closeBulkDeleteModal() {
-    document.getElementById('bulkDeleteModal').classList.add('hidden');
-  }
-
-  async function confirmBulkDelete() {
-    const files = [...selectedFiles];
-    if (files.length === 0) return;
-
-    document.getElementById('bulkDeleteBtnText').classList.add('hidden');
-    document.getElementById('bulkDeleteSpinner').classList.remove('hidden');
-    document.getElementById('confirmBulkDeleteBtn').disabled = true;
-
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const f of files) {
-      try {
-        const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/posts/${f.name}`, {
-          method: 'DELETE',
-          body: JSON.stringify({ message: `Delete post: ${f.name}`, sha: f.sha })
-        });
-        if (res.ok) successCount++;
-        else failCount++;
-      } catch { failCount++; }
-    }
-
-    document.getElementById('bulkDeleteBtnText').classList.remove('hidden');
-    document.getElementById('bulkDeleteSpinner').classList.add('hidden');
-    document.getElementById('confirmBulkDeleteBtn').disabled = false;
-    closeBulkDeleteModal();
-
-    if (successCount > 0) {
-      showToast(`${successCount}개 삭제됨, 홈페이지 카드 제거 중...`, 'success');
-      try {
-        await syncAfterDelete(files.map(f => f.name));
-        showToast(`${successCount}개 삭제 완료! 홈페이지에서도 제거됐습니다.`, 'success');
-      } catch (syncErr) {
-        showToast(`삭제됨, 카드 제거 실패: ${syncErr.message}`, 'error');
-      }
-    }
-    if (failCount > 0) {
-      showToast(`${failCount}개 삭제 실패.`, 'error');
-    }
-    await loadPosts();
-  }
-
-  // ── 토스트 ────────────────────────────────────────
-  function showToast(msg, type = 'success') {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = `toast toast-${type} show`;
-    setTimeout(() => { el.classList.remove('show'); }, 3000);
-  }
-
-  // ── index.html / sitemap.xml 동기화 ──────────────
-  function utf8ToBase64(str) {
-    const bytes = new TextEncoder().encode(str);
-    let binary = '';
-    bytes.forEach(b => binary += String.fromCharCode(b));
-    return btoa(binary);
-  }
-
-  function decodeBase64Content(b64) {
-    const raw = atob(b64.replace(/\n/g, ''));
-    const bytes = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-    return new TextDecoder('utf-8').decode(bytes);
-  }
-
-  async function getFileShaAndContent(filepath) {
-    const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filepath}`);
-    if (!res.ok) return null;
-    const d = await res.json();
-    return { sha: d.sha, content: decodeBase64Content(d.content) };
-  }
-
-  async function putFile(filepath, content, sha, message) {
-    const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filepath}`, {
+async function savePageFile() {
+  if (!currentPageFilePath || !currentPageFileSha) return
+  const content = document.getElementById('page-editor-textarea').value
+  const saveTxt = document.getElementById('page-editor-save-txt')
+  const saveSpin = document.getElementById('page-editor-save-spin')
+  saveTxt.classList.add('hidden'); saveSpin.classList.remove('hidden')
+  try {
+    const filename = currentPageFilePath.split('/').pop()
+    const res = await ghFetch(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${currentPageFilePath}`, {
       method: 'PUT',
-      body: JSON.stringify({ message, content: utf8ToBase64(content), sha })
-    });
-    return res.ok;
-  }
-
-  // <!-- AUTO: --> 단위로 split해서 해당 slug 블록만 제거 (정규식 의존 없음)
-  function removeCardFromIndex(html, filename) {
-    const slug = filename.replace(/\.html$/, '');
-    const target = `posts/${slug}.html`;
-    if (!html.includes(target)) return html; // 없으면 그대로
-    const parts = html.split('<!-- AUTO:');
-    const filtered = parts.filter((part, i) => i === 0 || !part.includes(target));
-    return filtered.join('<!-- AUTO:');
-  }
-
-  function removeFromSitemap(xml, filename) {
-    const slug = filename.replace(/\.html$/, '');
-    const target = `/posts/${slug}`;
-    if (!xml.includes(target)) return xml;
-    // <url>...</url> 블록 단위로 제거
-    return xml.replace(/<url>[\s\S]*?<\/url>/g, (match) => {
-      return match.includes(target) ? '' : match;
-    }).replace(/\n\s*\n\s*\n/g, '\n\n'); // 빈 줄 정리
-  }
-
-  async function syncAfterDelete(filenames) {
-    if (!filenames || filenames.length === 0) return;
-    const errors = [];
-
-    // index.html 동기화
-    try {
-      const idx = await getFileShaAndContent('index.html');
-      if (idx) {
-        let newHtml = idx.content;
-        filenames.forEach(f => { newHtml = removeCardFromIndex(newHtml, f); });
-        if (newHtml !== idx.content) {
-          const ok = await putFile('index.html', newHtml, idx.sha,
-            `admin: 포스트 카드 제거 (${filenames.join(', ')})`);
-          if (!ok) errors.push('index.html 저장 실패');
-        }
-      } else {
-        errors.push('index.html 읽기 실패');
-      }
-    } catch (e) { errors.push(`index.html 오류: ${e.message}`); }
-
-    // sitemap.xml 동기화
-    try {
-      const sm = await getFileShaAndContent('sitemap.xml');
-      if (sm) {
-        let newXml = sm.content;
-        filenames.forEach(f => { newXml = removeFromSitemap(newXml, f); });
-        if (newXml !== sm.content) {
-          const ok = await putFile('sitemap.xml', newXml, sm.sha,
-            `admin: sitemap 제거 (${filenames.join(', ')})`);
-          if (!ok) errors.push('sitemap.xml 저장 실패');
-        }
-      }
-    } catch (e) { errors.push(`sitemap.xml 오류: ${e.message}`); }
-
-    if (errors.length > 0) throw new Error(errors.join(' / '));
-  }
-
-  // ── 유틸 ──────────────────────────────────────────
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function escAttr(str) {
-    return String(str).replace(/'/g,"\\'").replace(/"/g,'&quot;');
-  }
-
-  // 모달 배경 클릭 시 닫기
-  document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) closeDeleteModal();
-  });
-  document.getElementById('bulkDeleteModal').addEventListener('click', function(e) {
-    if (e.target === this) closeBulkDeleteModal();
-  });
-
-  // 세션 확인 (이미 로그인돼 있으면 대시보드 바로 표시)
-  if (sessionStorage.getItem('gh_token')) {
-    document.getElementById('loginSection').classList.add('hidden');
-    document.getElementById('dashboardSection').classList.remove('hidden');
-    loadPosts();
-  }
-
-  // ── 페이지 파일 편집 ────────────────────────────────
-  let currentPageFileSha = null;
-  let currentPageFilePath = null;
-
-  async function loadPageFile(filepath) {
-    currentPageFilePath = filepath;
-    document.getElementById('pageEditorArea').classList.add('hidden');
-    document.getElementById('pageEditorLoading').classList.remove('hidden');
-    try {
-      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filepath}`);
-      if (!res.ok) throw new Error(`파일 로드 실패 (${res.status})`);
-      const data = await res.json();
-      currentPageFileSha = data.sha;
-      const raw = atob(data.content.replace(/\n/g, ''));
-      const bytes = new Uint8Array(raw.length);
-      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-      const content = new TextDecoder('utf-8').decode(bytes);
-      document.getElementById('pageEditorFilename').textContent = filepath;
-      document.getElementById('pageEditorTextarea').value = content;
-      document.getElementById('pageEditorLoading').classList.add('hidden');
-      document.getElementById('pageEditorArea').classList.remove('hidden');
-    } catch (e) {
-      document.getElementById('pageEditorLoading').classList.add('hidden');
-      showToast('파일 로드 실패: ' + e.message, false);
+      body: JSON.stringify({
+        message: `fix: ${filename} 수정 (관리자)`,
+        content: utf8ToBase64(content),
+        sha: currentPageFileSha
+      })
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || `저장 실패 (${res.status})`)
     }
+    const result = await res.json()
+    currentPageFileSha = result.content.sha
+    showToast(`✅ ${filename} 저장 완료 — Vercel 자동 배포됩니다`, 'success')
+  } catch (e) {
+    showToast('저장 실패: ' + e.message, 'error')
+  } finally {
+    saveTxt.classList.remove('hidden'); saveSpin.classList.add('hidden')
   }
+}
 
-  async function savePageFile() {
-    if (!currentPageFilePath || !currentPageFileSha) return;
-    const content = document.getElementById('pageEditorTextarea').value;
-    const saveTxt = document.getElementById('pageEditorSaveTxt');
-    const saveSpin = document.getElementById('pageEditorSaveSpin');
-    saveTxt.classList.add('hidden'); saveSpin.classList.remove('hidden');
-    try {
-      const encoded = btoa(unescape(encodeURIComponent(content)));
-      const filename = currentPageFilePath.split('/').pop();
-      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${currentPageFilePath}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          message: `fix: ${filename} 내용 수정 (관리자)`,
-          content: encoded,
-          sha: currentPageFileSha,
-        })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || `저장 실패 (${res.status})`);
-      }
-      const result = await res.json();
-      currentPageFileSha = result.content.sha;
-      showToast(`✅ ${filename} 저장 완료 — Vercel에서 자동 배포됩니다`, true);
-    } catch (e) {
-      showToast('저장 실패: ' + e.message, false);
-    } finally {
-      saveTxt.classList.remove('hidden'); saveSpin.classList.add('hidden');
-    }
-  }
+// =======================================
+// 유틸
+// =======================================
+function escHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.className = `toast toast-${type} show`
+  setTimeout(() => { t.classList.remove('show') }, 3500)
+}
+
+// =======================================
+// 초기화
+// =======================================
+window.addEventListener('DOMContentLoaded', () => {
+  updateSbKeyStatus()
+  updateTokenStatus()
+  if (sessionStorage.getItem('admin_auth') === ADMIN_PW_HASH) showDashboard()
+})
 </script>
 </body>
 </html>
