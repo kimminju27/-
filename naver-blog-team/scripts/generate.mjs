@@ -299,9 +299,12 @@ CRITICAL RULES - NO EXCEPTIONS:
 3. ALL numbers MUST be Arabic numerals: 2026년, 3월, 2,580포인트, +1.3%, 15조 원
 4. NEVER write numbers as Chinese/Korean characters: 이천 → write 2000, 삼십오 → write 35
 5. Table cells MUST contain real numbers/values, NEVER empty or placeholder values
-6. Word count requirements: intro 700+, facts 600+, detail 600+, tips 500+, outro 400+
-7. Style: use ~하더라고요, ~거든요, ~인 셈이죠 (conversational Korean)
-8. FORBIDDEN phrases: 알아보겠습니다, 살펴보겠습니다, 이러한, 따라서, 결론적으로`;
+6. Total word count: 3,000~5,000자 (intro 700+, facts 700+, detail 600+, tips 500+, outro 300+, FAQ 400+)
+7. TONE — 구어체 "요/어요"체 일관 사용. "합니다/습니다"체 절대 금지.
+   자연스러운 1인칭: "저는", "제가", "개인적으로는"
+   감탄·공감: "이게 정말 포인트예요", "완전 강추예요"
+   짧은 단락: 1~3줄 후 끊기. 같은 문단 내 문장 사이 빈 줄 삽입 금지.
+8. FORBIDDEN: 알아보겠습니다, 살펴보겠습니다, 이러한, 따라서, 결론적으로, 혁신적인, 획기적인, 놀라운, 최고의, 포괄적으로, 다양한 측면에서, 이 글에서는, 본 글에서는`;
 
   const card4Rows = (cardData.card4?.rows || [])
     .map(r => `  - ${r.label}: ${r.left} → ${r.right}`)
@@ -370,16 +373,35 @@ ${newsContext}
 (마무리 소제목: 이모지 포함, 예: ✍️ 마무리 — 솔직한 한마디)
 
 ===OUTRO===
-(마무리 400자 이상. 필자의 진솔한 견해. ~하더라고요, ~거든요 구어체로 자연스럽게 마무리.)`;
+(마무리 300자 이상. 필자의 진솔한 견해. 구어체로 자연스럽게 마무리.
+끝에 CTA 1줄 포함: 댓글·공유·저장 유도. 예) "도움이 됐다면 공감·저장 눌러주세요 :)")
 
-  let sectionRaw = await callGroq(sectionPrompt, { maxTokens: 6000, systemMsg: sectionSystemMsg });
+===FAQ_HEADING===
+(FAQ 소제목: 예: 🙋 자주 묻는 질문)
+
+===FAQ===
+(독자가 실제로 궁금해할 질문 4개. 형식:
+### Q1. [질문]?
+A. [구체적 답변 — 2~3줄, 구어체 "요/어요"체]
+
+### Q2. [질문]?
+A. [답변]
+
+### Q3. [질문]?
+A. [답변]
+
+### Q4. [질문]?
+A. [답변]
+각 답변 2~3줄, 실용적이고 구체적으로.)`;
+
+  let sectionRaw = await callGroq(sectionPrompt, { maxTokens: 8000, systemMsg: sectionSystemMsg });
 
   if (FOREIGN_CHAR_RE.test(sectionRaw)) {
     console.warn('   ⚠️  섹션 한자 감지 → 15초 대기 후 재생성...');
     await new Promise(r => setTimeout(r, 15000));
     sectionRaw = await callGroq(
       sectionPrompt + '\n\n[경고] 이전 응답에 한자/외국어가 포함되었습니다. 한글/영문/숫자/특수문자/이모지만 사용하세요.',
-      { maxTokens: 6000, systemMsg: sectionSystemMsg }
+      { maxTokens: 8000, systemMsg: sectionSystemMsg }
     );
     console.log('   ✅ 섹션 재생성 완료');
   }
@@ -416,6 +438,7 @@ function parseSections(raw) {
     { id: 'detail', heading: extract('DETAIL_HEADING'),     content: extract('DETAIL') },
     { id: 'tips',   heading: extract('TIPS_HEADING'),       content: extract('TIPS') },
     { id: 'outro',  heading: extract('OUTRO_HEADING'),      content: extract('OUTRO') },
+    { id: 'faq',    heading: extract('FAQ_HEADING'),        content: extract('FAQ') },
   ];
 }
 
