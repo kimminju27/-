@@ -32,41 +32,22 @@ jobs:
 
       - name: 카테고리 결정 (스케줄 자동 배분)
         id: cats
-        shell: bash
+        shell: pwsh
         run: |
-          SCHEDULE="${{ github.event.schedule }}"
-          DOW=$(date -u +%u)
-          if [ "$SCHEDULE" = "0 20 * * *" ]; then
-            case $DOW in
-              1) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=부동산,복지정책" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=세금,부동산" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=보험,부동산" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=세금,주식" >> $GITHUB_OUTPUT ;;
-            esac
-          elif [ "$SCHEDULE" = "0 0 * * *" ]; then
-            case $DOW in
-              1) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=부동산,복지정책" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=세금,부동산" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=보험,부동산" >> $GITHUB_OUTPUT ;;
-            esac
-          else
-            case $DOW in
-              1) echo "CATS=세금,복지정책" >> $GITHUB_OUTPUT ;;
-              2) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
-              3) echo "CATS=세금,부동산" >> $GITHUB_OUTPUT ;;
-              4) echo "CATS=복지정책,주식" >> $GITHUB_OUTPUT ;;
-              5) echo "CATS=보험,세금" >> $GITHUB_OUTPUT ;;
-              6) echo "CATS=부동산,복지정책" >> $GITHUB_OUTPUT ;;
-              *) echo "CATS=주식,보험" >> $GITHUB_OUTPUT ;;
-            esac
-          fi
+          $schedule = "${{ github.event.schedule }}"
+          $dow = [int](Get-Date).ToUniversalTime().DayOfWeek
+          if ($dow -eq 0) { $dow = 7 }  # 일요일=0 → 7로 변환
+
+          $slotA = @{1="보험,세금";2="부동산,복지정책";3="주식,보험";4="세금,부동산";5="복지정책,주식";6="보험,부동산";7="세금,주식"}
+          $slotB = @{1="복지정책,주식";2="보험,세금";3="부동산,복지정책";4="주식,보험";5="세금,부동산";6="복지정책,주식";7="보험,부동산"}
+          $slotC = @{1="세금,복지정책";2="주식,보험";3="세금,부동산";4="복지정책,주식";5="보험,세금";6="부동산,복지정책";7="주식,보험"}
+
+          if ($schedule -eq "0 20 * * *")     { $cats = $slotA[$dow] }
+          elseif ($schedule -eq "0 0 * * *")  { $cats = $slotB[$dow] }
+          else                                 { $cats = $slotC[$dow] }
+
+          echo "CATS=$cats" >> $env:GITHUB_OUTPUT
+          Write-Host "선택된 카테고리: $cats"
 
       - name: 의존성 설치 (naver-blog-team)
         working-directory: naver-blog-team
