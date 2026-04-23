@@ -174,9 +174,10 @@ ${newsContext}
 ⚠️ 절대 규칙 (위반 시 무효):
 1. "title": 반드시 구체적 수치 포함. 예) "2026년 코스피 2,580p 돌파 — ETF 투자 전략 총정리"
 2. '%' 단독 사용 절대 금지. 반드시 숫자와 함께: 3.5%, +1.2%, 12% 형태로만
-3. card4 rows의 "left"/"right": "수치/값" 그대로 두지 말고 실제 수치로 채울 것. 뉴스에 없으면 해당 분야 실제 시장 데이터 사용
-4. card6 stats의 "value": 실제 수치 입력. 예) "2,580pt", "+3.2%", "15조 원", "연 5.0%"
-5. 연도/월/일은 반드시 아라비아 숫자: 2026년 4월 22일
+3. card4 rows: 아래 JSON의 예시값(항목명①, 2,450pt 등)은 형식 참고용 — 선택한 이슈에 맞는 실제 항목명·수치로 완전 교체
+4. card6 stats: 아래 JSON의 예시값은 형식 참고용 — 실제 통계·지표 수치로 완전 교체
+5. 연도/월/일은 반드시 아라비아 숫자: 2026년 4월 22일 (절대 "년 월 일" 빈칸 형식 금지)
+6. JSON 설명 텍스트("항목명①", "지표명②" 등) 그대로 출력 절대 금지 — 모두 실제 내용으로 교체
 
 가장 실용적인 이슈 하나를 선택해 아래 JSON으로만 응답:
 {
@@ -215,9 +216,9 @@ ${newsContext}
     "leftLabel": "이전/현재",
     "rightLabel": "이후/변화",
     "rows": [
-      {"label": "항목(8자이내)", "left": "수치/값", "right": "수치/값"},
-      {"label": "항목(8자이내)", "left": "수치/값", "right": "수치/값"},
-      {"label": "항목(8자이내)", "left": "수치/값", "right": "수치/값"}
+      {"label": "항목명①", "left": "2,450pt", "right": "2,580pt"},
+      {"label": "항목명②", "left": "1,380원", "right": "1,420원"},
+      {"label": "항목명③", "left": "3.25%", "right": "3.50%"}
     ],
     "highlight": "비교 결론(30자이내)"
   },
@@ -238,9 +239,9 @@ ${newsContext}
     "quote": "전문가/공식 인용구(50자이내)",
     "source": "출처명(20자이내)",
     "stats": [
-      {"label": "지표1(10자이내)", "value": "수치/값"},
-      {"label": "지표2(10자이내)", "value": "수치/값"},
-      {"label": "지표3(10자이내)", "value": "수치/값"}
+      {"label": "지표명①", "value": "2,580pt"},
+      {"label": "지표명②", "value": "+3.2%"},
+      {"label": "지표명③", "value": "15조 원"}
     ]
   },
   "card7": {
@@ -304,7 +305,9 @@ CRITICAL RULES - NO EXCEPTIONS:
    자연스러운 1인칭: "저는", "제가", "개인적으로는"
    감탄·공감: "이게 정말 포인트예요", "완전 강추예요"
    짧은 단락: 1~3줄 후 끊기. 같은 문단 내 문장 사이 빈 줄 삽입 금지.
-8. FORBIDDEN: 알아보겠습니다, 살펴보겠습니다, 이러한, 따라서, 결론적으로, 혁신적인, 획기적인, 놀라운, 최고의, 포괄적으로, 다양한 측면에서, 이 글에서는, 본 글에서는`;
+8. FORBIDDEN: 알아보겠습니다, 살펴보겠습니다, 이러한, 따라서, 결론적으로, 혁신적인, 획기적인, 놀라운, 최고의, 포괄적으로, 다양한 측면에서, 이 글에서는, 본 글에서는
+9. 날짜는 반드시 구체적 숫자 포함: "2026년 4월 23일" 형식 (절대 "년 월 일", "X월 Y일" 빈칸 형식 금지)
+10. 수치 없는 "% 상승", "억 원 손실" 등 빈칸 수치 절대 금지 — 뉴스에 없으면 해당 분야 일반적 시장 데이터로 추정해서 작성`;
 
   const card4Rows = (cardData.card4?.rows || [])
     .map(r => `  - ${r.label}: ${r.left} → ${r.right}`)
@@ -404,6 +407,22 @@ A. [답변]
       { maxTokens: 8000, systemMsg: sectionSystemMsg }
     );
     console.log('   ✅ 섹션 재생성 완료');
+  }
+
+  // 섹션 플레이스홀더 검증: "년 월 일" 빈칸 날짜, 단독 %
+  const hasSectionPlaceholder =
+    sectionRaw.includes('년 월 일') ||
+    /[^0-9]년\s+[^0-9]월/.test(sectionRaw) ||
+    /(?<!\d)%(?!\d)/.test(sectionRaw) ||
+    /(?<!\d)억\s*원/.test(sectionRaw);
+  if (hasSectionPlaceholder) {
+    console.warn('   ⚠️  섹션 날짜/수치 플레이스홀더 감지 → 12초 대기 후 재생성...');
+    await new Promise(r => setTimeout(r, 12000));
+    sectionRaw = await callGroq(
+      sectionPrompt + '\n\n[재강조] "년 월 일" 형식 절대 금지. 날짜는 반드시 숫자 포함(2026년 4월 23일). % 단독 금지(3.5%). 수치 없는 "억 원" 금지(15억 원).',
+      { maxTokens: 8000, systemMsg: sectionSystemMsg }
+    );
+    console.log('   ✅ 섹션 플레이스홀더 재생성 완료');
   }
 
   const sections = parseSections(sectionRaw).map(s => ({
