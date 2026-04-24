@@ -28,7 +28,7 @@ export async function parse(baseUrl) {
         const deadlineText = $card.find('[class*="day"],[class*="dday"],[class*="remain"],[class*="deadline"],[class*="date"]').first().text().trim()
         const applyText = $card.find('[class*="apply"],[class*="cnt"],[class*="count"]').first().text()
         const capacityText = $card.find('[class*="limit"],[class*="total"],[class*="quota"]').first().text()
-        items.push({ title, campaign_url: fullUrl, campaign_type: '블로그',
+        items.push({ title, campaign_url: fullUrl, campaign_type: null,
           applicants: parseNum(applyText),
           capacity: parseNum(capacityText) || null,
           deadline_text: deadlineText || null,

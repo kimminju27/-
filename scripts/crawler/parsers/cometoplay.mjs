@@ -27,7 +27,7 @@ export async function parse(baseUrl) {
         const capacityText = $card.find('[class*="limit"], [class*="total"]').first().text()
 
         items.push({
-          title, campaign_url: fullUrl, campaign_type: '블로그',
+          title, campaign_url: fullUrl, campaign_type: null,
           applicants: parseNum(applyText), capacity: parseNum(capacityText) || null,
           deadline_text: deadlineText || null,
         })

@@ -29,12 +29,13 @@ export async function parse(baseUrl) {
         const typeImgSrc = $el.find('img[src*="thum_ch_"]').first().attr('src') || ''
         const categoryText = $el.find('[class*="tag"],[class*="type"],[class*="category"],[class*="badge"]').first().text().trim()
         const applyText = $el.find('[class*="apply"],[class*="cnt"]').first().text()
+        const capacityText = $el.find('[class*="limit"],[class*="total"],[class*="quota"],[class*="count"]').first().text()
         items.push({
           title,
           campaign_url: fullUrl,
           campaign_type: detectType(categoryText, typeImgSrc ? [typeImgSrc] : []),
           applicants: parseNum(applyText),
-          capacity: null,
+          capacity: parseNum(capacityText) || null,
           deadline_text: deadlineText || null,
         })
       })
