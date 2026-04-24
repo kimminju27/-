@@ -109,7 +109,12 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
         const chEl = card.querySelector(
           '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="type"],[class*="category"]'
         )
-        const channel_text = chEl ? chEl.textContent.trim() : ''
+        let channel_text = chEl ? chEl.textContent.trim() : ''
+        if (!channel_text) {
+          // 텍스트 없으면 이미지 alt/src로 채널 감지 (아이콘 전용 사이트 대응)
+          const imgs = Array.from(card.querySelectorAll('img'))
+          channel_text = imgs.map(i => ((i.alt || '') + ' ' + (i.src || '')).toLowerCase()).join(' ')
+        }
         return { deadline_text, applicants, capacity, channel_text }
       }
 
@@ -228,7 +233,11 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         const chEl = card.querySelector(
           '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="type"],[class*="category"]'
         )
-        const channel_text = chEl ? chEl.textContent.trim() : ''
+        let channel_text = chEl ? chEl.textContent.trim() : ''
+        if (!channel_text) {
+          const imgs = Array.from(card.querySelectorAll('img'))
+          channel_text = imgs.map(i => ((i.alt || '') + ' ' + (i.src || '')).toLowerCase()).join(' ')
+        }
         return { deadline_text, applicants, capacity, channel_text }
       }
 

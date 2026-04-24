@@ -41,9 +41,15 @@ function parseDeadlineDate(text) {
   // "YYYY.MM.DD ~ YYYY.MM.DD" 범위 형식 → 종료일(마감일) 추출
   const rangeMatch = text.match(/\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2}\s*[~\-]\s*(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
   if (rangeMatch) return `${rangeMatch[1]}-${rangeMatch[2].padStart(2,'0')}-${rangeMatch[3].padStart(2,'0')}`
+  // "YY.MM.DD~YY.MM.DD일" 2자리 연도 범위 → 종료일 추출 (e.g. 26.04.21~26.04.26일)
+  const shortRangeMatch = text.match(/\d{2}[.\/-]\d{1,2}[.\/-]\d{1,2}\s*[~\-]\s*(\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  if (shortRangeMatch) return `20${shortRangeMatch[1]}-${shortRangeMatch[2].padStart(2,'0')}-${shortRangeMatch[3].padStart(2,'0')}`
   // 단일 YYYY-MM-DD 또는 YYYY.MM.DD
   const dateMatch = text.match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
   if (dateMatch) return `${dateMatch[1]}-${dateMatch[2].padStart(2,'0')}-${dateMatch[3].padStart(2,'0')}`
+  // 단일 YY.MM.DD (2자리 연도)
+  const shortDateMatch = text.match(/^(\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  if (shortDateMatch) return `20${shortDateMatch[1]}-${shortDateMatch[2].padStart(2,'0')}-${shortDateMatch[3].padStart(2,'0')}`
   return null
 }
 
