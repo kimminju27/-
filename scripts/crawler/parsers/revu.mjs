@@ -1,5 +1,7 @@
-// 레뷰 — SPA (React), Playwright 휴리스틱
-import { playwrightParseHeuristic } from '../utils-playwright.mjs'
+// 레뷰 — SPA (React), /project/ 패턴 우선, 실패 시 휴리스틱 폴백
+import { playwrightParse, playwrightParseHeuristic } from '../utils-playwright.mjs'
 export async function parse(baseUrl) {
-  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 2000 })
+  const r = await playwrightParse(baseUrl, '/project/', { extraWaitMs: 3000 })
+  if (r.length > 0) return r
+  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 3000 })
 }

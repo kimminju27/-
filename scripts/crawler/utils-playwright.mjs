@@ -95,16 +95,20 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
           '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"]'
         )
         const deadline_text = ddEl ? ddEl.textContent.trim().slice(0, 30) : null
-        // 신청인원
+        // 신청인원 ("신청4/10명" → 4, "4명" → 4)
         const apEl = card.querySelector(
           '[class*="apply"],[class*="applicant"],[class*="count"],[class*="people"],[class*="participant"],[class*="join"]'
         )
-        const applicants = apEl ? (parseInt(apEl.textContent.replace(/[^0-9]/g,'')) || 0) : 0
-        // 모집인원
+        const apRaw = apEl ? apEl.textContent : ''
+        const apSlash = apRaw.match(/(\d+)\s*[\/|]/)
+        const applicants = apEl ? (apSlash ? parseInt(apSlash[1]) : (parseInt(apRaw.replace(/[^0-9]/g,'')) || 0)) : 0
+        // 모집인원 ("신청4/10명" → 10, "10명" → 10)
         const capEl = card.querySelector(
           '[class*="limit"],[class*="capacity"],[class*="quota"],[class*="max"],[class*="total"],[class*="recruit"]'
         )
-        const capacity = capEl ? (parseInt(capEl.textContent.replace(/[^0-9]/g,'')) || null) : null
+        const capRaw = capEl ? capEl.textContent : ''
+        const capSlash = capRaw.match(/[\/|]\s*(\d+)/)
+        const capacity = capEl ? (capSlash ? parseInt(capSlash[1]) : (parseInt(capRaw.replace(/[^0-9]/g,'')) || null)) : null
         // 채널 타입 뱃지 (인스타/유튜브/릴스 등)
         const chEl = card.querySelector(
           '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="type"],[class*="category"]'
@@ -225,11 +229,15 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         const apEl = card.querySelector(
           '[class*="apply"],[class*="applicant"],[class*="count"],[class*="people"],[class*="participant"],[class*="join"]'
         )
-        const applicants = apEl ? (parseInt(apEl.textContent.replace(/[^0-9]/g,'')) || 0) : 0
+        const apRaw2 = apEl ? apEl.textContent : ''
+        const apSlash2 = apRaw2.match(/(\d+)\s*[\/|]/)
+        const applicants = apEl ? (apSlash2 ? parseInt(apSlash2[1]) : (parseInt(apRaw2.replace(/[^0-9]/g,'')) || 0)) : 0
         const capEl = card.querySelector(
           '[class*="limit"],[class*="capacity"],[class*="quota"],[class*="max"],[class*="total"],[class*="recruit"]'
         )
-        const capacity = capEl ? (parseInt(capEl.textContent.replace(/[^0-9]/g,'')) || null) : null
+        const capRaw2 = capEl ? capEl.textContent : ''
+        const capSlash2 = capRaw2.match(/[\/|]\s*(\d+)/)
+        const capacity = capEl ? (capSlash2 ? parseInt(capSlash2[1]) : (parseInt(capRaw2.replace(/[^0-9]/g,'')) || null)) : null
         const chEl = card.querySelector(
           '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="type"],[class*="category"]'
         )
@@ -270,7 +278,8 @@ export async function playwrightParseHeuristic(url, opts = {}) {
       })
       return results
     }, {originStr: origin, navWords: ['login','logout','signup','register','about','contact','faq',
-      'terms','policy','pricing','help','support','mypage','profile','notice']})
+      'terms','policy','pricing','help','support','mypage','profile','notice',
+      'category','categories','tag','tags','search','keyword','filter']})
 
     function detectCh(text) {
       const t = (text || '').toLowerCase()
