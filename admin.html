@@ -448,12 +448,12 @@ async function togglePlatform(id, currentActive) {
   loadPlatforms()
 }
 
-function editPlatform(id, name, url) {
+function editPlatform(id, originalName, url) {
   const row = document.getElementById('row-' + id)
   if (!row) return
   row.innerHTML = `
     <div class="col-span-3">
-      <input id="edit-name-${id}" type="text" value="${escHtml(name)}"
+      <input id="edit-name-${id}" type="text" value="${escHtml(originalName)}"
         class="w-full px-2 py-1 border border-brand-500 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 font-bold">
     </div>
     <div class="col-span-5">
@@ -461,7 +461,7 @@ function editPlatform(id, name, url) {
         class="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-brand-500">
     </div>
     <div class="col-span-4 flex justify-end gap-2">
-      <button onclick="updatePlatform('${id}')"
+      <button onclick="updatePlatform('${id}', '${escHtml(originalName)}')"
         class="text-xs px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold transition-colors">저장</button>
       <button onclick="loadPlatforms()"
         class="text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold transition-colors">취소</button>
@@ -469,14 +469,21 @@ function editPlatform(id, name, url) {
   document.getElementById('edit-name-' + id).focus()
 }
 
-async function updatePlatform(id) {
+async function updatePlatform(id, originalName) {
   const c = requireAdmin(); if (!c) return
   const name = document.getElementById('edit-name-' + id)?.value.trim()
   const url = document.getElementById('edit-url-' + id)?.value.trim()
   if (!name) { showToast('이름을 입력해주세요', 'error'); return }
   const { error } = await c.from('platforms').update({ name, url }).eq('id', id)
   if (error) { showToast('수정 실패: ' + error.message, 'error'); return }
-  showToast('수정되었습니다', 'success')
+  // 플랫폼 이름이 바뀐 경우 캠페인 table에도 반영
+  if (name !== originalName) {
+    const { error: ce } = await c.from('campaigns').update({ platform_name: name }).eq('platform_name', originalName)
+    if (ce) showToast('플랫폼 수정됨, 캠페인 이름 동기화 실패: ' + ce.message, 'error')
+    else showToast(`수정 완료 (캠페인 ${name}으로 일괄 변경)`, 'success')
+  } else {
+    showToast('수정되었습니다', 'success')
+  }
   loadPlatforms()
 }
 

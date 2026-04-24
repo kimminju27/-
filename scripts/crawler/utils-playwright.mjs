@@ -89,7 +89,7 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
 
     const items = await page.evaluate(({keyword, titleSel}) => {
       function extractCardMeta(card) {
-        if (!card) return { deadline_text: null, applicants: 0, capacity: null }
+        if (!card) return { deadline_text: null, applicants: 0, capacity: null, channel_text: '' }
         // 마감일
         const ddEl = card.querySelector(
           '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"]'
@@ -105,7 +105,12 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
           '[class*="limit"],[class*="capacity"],[class*="quota"],[class*="max"],[class*="total"],[class*="recruit"]'
         )
         const capacity = capEl ? (parseInt(capEl.textContent.replace(/[^0-9]/g,'')) || null) : null
-        return { deadline_text, applicants, capacity }
+        // 채널 타입 뱃지 (인스타/유튜브/릴스 등)
+        const chEl = card.querySelector(
+          '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="type"],[class*="category"]'
+        )
+        const channel_text = chEl ? chEl.textContent.trim() : ''
+        return { deadline_text, applicants, capacity, channel_text }
       }
 
       const results = [], seen = new Set()
@@ -145,9 +150,18 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
       return results
     }, {keyword: hrefKeyword, titleSel: opts.titleSelector || ''})
 
+    function detectCh(text) {
+      const t = (text || '').toLowerCase()
+      if (t.includes('릴스') || t.includes('reels')) return '릴스'
+      if (t.includes('클립')) return '클립'
+      if (t.includes('인스타') || t.includes('instagram')) return '인스타'
+      if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
+      if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
+      return null
+    }
     return items.map(r => ({
       ...r,
-      campaign_type: opts.campaignType || '블로그',
+      campaign_type: opts.campaignType || detectCh((r.channel_text || '') + ' ' + r.title) || null,
     }))
   } catch (err) {
     console.warn(`[PW] ${url} 실패: ${err.message}`)
@@ -198,7 +212,7 @@ export async function playwrightParseHeuristic(url, opts = {}) {
       }
 
       function extractCardMeta(card) {
-        if (!card) return { deadline_text: null, applicants: 0, capacity: null }
+        if (!card) return { deadline_text: null, applicants: 0, capacity: null, channel_text: '' }
         const ddEl = card.querySelector(
           '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"]'
         )
@@ -211,7 +225,11 @@ export async function playwrightParseHeuristic(url, opts = {}) {
           '[class*="limit"],[class*="capacity"],[class*="quota"],[class*="max"],[class*="total"],[class*="recruit"]'
         )
         const capacity = capEl ? (parseInt(capEl.textContent.replace(/[^0-9]/g,'')) || null) : null
-        return { deadline_text, applicants, capacity }
+        const chEl = card.querySelector(
+          '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="type"],[class*="category"]'
+        )
+        const channel_text = chEl ? chEl.textContent.trim() : ''
+        return { deadline_text, applicants, capacity, channel_text }
       }
 
       document.querySelectorAll('a[href]').forEach(el => {
@@ -245,9 +263,18 @@ export async function playwrightParseHeuristic(url, opts = {}) {
     }, {originStr: origin, navWords: ['login','logout','signup','register','about','contact','faq',
       'terms','policy','pricing','help','support','mypage','profile','notice']})
 
+    function detectCh(text) {
+      const t = (text || '').toLowerCase()
+      if (t.includes('릴스') || t.includes('reels')) return '릴스'
+      if (t.includes('클립')) return '클립'
+      if (t.includes('인스타') || t.includes('instagram')) return '인스타'
+      if (t.includes('유튜브') || t.includes('youtube')) return '유튜브'
+      if (t.includes('틱톡') || t.includes('tiktok')) return '틱톡'
+      return null
+    }
     return items.map(r => ({
       ...r,
-      campaign_type: opts.campaignType || '블로그',
+      campaign_type: opts.campaignType || detectCh((r.channel_text || '') + ' ' + r.title) || null,
     }))
   } catch (err) {
     console.warn(`[PW 휴리스틱] ${url} 실패: ${err.message}`)

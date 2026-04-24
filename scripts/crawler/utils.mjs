@@ -38,7 +38,10 @@ function parseDeadlineDate(text) {
     d.setDate(d.getDate() + parseInt(dayMatch[1]))
     return d.toISOString().split('T')[0]
   }
-  // YYYY-MM-DD 또는 YYYY.MM.DD 직접 포함된 경우
+  // "YYYY.MM.DD ~ YYYY.MM.DD" 범위 형식 → 종료일(마감일) 추출
+  const rangeMatch = text.match(/\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2}\s*[~\-]\s*(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  if (rangeMatch) return `${rangeMatch[1]}-${rangeMatch[2].padStart(2,'0')}-${rangeMatch[3].padStart(2,'0')}`
+  // 단일 YYYY-MM-DD 또는 YYYY.MM.DD
   const dateMatch = text.match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
   if (dateMatch) return `${dateMatch[1]}-${dateMatch[2].padStart(2,'0')}-${dateMatch[3].padStart(2,'0')}`
   return null
