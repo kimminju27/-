@@ -27,15 +27,16 @@ export async function parse(baseUrl) {
         if (!title || title.length < 4) return
 
         const $card = $el.closest('[class*="card"], [class*="item"], li, .c1fdo41gas3no')
-        const deadlineText = $card.find('[class*="day"], [class*="deadline"]').first().text().trim()
+        const deadlineText = $card.find('[class*="day"],[class*="dday"],[class*="remain"],[class*="deadline"],[class*="date"]').first().text().trim()
         const typeText = $card.find('[class*="type"], [class*="channel"]').first().text().trim()
         const applyText = $card.find('[class*="apply"], [class*="count"]').first().text()
         const capacityText = $card.find('[class*="limit"], [class*="total"]').first().text()
+        const imgSrcs = $card.find('img').map((_, i) => $(i).attr('src') || '').get()
 
         items.push({
           title,
           campaign_url: fullUrl,
-          campaign_type: detectType(typeText),
+          campaign_type: detectType(typeText, imgSrcs),
           applicants: parseNum(applyText),
           capacity: parseNum(capacityText) || null,
           deadline_text: deadlineText || null,

@@ -1,15 +1,6 @@
 // 다이닝퀸 — swiper-slide > a[href*="/taste/"]
 import * as cheerio from 'cheerio'
-import { fetchWithRetry, parseNum, detectChannel } from '../utils.mjs'
-// 다이닝퀸은 항상 방문형. 채널은 typeText + 제목에서 감지
-function detectDQChannel(typeText, title) {
-  const combined = (typeText + ' ' + title).toLowerCase()
-  if (combined.includes('릴스') || combined.includes('reels')) return '릴스'
-  if (combined.includes('클립')) return '클립'
-  if (combined.includes('인스타') || combined.includes('instagram')) return '인스타'
-  if (combined.includes('유튜브') || combined.includes('youtube')) return '유튜브'
-  return '블로그'
-}
+import { fetchWithRetry, parseNum, detectChannel, detectDelivery } from '../utils.mjs'
 
 export async function parse(baseUrl) {
   const campaigns = []
@@ -45,16 +36,17 @@ export async function parse(baseUrl) {
         if (!title || title.length < 4 || /^https?:\/\//.test(title)) return
 
         const $card = $el.closest('.swiper-slide, [class*="card"], [class*="item"]')
-        const deadlineText = $card.find('[class*="day"], [class*="dday"], [class*="deadline"]').first().text().trim()
+        const deadlineText = $card.find('[class*="day"],[class*="dday"],[class*="remain"],[class*="deadline"],[class*="date"]').first().text().trim()
         const typeText = $card.find('[class*="type"], [class*="category"]').first().text().trim()
         const applyText = $card.find('[class*="apply"], [class*="count"]').first().text()
         const capacityText = $card.find('[class*="limit"], [class*="total"]').first().text()
+        const imgSrcs = $card.find('img').map((_, i) => $(i).attr('src') || '').get()
 
         items.push({
           title,
           campaign_url: fullUrl,
-          campaign_type: detectDQChannel(typeText, title),
-          delivery_type: '방문형',
+          campaign_type: detectChannel(typeText + ' ' + title, imgSrcs) || null,
+          delivery_type: detectDelivery(typeText + ' ' + title),
           applicants: parseNum(applyText),
           capacity: parseNum(capacityText) || null,
           deadline_text: deadlineText || null,

@@ -32,10 +32,11 @@ export async function parse(baseUrl) {
         const typeText = $card.find('[class*="type"],[class*="channel"],[class*="media"],[class*="badge"]').first().text().trim()
         const applyText = $card.find('[class*="apply"],[class*="cnt"],[class*="count"]').first().text()
         const capacityText = $card.find('[class*="limit"],[class*="total"],[class*="quota"]').first().text()
+        const imgSrcs = $card.find('img').map((_, i) => $(i).attr('src') || '').get()
 
         items.push({
           title, campaign_url: fullUrl,
-          campaign_type: detectType(typeText),
+          campaign_type: detectType(typeText, imgSrcs),
           applicants: parseNum(applyText),
           capacity: parseNum(capacityText) || null,
           deadline_text: deadlineText || null,

@@ -22,7 +22,7 @@ export async function parse(baseUrl) {
         if (seen.has(fullUrl)) return; seen.add(fullUrl)
 
         const $card = $a.closest('li, [class*="item"]')
-        const deadlineText = $card.find('[class*="day"], [class*="dday"]').first().text().trim()
+        const deadlineText = $card.find('[class*="day"],[class*="dday"],[class*="remain"],[class*="deadline"],[class*="date"]').first().text().trim()
         const applyText = $card.find('[class*="apply"], [class*="cnt"]').first().text()
         const capacityText = $card.find('[class*="limit"], [class*="total"]').first().text()
 
