@@ -4,7 +4,6 @@ import { upsertCampaigns } from './utils.mjs'
 import { closeBrowser } from './utils-playwright.mjs'
 
 // 파서 목록 (사이트별 파서 동적 import)
-import { parse as parseNaverBlog } from './parsers/naver-blog.mjs'
 import { parse as parseReviewshare } from './parsers/reviewshare.mjs'
 import { parse as parseRevu } from './parsers/revu.mjs'
 import { parse as parseChehumdan } from './parsers/chehumdan.mjs'
@@ -43,8 +42,6 @@ import { parse as parseXnReviewmoeum } from './parsers/xn-reviewmoeum.mjs'
 
 // 플랫폼명 → 파서 함수 매핑
 const PARSERS = {
-  '어포스푼':          { fn: parseNaverBlog,       url: 'https://rss.blog.naver.com/aspooncj.xml' },
-  '원더블':            { fn: parseNaverBlog,       url: 'https://rss.blog.naver.com/wonderble.xml' },
   '미블':              { fn: parseMrblog,          url: 'https://www.mrblog.net/' },
   '디너의여왕':        { fn: parseDinnerqueen,     url: 'https://dinnerqueen.net/' },
   '아싸뷰':            { fn: parseAssaview,        url: 'https://assaview.co.kr/' },
