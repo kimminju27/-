@@ -244,14 +244,20 @@
       <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-lg z-10">×</button>
       <div class="p-6 pb-8">
         <div class="flex flex-wrap items-center gap-2 mb-4" id="modal-badges"></div>
-        <h2 id="modal-title" class="text-lg font-black text-slate-900 leading-snug mb-5"></h2>
-        <div id="modal-progress" class="mb-4"></div>
-        <div id="modal-info" class="grid grid-cols-2 gap-3 mb-6"></div>
-        <a id="modal-apply-btn" href="#" target="_blank" rel="noopener noreferrer"
-          class="block w-full text-center text-white font-black py-4 rounded-2xl text-base transition-all hover:opacity-90 active:scale-95"
-          style="background:linear-gradient(135deg,#6366f1,#4f46e5);">
-          신청하러 가기 →
-        </a>
+        <h2 id="modal-title" class="text-lg font-black text-slate-900 leading-snug mb-6"></h2>
+        
+        <!-- 신청 + 공유 버튼 -->
+        <div class="flex gap-3">
+          <a id="modal-apply-btn" href="#" target="_blank" rel="noopener noreferrer"
+            class="flex-1 flex items-center justify-center gap-2 text-white font-black py-4 rounded-2xl text-base transition-all hover:opacity-90 active:scale-95"
+            style="background:linear-gradient(135deg,#6366f1,#4f46e5);">
+            신청하러 가기 →
+          </a>
+          <button id="modal-share-btn" onclick="shareModal()"
+            class="flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-bold text-sm border-2 border-slate-200 text-slate-600 hover:border-primary-300 hover:text-primary-600 transition-all active:scale-95 bg-white">
+            🔗 공유
+          </button>
+        </div>
         <p class="text-center text-xs text-slate-400 mt-3">해당 체험단 플랫폼으로 이동합니다</p>
       </div>
     </div>
@@ -622,43 +628,29 @@ function openModal(id) {
     ${deliveryStyle ? `<span class="px-3 py-1 rounded-full text-xs font-bold ${deliveryStyle}">${escapeHtml(c.delivery_type)}</span>` : ''}
   `
   document.getElementById('modal-title').textContent = c.title
-
-  const pct = c.capacity ? Math.min(100, Math.round(((c.applicants||0)/c.capacity)*100)) : null
-  const barColor = pct >= 80 ? '#ef4444' : pct >= 50 ? '#f59e0b' : '#6366f1'
-  document.getElementById('modal-progress').innerHTML = pct !== null ? `
-    <div class="bg-slate-50 rounded-2xl p-4">
-      <div class="flex justify-between text-sm font-bold mb-2">
-        <span class="text-slate-600">모집 현황</span>
-        <span style="color:${barColor}">${pct}%</span>
-      </div>
-      <div class="w-full bg-slate-200 rounded-full h-2.5 mb-2">
-        <div class="h-2.5 rounded-full" style="width:${pct}%;background:${barColor}"></div>
-      </div>
-      <div class="flex justify-between text-xs text-slate-500 mt-2">
-        <span>신청 <strong>${(c.applicants||0).toLocaleString()}명</strong></span>
-        <span>모집 <strong>${c.capacity}명</strong></span>
-        <span>잔여 <strong style="color:${barColor}">${Math.max(0,c.capacity-(c.applicants||0))}명</strong></span>
-      </div>
-    </div>
-  ` : `<div class="bg-slate-50 rounded-2xl p-4 text-sm text-slate-500 text-center font-bold">
-         ${c.applicants ? `신청 ${c.applicants.toLocaleString()}명` : (c.capacity ? `모집 ${c.capacity.toLocaleString()}명` : '인원 미상')}
-       </div>`
-
-  const dday = fmtDeadline(c.deadline_text)
-  document.getElementById('modal-info').innerHTML = `
-    <div class="bg-slate-50 rounded-xl p-3 text-center">
-      <div class="text-xs text-slate-400 mb-1">마감</div>
-      <div class="text-sm font-bold ${dday==='마감'?'text-slate-300':dday?.startsWith('D-')&&parseInt(dday.slice(2))<=3?'text-orange-500':'text-slate-700'}">${dday || '상시'}</div>
-    </div>
-    <div class="bg-slate-50 rounded-xl p-3 text-center">
-      <div class="text-xs text-slate-400 mb-1">선정 발표</div>
-      <div class="text-sm font-bold text-slate-700">${c.deadline_text || '상시'}</div>
-    </div>
-  `
   document.getElementById('modal-apply-btn').href = c.campaign_url
   document.getElementById('detail-modal').classList.remove('hidden')
   document.body.style.overflow = 'hidden'
 }
+
+async function shareModal() {
+  const title = document.getElementById('modal-title').textContent
+  const url = document.getElementById('modal-apply-btn').href
+  const shareData = { title: title, text: `쳄험단 모집 중! ${title}`, url: url }
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData)
+    } else {
+      await navigator.clipboard.writeText(url)
+      const btn = document.getElementById('modal-share-btn')
+      const orig = btn.innerHTML
+      btn.innerHTML = '✅ 복사됨!'
+      btn.style.color = '#10b981'
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = '' }, 2000)
+    }
+  } catch(e) {}
+}
+
 
 function closeModal() {
   document.getElementById('detail-modal').classList.add('hidden')
