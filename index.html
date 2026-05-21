@@ -634,23 +634,25 @@ function openModal(id) {
       <div class="w-full bg-slate-200 rounded-full h-2.5 mb-2">
         <div class="h-2.5 rounded-full" style="width:${pct}%;background:${barColor}"></div>
       </div>
-      <div class="flex justify-between text-xs text-slate-500">
-        <span>참여 <strong>${(c.applicants||0).toLocaleString()}명</strong></span>
+      <div class="flex justify-between text-xs text-slate-500 mt-2">
+        <span>신청 <strong>${(c.applicants||0).toLocaleString()}명</strong></span>
         <span>모집 <strong>${c.capacity}명</strong></span>
         <span>잔여 <strong style="color:${barColor}">${Math.max(0,c.capacity-(c.applicants||0))}명</strong></span>
       </div>
     </div>
-  ` : `<div class="bg-slate-50 rounded-2xl p-4 text-sm text-slate-500">모집 ${(c.applicants||0).toLocaleString()}명</div>`
+  ` : `<div class="bg-slate-50 rounded-2xl p-4 text-sm text-slate-500 text-center font-bold">
+         ${c.applicants ? `신청 ${c.applicants.toLocaleString()}명` : (c.capacity ? `모집 ${c.capacity.toLocaleString()}명` : '인원 미상')}
+       </div>`
 
   const dday = fmtDeadline(c.deadline_text)
   document.getElementById('modal-info').innerHTML = `
     <div class="bg-slate-50 rounded-xl p-3 text-center">
       <div class="text-xs text-slate-400 mb-1">마감</div>
-      <div class="text-sm font-bold ${dday==='마감'?'text-slate-300':dday?.startsWith('D-')&&parseInt(dday.slice(2))<=3?'text-orange-500':'text-slate-700'}">${dday || c.deadline_text || '상시'}</div>
+      <div class="text-sm font-bold ${dday==='마감'?'text-slate-300':dday?.startsWith('D-')&&parseInt(dday.slice(2))<=3?'text-orange-500':'text-slate-700'}">${dday || '상시'}</div>
     </div>
     <div class="bg-slate-50 rounded-xl p-3 text-center">
-      <div class="text-xs text-slate-400 mb-1">등록</div>
-      <div class="text-sm font-bold text-slate-700">${formatAgo(c.crawled_at)}</div>
+      <div class="text-xs text-slate-400 mb-1">선정 발표</div>
+      <div class="text-sm font-bold text-slate-700">${c.deadline_text || '상시'}</div>
     </div>
   `
   document.getElementById('modal-apply-btn').href = c.campaign_url

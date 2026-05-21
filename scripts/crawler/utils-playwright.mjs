@@ -119,7 +119,19 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
           const imgs = Array.from(card.querySelectorAll('img'))
           channel_text = imgs.map(i => ((i.alt || '') + ' ' + (i.src || '')).toLowerCase()).join(' ')
         }
-        return { deadline_text, applicants, capacity, channel_text }
+        
+        // 카드 전체 텍스트에서 명시적 배송/방문 단서 추출 (타이틀에 없어도 뱃지 등에 있을 수 있음)
+        let delivery_type = null
+        const fullTxt = card.innerText || ''
+        if (fullTxt) {
+          const lower = fullTxt.toLowerCase()
+          if (lower.includes('구매평') || lower.includes('구매형')) delivery_type = '구매평'
+          else if (lower.includes('기자단') || lower.includes('재택')) delivery_type = '재택형'
+          else if (lower.includes('배송') || lower.includes('택배')) delivery_type = '배송형'
+          else if (lower.includes('방문') || lower.includes('매장') || lower.includes('현장')) delivery_type = '방문형'
+        }
+        
+        return { deadline_text, applicants, capacity, channel_text, delivery_type }
       }
 
       const results = [], seen = new Set()
@@ -154,6 +166,14 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
         if (!title || title.length < 5 || title.length > 200) return
         seen.add(href)
         const card = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"],tr')
+        
+        if (card && title && !title.includes('[')) {
+          const regionMatch = (card.innerText || '').match(/\[([가-힣0-9a-zA-Z\s]+)\]/)
+          if (regionMatch && regionMatch[1].length <= 15) {
+            title = `[${regionMatch[1]}] ` + title
+          }
+        }
+        
         results.push({ title, campaign_url: href, ...extractCardMeta(card) })
       })
       return results
@@ -246,7 +266,18 @@ export async function playwrightParseHeuristic(url, opts = {}) {
           const imgs = Array.from(card.querySelectorAll('img'))
           channel_text = imgs.map(i => ((i.alt || '') + ' ' + (i.src || '')).toLowerCase()).join(' ')
         }
-        return { deadline_text, applicants, capacity, channel_text }
+        
+        let delivery_type = null
+        const fullTxt = card.innerText || ''
+        if (fullTxt) {
+          const lower = fullTxt.toLowerCase()
+          if (lower.includes('구매평') || lower.includes('구매형')) delivery_type = '구매평'
+          else if (lower.includes('기자단') || lower.includes('재택')) delivery_type = '재택형'
+          else if (lower.includes('배송') || lower.includes('택배')) delivery_type = '배송형'
+          else if (lower.includes('방문') || lower.includes('매장') || lower.includes('현장')) delivery_type = '방문형'
+        }
+        
+        return { deadline_text, applicants, capacity, channel_text, delivery_type }
       }
 
       document.querySelectorAll('a[href]').forEach(el => {
@@ -274,6 +305,14 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         if (!title) title = el.innerText.replace(/\s+/g, ' ').trim()
         if (!title || title.length < 5 || title.length > 200) return
         const card = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"]')
+        
+        if (card && title && !title.includes('[')) {
+          const regionMatch = (card.innerText || '').match(/\[([가-힣0-9a-zA-Z\s]+)\]/)
+          if (regionMatch && regionMatch[1].length <= 15) {
+            title = `[${regionMatch[1]}] ` + title
+          }
+        }
+        
         results.push({ title, campaign_url: href, ...extractCardMeta(card) })
       })
       return results

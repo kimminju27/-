@@ -65,10 +65,16 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
 
   // 모든 파서 공통 제목 정제 (신청수·날짜·타입접두 제거)
   const sanitizeTitle = (raw) => raw
+    .replace(/^\s*(Layer\s*1\s*s|Layer1s)\s*/i, '')
+    .replace(/\[\s*(NEW|BEST|마감임박|신청폭주|단독진행|긴급모집|추천|인기|HOT)\s*\]/gi, '')
+    .replace(/<\s*(블로그|인스타|유튜브|릴스|클립|틱톡|체험단|기자단)\s*>/gi, '')
     .replace(/\d{4}[.\/-]\d{2}[.\/-]\d{2}(\s*\d{2}:\d{2}(:\d{2})?)?/g, '')
     .replace(/\(?\s*신청\s*[\d,]+\s*\/\s*[\d,]+\s*명?\s*\)?/g, '')
+    .replace(/D-Day\s*신청\s*[\d,]+\s*명\s*\//gi, '')
+    .replace(/신청\s*[\d,]+\s*명\s*\/?/g, '')
     .replace(/\d+\s*일\s*남음/g, '')
     .replace(/\[\s*D-\d+\s*\]/gi, '')
+    .replace(/D-Day/gi, '')
     .replace(/D-\d+/gi, '')
     .replace(/\s*오늘\s*마감/g, '')
     .replace(/\d+\s*(시간|분|초)\s*전/g, '')
@@ -80,6 +86,7 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
     .replace(/\b\d+\s*PD\b/gi, '')
     .replace(/\s*[-–]\s*day\s*$/i, '')
     .replace(/\[\s*\]/g, '')
+    .replace(/\/\s*$/g, '')
     .replace(/\s+/g, ' ')
     .trim()
 
@@ -189,8 +196,16 @@ export function detectChannel(text, imgSrcs = []) {
 export function detectDelivery(text) {
   const t = (text || '').toLowerCase()
   if (t.includes('구매평') || t.includes('구매형') || t.includes('구매후기') || t.includes('구매 후') || t.includes('리얼구매')) return '구매평'
-  if (t.includes('방문') || t.includes('매장') || t.includes('현장') || t.includes('visit') || t.includes('방문형')) return '방문형'
-  if (t.includes('재택') || t.includes('온라인리뷰') || t.includes('재택형')) return '재택형'
+  if (t.includes('재택') || t.includes('온라인리뷰') || t.includes('재택형') || t.includes('기자단')) return '재택형'
+  
+  if (t.includes('배송') || t.includes('택배')) return '배송형'
+  if (t.includes('방문') || t.includes('매장') || t.includes('현장') || t.includes('visit') || t.includes('초대')) return '방문형'
+  
+  const regions = ['서울','경기','인천','강원','제주','부산','대구','울산','광주','대전','충남','충북','전남','전북','경남','경북']
+  if (regions.some(r => t.includes(r))) return '방문형'
+  if (t.match(/\[.*(동|구|역|점|시|군|로)\s*\]/)) return '방문형'
+  
+  // 물건 등에 대한 일반 캠페인은 기본적으로 배송형 처리
   return '배송형'
 }
 

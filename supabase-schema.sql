@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   applicants INTEGER DEFAULT 0,
   capacity INTEGER,
   deadline_text TEXT,
+  deadline_date DATE,
   content_hash TEXT UNIQUE,
   crawled_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   is_active BOOLEAN DEFAULT TRUE
