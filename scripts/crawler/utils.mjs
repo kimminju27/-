@@ -68,6 +68,10 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
     .replace(/^\s*(Layer\s*1\s*s|Layer1s)\s*/i, '')
     .replace(/\[\s*(NEW|BEST|마감임박|신청폭주|단독진행|긴급모집|추천|인기|HOT)\s*\]/gi, '')
     .replace(/<\s*(블로그|인스타|유튜브|릴스|클립|틱톡|체험단|기자단)\s*>/gi, '')
+    // [인스타+쿠팡구매평], [블로그+방문형] 등 채널+방식 복합 접두어 제거
+    .replace(/^\[\s*(블로그|인스타|인스타그램|유튜브|릴스|클립|틱톡)\s*[+&]\s*[^\]]{1,30}\s*\]\s*/gi, '')
+    // [블로그], [인스타] 등 채널 단독 접두어 제거 (지역명이 아닌 것만)
+    .replace(/^\[\s*(블로그|인스타|인스타그램|유튜브|릴스|클립|틱톡|체험단|기자단)\s*\]\s*/gi, '')
     .replace(/\d{4}[.\/-]\d{2}[.\/-]\d{2}(\s*\d{2}:\d{2}(:\d{2})?)?/g, '')
     .replace(/\(?\s*신청\s*[\d,]+\s*\/\s*[\d,]+\s*명?\s*\)?/g, '')
     .replace(/D-Day\s*신청\s*[\d,]+\s*명\s*\//gi, '')
@@ -95,6 +99,7 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
     .filter(c => c.title && c.campaign_url && isValidTitle(c.title))
     .map(c => {
       // delivery_type: 파서가 명시하면 우선, 없으면 제목+파서값에서 감지
+      // 단, 제목에서 먼저 복합 패턴([인스타+쿠팡구매평] 등) 추출
       const rawForDetect = c.title + ' ' + (c.campaign_type || '')
       const deliveryType = c.delivery_type || detectDelivery(rawForDetect)
 
@@ -181,6 +186,17 @@ export function detectChannel(text, imgSrcs = []) {
   }
 
   const t = (text || '').toLowerCase()
+  // 2) [인스타+쿠팡구매평], [블로그+방문형] 등 복합 접두어에서 채널 감지
+  const prefixMatch = t.match(/^\[\s*(블로그|인스타|인스타그램|유튜브|릴스|클립|틱톡)/)
+  if (prefixMatch) {
+    const ch = prefixMatch[1]
+    if (ch === '릴스') return '릴스'
+    if (ch === '클립') return '클립'
+    if (ch === '인스타' || ch === '인스타그램') return '인스타'
+    if (ch === '유튜브') return '유튜브'
+    if (ch === '틱톡') return '틱톡'
+    if (ch === '블로그') return '블로그'
+  }
   if (t.includes('릴스') || t.includes('reels')) return '릴스'
   if (t.includes('클립') || t.includes('naverclip')) return '클립'
   if (t.includes('인스타') || t.includes('instagram')) return '인스타'
@@ -195,7 +211,8 @@ export function detectChannel(text, imgSrcs = []) {
  */
 export function detectDelivery(text) {
   const t = (text || '').toLowerCase()
-  if (t.includes('구매평') || t.includes('구매형') || t.includes('구매후기') || t.includes('구매 후') || t.includes('리얼구매')) return '구매평'
+  // 쿠팡구매평, 네이버구매평 등 플랫폼 구매평 패턴 포함
+  if (t.includes('구매평') || t.includes('구매형') || t.includes('구매후기') || t.includes('구매 후') || t.includes('리얼구매') || t.includes('쿠팡구매') || t.includes('네이버구매')) return '구매평'
   if (t.includes('재택') || t.includes('온라인리뷰') || t.includes('재택형') || t.includes('기자단')) return '재택형'
   
   if (t.includes('배송') || t.includes('택배')) return '배송형'

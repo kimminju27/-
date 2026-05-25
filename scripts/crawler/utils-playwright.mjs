@@ -159,18 +159,35 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
             const pc = parent.querySelectorAll('h1,h2,h3,h4,strong,b,[class*="title"],[class*="name"],[class*="subject"]')
             for (const t of pc) {
               const txt = t.textContent.replace(/\s+/g, ' ').trim()
-              if (txt.length >= 5 && txt.length <= 150) { title = txt; break }
+              if (txt.length >= 3 && txt.length <= 150) { title = txt; break }
             }
           }
         }
-        if (!title || title.length < 5 || title.length > 200) return
+        if (!title || title.length < 3 || title.length > 200) return
         seen.add(href)
         const card = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"],tr')
         
-        if (card && title && !title.includes('[')) {
-          const regionMatch = (card.innerText || '').match(/\[([가-힣0-9a-zA-Z\s]+)\]/)
-          if (regionMatch && regionMatch[1].length <= 15) {
-            title = `[${regionMatch[1]}] ` + title
+        // [브랜드]만 추출된 경우 el.innerText 첫 줄로 전체 제목 보완 (예: [누아트] → [누아트] 맥세이프 셀카봉)
+        if (/^\[[^\]]+\]$/.test(title.trim())) {
+          const firstLine = (el.innerText || '').split('\n')[0].replace(/\s+/g, ' ').trim()
+          if (firstLine.length > title.length && firstLine.length <= 150) {
+            title = firstLine
+          }
+        }
+        
+        // 카드 전체 텍스트에서 [지역/체험명] 패턴을 찾아 제목 앞에 보완
+        if (card && !title.includes('[')) {
+          const cardText = card.innerText || ''
+          const bracketMatches = [...cardText.matchAll(/\[([\uac00-\ud7a30-9a-zA-Z\s\+\&]+)\]/g)]
+          const regionBrackets = bracketMatches.filter(m => {
+            const inner = m[1].trim()
+            if (inner.length > 20) return false
+            if (/^(NEW|BEST|D-\d+|\d+)$/i.test(inner)) return false
+            return true
+          })
+          if (regionBrackets.length > 0) {
+            const bracketStr = regionBrackets.map(m => `[${m[1].trim()}]`).join(' ')
+            title = bracketStr + ' ' + title
           }
         }
         
@@ -290,7 +307,7 @@ export async function playwrightParseHeuristic(url, opts = {}) {
         const cands = el.querySelectorAll('h1,h2,h3,h4,strong,b,[class*="title"],[class*="name"],[class*="subject"],[class*="camp"]')
         for (const t of cands) {
           const txt = t.textContent.replace(/\s+/g, ' ').trim()
-          if (txt.length >= 5 && txt.length <= 150) { title = txt; break }
+          if (txt.length >= 3 && txt.length <= 150) { title = txt; break }
         }
         if (!title) {
           const parent = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"]')
@@ -298,18 +315,33 @@ export async function playwrightParseHeuristic(url, opts = {}) {
             const pc = parent.querySelectorAll('h1,h2,h3,h4,strong,[class*="title"],[class*="name"]')
             for (const t of pc) {
               const txt = t.textContent.replace(/\s+/g, ' ').trim()
-              if (txt.length >= 5 && txt.length <= 150) { title = txt; break }
+              if (txt.length >= 3 && txt.length <= 150) { title = txt; break }
             }
           }
         }
         if (!title) title = el.innerText.replace(/\s+/g, ' ').trim()
-        if (!title || title.length < 5 || title.length > 200) return
+        if (!title || title.length < 3 || title.length > 200) return
         const card = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="list"]')
         
-        if (card && title && !title.includes('[')) {
-          const regionMatch = (card.innerText || '').match(/\[([가-힣0-9a-zA-Z\s]+)\]/)
-          if (regionMatch && regionMatch[1].length <= 15) {
-            title = `[${regionMatch[1]}] ` + title
+        if (card) {
+          const cardText = card.innerText || ''
+          const bracketMatches = [...cardText.matchAll(/\[([\uac00-\ud7a30-9a-zA-Z\s\+\&]+)\]/g)]
+          const regionBrackets = bracketMatches.filter(m => {
+            const inner = m[1].trim()
+            if (inner.length > 20) return false
+            if (/^(NEW|BEST|D-\d+|\d+)$/i.test(inner)) return false
+            return true
+          })
+          if (regionBrackets.length > 0 && !title.includes('[')) {
+            const bracketStr = regionBrackets.map(m => `[${m[1].trim()}]`).join(' ')
+            title = bracketStr + ' ' + title
+          } else if (regionBrackets.length > 0 && title.startsWith('[')) {
+            const titleBrackets = [...title.matchAll(/\[([^\]]+)\]/g)].map(m => m[1].trim())
+            const extraBrackets = regionBrackets.filter(m => !titleBrackets.includes(m[1].trim()))
+            if (extraBrackets.length > 0) {
+              const extraStr = extraBrackets.map(m => `[${m[1].trim()}]`).join(' ')
+              title = extraStr + ' ' + title
+            }
           }
         }
         

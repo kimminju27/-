@@ -565,12 +565,10 @@ function fmtDeadline(text) {
 }
 
 function renderCard(c) {
-  // 구매평 전용 캠페인은 채널 뱃지 숨김 (블로그+구매평 포스팅은 유지)
+  // 채널은 항상 표시 (블로그 + 구매평, 인스타 + 방문형 등 항상 두 뱃지 모두 표기)
   const rawChannel = (c.campaign_type || '').split(',')[0].trim()
-  const isPureReview = c.delivery_type === '구매평' && rawChannel === '블로그' && !c.campaign_type?.includes('+')
-  const channel = isPureReview ? null : (rawChannel || '블로그')
-  const cs = channel ? (CHANNEL_STYLE[channel] || { cls: 'bg-primary-50 text-primary-600', border: '#6366f1' })
-                     : { cls: '', border: '#e2e8f0' }
+  const channel = rawChannel || '블로그'
+  const cs = CHANNEL_STYLE[channel] || { cls: 'bg-primary-50 text-primary-600', border: '#6366f1' }
   const deliveryStyle = c.delivery_type ? (DELIVERY_STYLE[c.delivery_type] || DELIVERY_STYLE['배송형']) : null
   const ddayStr = fmtDeadline(c.deadline_text)
   const isUrgent = ddayStr && ddayStr !== '마감' && ddayStr.startsWith('D-') && parseInt(ddayStr.slice(2)) <= 3
@@ -600,7 +598,7 @@ function renderCard(c) {
 
     <!-- 채널 + 방식 + 마감 -->
     <div class="flex items-center flex-wrap gap-1">
-      ${channel ? `<span class="px-2 py-0.5 rounded-md text-xs font-bold ${cs.cls}">${escapeHtml(channel)}</span>` : ''}
+      <span class="px-2 py-0.5 rounded-md text-xs font-bold ${cs.cls}">${escapeHtml(channel)}</span>
       ${deliveryStyle ? `<span class="px-2 py-0.5 rounded-md text-xs font-bold ${deliveryStyle}">${escapeHtml(c.delivery_type)}</span>` : ''}
       ${ddayStr ? `<span class="ml-auto text-xs font-bold ${ddayStr==='마감'?'text-slate-300':isUrgent?'text-orange-500':'text-slate-400'}">⏰ ${ddayStr}</span>` : ''}
     </div>
