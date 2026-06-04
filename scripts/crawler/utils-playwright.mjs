@@ -29,7 +29,7 @@ const SKIP_TITLES = new Set([
   'login','signup','register','home','more','see more','view all',
 ])
 function isValidTitle(t) {
-  if (!t || t.length < 5 || t.length > 150) return false
+  if (!t || t.length < 3 || t.length > 150) return false
   if (/^\d+$/.test(t)) return false
   if (SKIP_TITLES.has(t.toLowerCase())) return false
   return true
@@ -141,9 +141,23 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
         if (seen.has(href)) return
         let title = ''
         if (titleSel) {
-          const t = el.querySelector(titleSel) ||
-            el.closest('li,article,div[class*="item"],div[class*="card"]')?.querySelector(titleSel)
-          if (t) title = t.textContent.trim()
+          // 1) el 내부에서 찾기
+          let tEl = el.querySelector(titleSel)
+          // 2) 없으면 가장 가까운 카드 컨테이너에서 찾기 (dl>dt 등 a 밖에 있는 경우)
+          if (!tEl) {
+            const container = el.closest('li,article,div[class*="item"],div[class*="card"],div[class*="wrap"],div[class*="content"]')
+            if (container) tEl = container.querySelector(titleSel)
+          }
+          // 3) 그래도 없으면 a 태그의 부모에서 찾기
+          if (!tEl && el.parentElement) tEl = el.parentElement.querySelector(titleSel)
+          if (tEl) {
+            // img 태그면 alt 속성 사용 (썸네일에 제목이 alt로 있는 경우)
+            if (tEl.tagName === 'IMG') {
+              title = (tEl.getAttribute('alt') || '').trim()
+            } else {
+              title = tEl.textContent.replace(/\s+/g, ' ').trim()
+            }
+          }
         }
         if (!title) {
           const cands = el.querySelectorAll('h1,h2,h3,h4,strong,b,[class*="title"],[class*="name"],[class*="subject"]')
