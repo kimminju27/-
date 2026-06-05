@@ -157,15 +157,15 @@
 
   <script>
     // Supabase
-     const supabaseUrl = localStorage.getItem('SUPABASE_URL') || 'https://krmlhcsnpswxavxcskvq.supabase.co';
-     const supabaseAnonKey = localStorage.getItem('SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWxoY3NucHN3eGF2eGNza3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA5ODksImV4cCI6MjA5MTcxNjk4OX0.I5t6b6rjuj3dOxmcSzVpTPz5cU00_6JWSQYGd-P-YDY';
-     const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseUrl = localStorage.getItem('SUPABASE_URL') || 'https://krmlhcsnpswxavxcskvq.supabase.co';
+    const supabaseAnonKey = localStorage.getItem('SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWxoY3NucHN3eGF2eGNza3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA5ODksImV4cCI6MjA5MTcxNjk4OX0.I5t6b6rjuj3dOxmcSzVpTPz5cU00_6JWSQYGd-P-YDY';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     window.addEventListener('DOMContentLoaded', async () => {
       // 로그인 사용자 이름 세팅
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
         const authHeader = document.getElementById('authHeader');
         authHeader.innerHTML = `
           <div class="flex items-center gap-3">
@@ -177,7 +177,7 @@
     });
 
     async function handleLogout() {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.reload();
     }
 
@@ -195,7 +195,8 @@
       }
 
       try {
-        const { error } = await supabase
+        // 1. Supabase DB 저장
+        const { error } = await supabaseClient
           .from('service_requests')
           .insert({
             company_name: company,
@@ -208,6 +209,29 @@
           });
 
         if (error) throw error;
+
+        // 2. 관리자 메일 알림 비동기 발송 (FormSubmit.co API 사용)
+        try {
+          await fetch("https://formsubmit.co/ajax/bloginf0360@outlook.com", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              _subject: `📡 [캠레이더] 신규 서비스 대행 신청서 접수 (${company})`,
+              "회사/업체명": company,
+              "담당자 성함": manager,
+              "연락처": phone,
+              "신청 서비스": type,
+              "희망 예산": budget,
+              "상세 요청사항": reqs,
+              "_template": "table"
+            })
+          });
+        } catch (mailErr) {
+          console.error('관리자 메일 발송 오류:', mailErr);
+        }
 
         alert('🎉 서비스 신청서가 성공적으로 접수되었습니다. 곧 연락해 드리겠습니다!');
         

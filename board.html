@@ -199,7 +199,7 @@
     // Supabase URL & Key 설정 (기존 키 활용)
     const supabaseUrl = localStorage.getItem('SUPABASE_URL') || 'https://krmlhcsnpswxavxcskvq.supabase.co';
     const supabaseAnonKey = localStorage.getItem('SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWxoY3NucHN3eGF2eGNza3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA5ODksImV4cCI6MjA5MTcxNjk4OX0.I5t6b6rjuj3dOxmcSzVpTPz5cU00_6JWSQYGd-P-YDY';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     let currentUser = null;
     let userProfile = null;
@@ -208,11 +208,11 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       // 1. 유저 세션 로드
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
         currentUser = session.user;
         // 프로필 정보 조회
-        const { data: profile } = await supabase
+        const { data: profile } = await supabaseClient
           .from('profiles')
           .select('*')
           .eq('id', currentUser.id)
@@ -239,7 +239,7 @@
     });
 
     async function handleLogout() {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.reload();
     }
 
@@ -274,7 +274,7 @@
       container.innerHTML = '<div class="col-span-3 text-center py-12 text-gray-400">캠페인을 불러오는 중입니다...</div>';
 
       try {
-        const { data: camps, error } = await supabase
+        const { data: camps, error } = await supabaseClient
           .from('own_campaigns')
           .select('*')
           .order('created_at', { ascending: false });
@@ -351,7 +351,7 @@
       }
 
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('applications')
           .insert({
             campaign_id: currentApplyCampId,
@@ -381,7 +381,7 @@
       tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">신청 내역을 로드 중입니다...</td></tr>';
 
       try {
-        const { data: apps, error } = await supabase
+        const { data: apps, error } = await supabaseClient
           .from('applications')
           .select(`
             status,
@@ -446,7 +446,7 @@
       }
 
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('own_campaigns')
           .insert({
             title: title,
@@ -477,7 +477,7 @@
 
       try {
         // 내 캠페인 목록 및 각 캠페인의 신청 내역과 신청자 프로필 정보 조인
-        const { data: camps, error } = await supabase
+        const { data: camps, error } = await supabaseClient
           .from('own_campaigns')
           .select(`
             id,
@@ -586,7 +586,7 @@
     // 7. 신청자 상태 변경 (선정/대기/탈락)
     async function updateAppStatus(appId, status) {
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('applications')
           .update({ status: status })
           .eq('id', appId);
