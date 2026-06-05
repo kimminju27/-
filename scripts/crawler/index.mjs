@@ -1,5 +1,4 @@
 // 크롤러 진입점 — GitHub Actions에서 실행
-import { createClient } from '@supabase/supabase-js'
 import { upsertCampaigns } from './utils.mjs'
 import { closeBrowser } from './utils-playwright.mjs'
 
@@ -79,29 +78,21 @@ const PARSERS = {
   '오마이블로그':      { fn: parseOhmyblog,        url: 'https://www.ohmyblog.co.kr/' },
 }
 
-// Supabase 클라이언트 (service_role 키 사용)
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
-
-const TARGET = process.env.TARGET_PLATFORM || ''
+// 워드프레스 사이트 주소 (환경 변수 또는 기본값)
+const WP_URL = process.env.WP_URL || 'https://bloginfo360.com';
+const TARGET = process.env.TARGET_PLATFORM || '';
 
 async function main() {
-  console.log('[크롤러 v2.1] 재시도 로직 + Playwright 리소스차단 버전')
+  console.log('[크롤러 v2.2] 워드프레스 연동 + Playwright 리소스차단 버전')
   console.log(`[크롤러 시작] ${new Date().toISOString()}`)
   console.log(`대상: ${TARGET || '전체'}`)
 
-  // 활성 플랫폼 목록 로드
-  const { data: platforms, error } = await supabase
-    .from('platforms')
-    .select('*')
-    .eq('is_active', true)
-
-  if (error) {
-    console.error('플랫폼 로드 실패:', error.message)
-    process.exit(1)
-  }
+  // 로컬 활성 플랫폼 목록 생성 (PARSERS 키 기반)
+  const platforms = Object.keys(PARSERS).map((name, index) => ({
+    id: index + 1,
+    name: name,
+    is_active: true
+  }));
 
   const targets = TARGET
     ? platforms.filter(p => p.name === TARGET)
@@ -125,14 +116,9 @@ async function main() {
 
       if (campaigns.length > 0) {
         const { inserted } = await upsertCampaigns(
-          supabase, platform.name, platform.id, campaigns
+          WP_URL, platform.name, platform.id, campaigns
         )
-        await supabase
-          .from('platforms')
-          .update({ last_crawled_at: new Date().toISOString() })
-          .eq('id', platform.id)
-
-        console.log(`[${platform.name}] 완료: ${inserted}개 신규, 총 ${campaigns.length}개 수집`)
+        console.log(`[${platform.name}] 완료: ${inserted}개 신규/갱신, 총 ${campaigns.length}개 수집`)
         totalInserted += inserted
       } else {
         if (!isRetry) {
@@ -162,26 +148,7 @@ async function main() {
     }
   }
 
-  // 마감일 지난 캠페인 삭제 (deadline_date 기준)
-  const today = new Date().toISOString().split('T')[0]
-  const { error: e1 } = await supabase
-    .from('campaigns')
-    .delete()
-    .lt('deadline_date', today)
-    .not('deadline_date', 'is', null)
-  if (e1) console.warn('마감일 정리 실패:', e1.message)
-  else console.log('[정리] 마감일 지난 캠페인 삭제 완료')
-
-  // 마감일 정보 없는 캠페인은 30일 이상 시 삭제
-  const { error: e2 } = await supabase
-    .from('campaigns')
-    .delete()
-    .is('deadline_date', null)
-    .lt('crawled_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-  if (e2) console.warn('오래된 캠페인 정리 실패:', e2.message)
-  else console.log('[정리] 마감일 미상 30일 이상 캠페인 삭제 완료')
-
-  console.log(`\n[크롤러 완료] 신규: ${totalInserted}개, 실패: ${totalErrors}개`)
+  console.log(`\n[크롤러 완료] 신규/갱신 반영: ${totalInserted}개, 실패: ${totalErrors}개`)
 
   // Playwright 브라우저 종료
   await closeBrowser()

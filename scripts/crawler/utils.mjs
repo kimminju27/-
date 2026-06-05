@@ -58,7 +58,7 @@ function parseDeadlineDate(text) {
  * crawled_at = 최초 삽입 시각 (이후 변경 안 됨)
  * → "오늘 신규" = crawled_at >= today 로 판별 가능
  */
-export async function upsertCampaigns(supabase, platformName, platformId, campaigns) {
+export async function upsertCampaigns(wpUrl, platformName, platformId, campaigns) {
   if (!campaigns || campaigns.length === 0) return { inserted: 0, skipped: 0 }
 
   const now = new Date().toISOString()
@@ -121,7 +121,6 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
         deadline_text: c.deadline_text || null,
         deadline_date: parseDeadlineDate(c.deadline_text),
         content_hash: makeHash(platformName, c.campaign_url),
-        // crawled_at 제외 → 신규 행은 DB DEFAULT(NOW()), 기존 행은 원래 값 유지
         is_active: true,
       }
     })
@@ -133,18 +132,32 @@ export async function upsertCampaigns(supabase, platformName, platformId, campai
 
   if (rows.length === 0) return { inserted: 0, skipped: 0 }
 
-  // ignoreDuplicates: false → 기존 행의 deadline_text·applicants·campaign_type 업데이트
-  const { data, error } = await supabase
-    .from('campaigns')
-    .upsert(rows, { onConflict: 'content_hash', ignoreDuplicates: false })
-    .select('id')
+  // 워드프레스 REST API 동기화 요청
+  try {
+    const token = process.env.WP_SYNC_TOKEN || 'camradar-secret-sync-token-2026';
+    const response = await fetch(`${wpUrl}/wp-json/camradar/v1/sync-campaigns`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CamRadar-Token': token
+      },
+      body: JSON.stringify({ campaigns: rows })
+    });
 
-  if (error) {
-    console.error(`[${platformName}] upsert 오류:`, error.message)
+    if (!response.ok) {
+      throw new Error(`WordPress REST API HTTP Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data.success) {
+      return { inserted: data.inserted, skipped: rows.length - data.inserted }
+    } else {
+      throw new Error(data.message || 'Sync failed');
+    }
+  } catch (error) {
+    console.error(`[${platformName}] 워드프레스 싱크 API 오류:`, error.message);
     return { inserted: 0, skipped: rows.length }
   }
-
-  return { inserted: data?.length || 0, skipped: rows.length - (data?.length || 0) }
 }
 
 export async function fetchWithRetry(url, options = {}, retries = 2) {

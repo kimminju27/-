@@ -1,0 +1,17 @@
+/*
+Theme Name: CamRadar Premium Theme
+Theme URI: https://bloginfo360.com/
+Description: 캠레이더 자체 체험단 모집 및 인플루언서 SNS 연동 분석 기능이 빌트인된 프리미엄 다크/인디고 테마
+Version: 1.0.0
+Author: Antigravity AI
+Author URI: https://github.com/kimminju27
+Text Domain: camradar
+*/
+
+/* CSS Reset & 기본 다크 모드 indigo 톤앤매너 */
+body {
+    background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%) !important;
+    color: #F8FAFC !important;
+    font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+}
