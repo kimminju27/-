@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캠레이더 | 자체 체험단 게시판</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg-gradient: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%);
+      --glass-bg: rgba(30, 41, 59, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.08);
+    }
+    body {
+      font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+      background: var(--bg-gradient);
+      color: #F8FAFC;
+      min-height: 100vh;
+    }
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+    }
+    .badge {
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-blog { background: #059669; color: #FFF; }
+    .badge-insta { background: #DB2777; color: #FFF; }
+    .badge-youtube { background: #DC2626; color: #FFF; }
+    .badge-delivery { background: #3B82F6; color: #FFF; }
+    .badge-visit { background: #F59E0B; color: #FFF; }
+    
+    .nav-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header class="w-full py-4 px-6 border-b border-[rgba(255,255,255,0.05)] flex justify-between items-center">
+    <div class="flex items-center gap-6">
+      <a href="index.html" class="text-2xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-500">
+        CAMRADER
+      </a>
+      <nav class="hidden md:flex gap-6 text-sm text-gray-300 font-medium">
+        <a href="index.html" class="hover:text-white transition">체험단 찾기</a>
+        <a href="board.html" class="text-white font-bold transition">자체 체험단</a>
+        <a href="services.html" class="hover:text-white transition">서비스 신청</a>
+      </nav>
+    </div>
+    <div id="authHeader" class="flex gap-4 items-center text-sm">
+      <!-- JS로 로그인 상태 렌더링 -->
+      <a href="auth.html" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold transition">로그인 / 회원가입</a>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6 space-y-8">
+    <!-- Main Banner Title -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight">🏪 캠레이더 자체 체험단</h1>
+        <p class="text-gray-400 text-sm mt-1">캠레이더가 직접 엄선하고 운영하는 인플루언서 마케팅 캠페인 목록입니다.</p>
+      </div>
+      <!-- Tab Selector -->
+      <div class="flex bg-slate-900 bg-opacity-60 p-1.5 rounded-2xl border border-gray-800" id="boardTabs">
+        <button class="px-4 py-2 rounded-xl text-sm font-semibold nav-tab active text-white" onclick="switchTab('list')">캠페인 목록</button>
+        <button class="px-4 py-2 rounded-xl text-sm font-semibold nav-tab text-gray-400" id="myAppsTab" onclick="switchTab('my-applications')">내 신청내역</button>
+        <button class="px-4 py-2 rounded-xl text-sm font-semibold nav-tab text-gray-400 hidden" id="adminTab" onclick="switchTab('admin')">👑 관리자 페이지</button>
+      </div>
+    </div>
+
+    <!-- 1. CAMPAIGN LIST SECTION -->
+    <section id="campaignListSection" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- 체험단 목록이 동적으로 들어옵니다 -->
+      <div class="col-span-3 text-center py-12 text-gray-400">캠페인을 불러오는 중입니다...</div>
+    </section>
+
+    <!-- 2. MY APPLICATIONS SECTION -->
+    <section id="myApplicationsSection" class="hidden space-y-4">
+      <h2 class="text-xl font-bold">내 체험단 신청 상태</h2>
+      <div class="glass-panel rounded-2xl overflow-hidden">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-gray-800 bg-slate-900 bg-opacity-40">
+              <th class="p-4 font-semibold">체험단명</th>
+              <th class="p-4 font-semibold">채널/유형</th>
+              <th class="p-4 font-semibold">신청일</th>
+              <th class="p-4 font-semibold">나의 SNS 정보 제출</th>
+              <th class="p-4 font-semibold">상태</th>
+            </tr>
+          </thead>
+          <tbody id="myAppsTableBody">
+            <tr>
+              <td colspan="5" class="p-8 text-center text-gray-500">신청한 내역이 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. ADMIN SECTION (CAMPAIGN REGISTRATION & APPLICANTS SELECTION) -->
+    <section id="adminSection" class="hidden space-y-8">
+      
+      <!-- 캠페인 등록 폼 -->
+      <div class="glass-panel p-6 rounded-2xl space-y-4">
+        <h2 class="text-xl font-bold flex items-center gap-2">📝 신규 체험단 등록</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">캠페인 제목 (상품/서비스명)</label>
+            <input type="text" id="newTitle" placeholder="[강남] 유명 레스토랑 2인 식사권" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-gray-800 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">채널 분류</label>
+            <select id="newChannel" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-gray-800 text-sm">
+              <option value="블로그">블로그</option>
+              <option value="인스타">인스타</option>
+              <option value="유튜브">유튜브</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">수령/진행 유형</label>
+            <select id="newDelivery" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-gray-800 text-sm">
+              <option value="배송형">배송형</option>
+              <option value="방문형">방문형</option>
+              <option value="구매평">구매평</option>
+              <option value="재택형">재택형</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">모집 정원 (명)</label>
+            <input type="number" id="newCapacity" placeholder="10" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-gray-800 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">마감일 (YYYY-MM-DD)</label>
+            <input type="date" id="newDeadline" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-gray-800 text-sm">
+          </div>
+          <div class="flex items-end">
+            <button onclick="createCampaign()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold text-sm transition">
+              캠페인 생성하기
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 신청 현황 & 선정 대시보드 -->
+      <div class="glass-panel p-6 rounded-2xl space-y-4">
+        <h2 class="text-xl font-bold flex items-center gap-2">🎯 캠페인별 신청자 선정 및 영향력 심사</h2>
+        <div class="text-sm text-gray-400 mb-2">
+          신청자의 본인인증 성명, 연락처 및 실시간 연동 지표(방문자수/팔로워수)를 비교하여 선정할 수 있습니다.
+        </div>
+
+        <div class="space-y-6" id="adminCampaignList">
+          <!-- 각 캠페인별 신청자 목록이 중첩되어 들어옵니다 -->
+          <div class="text-center py-6 text-gray-500">등록된 캠페인이 없습니다.</div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- 신청하기 모달 창 (인플루언서 신청용) -->
+  <div id="applyModal" class="fixed inset-0 bg-slate-950 bg-opacity-80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="w-full max-w-md glass-panel p-6 rounded-2xl space-y-4 relative">
+      <h3 class="text-lg font-bold">캠페인 신청하기</h3>
+      <p class="text-xs text-gray-400">신청 즉시 가입 시 등록한 회원 프로필 정보와 채널 실시간 통계가 관리자에게 제출됩니다.</p>
+      
+      <div class="space-y-3 p-4 bg-slate-900 bg-opacity-60 rounded-xl border border-gray-800 text-xs text-gray-300">
+        <div class="flex justify-between"><span>성명(본인인증):</span><strong id="modalName" class="text-white">-</strong></div>
+        <div class="flex justify-between"><span>연락처:</span><strong id="modalPhone" class="text-white">-</strong></div>
+        <div class="flex justify-between"><span>네이버 블로그:</span><span id="modalBlog" class="text-emerald-400 font-semibold">-</span></div>
+        <div class="flex justify-between"><span>인스타그램:</span><span id="modalInsta" class="text-pink-400 font-semibold">-</span></div>
+        <div class="flex justify-between"><span>유튜브:</span><span id="modalYoutube" class="text-red-400 font-semibold">-</span></div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">한줄 어필 및 사전 질문 답변</label>
+        <textarea id="applyComment" rows="3" placeholder="예: 꼼꼼하고 예쁜 포토리뷰 약속드립니다!" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-gray-800 text-xs text-white"></textarea>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="closeApplyModal()" class="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-bold transition">취소</button>
+        <button id="modalSubmitBtn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-xs font-bold transition">제출하기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Supabase URL & Key 설정 (기존 키 활용)
+    const supabaseUrl = localStorage.getItem('SUPABASE_URL') || 'https://krmlhcsnpswxavxcskvq.supabase.co';
+    const supabaseAnonKey = localStorage.getItem('SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWxoY3NucHN3eGF2eGNza3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA5ODksImV4cCI6MjA5MTcxNjk4OX0.I5t6b6rjuj3dOxmcSzVpTPz5cU00_6JWSQYGd-P-YDY';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    let currentUser = null;
+    let userProfile = null;
+    let activeTab = 'list';
+    let currentApplyCampId = null;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 1. 유저 세션 로드
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        // 프로필 정보 조회
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        userProfile = profile;
+
+        // 로그인 상태 렌더링
+        const authHeader = document.getElementById('authHeader');
+        authHeader.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-indigo-400 font-bold bg-indigo-950 px-2.5 py-1 rounded-full border border-indigo-900">${profile?.is_admin ? '👑 관리자' : 'Influencer'}</span>
+            <span class="text-white font-semibold">${profile?.nickname || currentUser.email}님</span>
+            <button onclick="handleLogout()" class="text-xs text-gray-400 hover:text-white underline">로그아웃</button>
+          </div>
+        `;
+
+        if (profile?.is_admin) {
+          document.getElementById('adminTab').classList.remove('hidden');
+        }
+      }
+
+      // 2. 초기 캠페인 로드
+      loadCampaigns();
+    });
+
+    async function handleLogout() {
+      await supabase.auth.signOut();
+      window.location.reload();
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('#boardTabs button').forEach(btn => btn.classList.remove('active', 'text-white'));
+      
+      const targetBtn = Array.from(document.querySelectorAll('#boardTabs button')).find(btn => btn.getAttribute('onclick').includes(tab));
+      if (targetBtn) {
+        targetBtn.classList.add('active', 'text-white');
+      }
+
+      document.getElementById('campaignListSection').classList.add('hidden');
+      document.getElementById('myApplicationsSection').classList.add('hidden');
+      document.getElementById('adminSection').classList.add('hidden');
+
+      if (tab === 'list') {
+        document.getElementById('campaignListSection').classList.remove('hidden');
+        loadCampaigns();
+      } else if (tab === 'my-applications') {
+        document.getElementById('myApplicationsSection').classList.remove('hidden');
+        loadMyApplications();
+      } else if (tab === 'admin') {
+        document.getElementById('adminSection').classList.remove('hidden');
+        loadAdminDashboard();
+      }
+    }
+
+    // 1. 캠페인 목록 로드
+    async function loadCampaigns() {
+      const container = document.getElementById('campaignListSection');
+      container.innerHTML = '<div class="col-span-3 text-center py-12 text-gray-400">캠페인을 불러오는 중입니다...</div>';
+
+      try {
+        const { data: camps, error } = await supabase
+          .from('own_campaigns')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (!camps || camps.length === 0) {
+          container.innerHTML = '<div class="col-span-3 text-center py-12 text-gray-500">등록된 자체 체험단이 없습니다.</div>';
+          return;
+        }
+
+        container.innerHTML = camps.map(c => {
+          const isExpired = new Date(c.deadline_date) < new Date();
+          return `
+            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <div class="flex gap-1">
+                    <span class="badge badge-${c.channel === '블로그' ? 'blog' : c.channel === '인스타' ? 'insta' : 'youtube'}">${c.channel}</span>
+                    <span class="badge ${c.delivery_type === '방문형' ? 'badge-visit' : 'badge-delivery'}">${c.delivery_type}</span>
+                  </div>
+                  <span class="text-xs ${isExpired ? 'text-red-500 font-bold' : 'text-indigo-400 font-semibold'}">${isExpired ? '마감됨' : 'D-' + Math.ceil((new Date(c.deadline_date) - new Date()) / (1000 * 60 * 60 * 24)) + '일 남음'}</span>
+                </div>
+                <h3 class="text-lg font-bold leading-tight">${c.title}</h3>
+                <div class="flex gap-6 text-xs text-gray-400 pt-2">
+                  <div>모집: <strong class="text-white">${c.capacity}명</strong></div>
+                  <div>마감일: <strong class="text-white">${c.deadline_date}</strong></div>
+                </div>
+              </div>
+              <div class="mt-5">
+                ${isExpired 
+                  ? `<button class="w-full py-2.5 bg-gray-800 text-gray-500 rounded-xl text-xs font-bold cursor-not-allowed" disabled>신청 마감</button>`
+                  : `<button onclick="openApplyModal('${c.id}')" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition">캠페인 신청하기</button>`
+                }
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<div class="col-span-3 text-center py-12 text-red-400">로드 오류: ${err.message}</div>`;
+      }
+    }
+
+    // 2. 신청 모달 팝업
+    function openApplyModal(campId) {
+      if (!currentUser) {
+        alert('체험단 신청은 로그인 후 가능합니다.');
+        window.location.href = 'auth.html';
+        return;
+      }
+      currentApplyCampId = campId;
+      
+      // 모달 내 사용자 SNS 정보 렌더링
+      document.getElementById('modalName').innerText = userProfile?.phone_verified ? userProfile.nickname : '본인인증 미완료';
+      document.getElementById('modalPhone').innerText = userProfile?.phone || '-';
+      document.getElementById('modalBlog').innerText = userProfile?.blog_url ? `연동완료 (${userProfile.blog_visitors?.toLocaleString()}명)` : '미등록';
+      document.getElementById('modalInsta').innerText = userProfile?.instagram_id ? `연동완료 (${userProfile.instagram_followers?.toLocaleString()}명)` : '미등록';
+      document.getElementById('modalYoutube').innerText = userProfile?.youtube_url ? `연동완료 (${userProfile.youtube_subscribers?.toLocaleString()}명)` : '미등록';
+
+      document.getElementById('modalSubmitBtn').setAttribute('onclick', `submitApplication()`);
+      document.getElementById('applyModal').classList.remove('hidden');
+    }
+
+    function closeApplyModal() {
+      document.getElementById('applyModal').classList.add('hidden');
+      document.getElementById('applyComment').value = '';
+    }
+
+    // 3. 신청서 제출
+    async function submitApplication() {
+      const comment = document.getElementById('applyComment').value.trim();
+      if (!comment) {
+        alert('한줄 어필을 작성해 주세요.');
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from('applications')
+          .insert({
+            campaign_id: currentApplyCampId,
+            user_id: currentUser.id,
+            comment: comment,
+            status: '대기'
+          });
+
+        if (error) {
+          if (error.code === '23505') {
+            throw new Error('이미 이 캠페인에 신청하셨습니다.');
+          }
+          throw error;
+        }
+
+        alert('✅ 신청이 완료되었습니다!');
+        closeApplyModal();
+        switchTab('my-applications');
+      } catch (err) {
+        alert('신청 실패: ' + err.message);
+      }
+    }
+
+    // 4. 내 신청 내역 조회
+    async function loadMyApplications() {
+      const tbody = document.getElementById('myAppsTableBody');
+      tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">신청 내역을 로드 중입니다...</td></tr>';
+
+      try {
+        const { data: apps, error } = await supabase
+          .from('applications')
+          .select(`
+            status,
+            created_at,
+            own_campaigns (
+              title,
+              channel,
+              delivery_type
+            )
+          `)
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (!apps || apps.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">신청한 내역이 없습니다.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = apps.map(app => {
+          const camp = app.own_campaigns;
+          const statusColors = {
+            '대기': 'text-amber-400 bg-amber-950 border-amber-800',
+            '선정': 'text-emerald-400 bg-emerald-950 border-emerald-800',
+            '탈락': 'text-gray-500 bg-gray-900 border-gray-800'
+          };
+          return `
+            <tr class="border-b border-gray-800 hover:bg-slate-900 hover:bg-opacity-20 transition">
+              <td class="p-4 font-semibold text-white">${camp.title}</td>
+              <td class="p-4">
+                <span class="badge badge-${camp.channel === '블로그' ? 'blog' : camp.channel === '인스타' ? 'insta' : 'youtube'}">${camp.channel}</span>
+                <span class="badge ${camp.delivery_type === '방문형' ? 'badge-visit' : 'badge-delivery'}">${camp.delivery_type}</span>
+              </td>
+              <td class="p-4 text-xs text-gray-400">${new Date(app.created_at).toLocaleDateString()}</td>
+              <td class="p-4 text-xs">
+                ${userProfile?.blog_url ? `<span class="text-emerald-400">블로그: ${userProfile.blog_visitors?.toLocaleString()}</span> ` : ''}
+                ${userProfile?.instagram_id ? `<span class="text-pink-400">인스타: ${userProfile.instagram_followers?.toLocaleString()}</span> ` : ''}
+                ${userProfile?.youtube_url ? `<span class="text-red-400">유튜브: ${userProfile.youtube_subscribers?.toLocaleString()}</span>` : ''}
+              </td>
+              <td class="p-4">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[app.status] || 'text-white'}">${app.status}</span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">오류: ${err.message}</td></tr>`;
+      }
+    }
+
+    // 5. 관리자 캠페인 생성
+    async function createCampaign() {
+      const title = document.getElementById('newTitle').value.trim();
+      const channel = document.getElementById('newChannel').value;
+      const delivery = document.getElementById('newDelivery').value;
+      const capacity = parseInt(document.getElementById('newCapacity').value);
+      const deadline = document.getElementById('newDeadline').value;
+
+      if (!title || !capacity || !deadline) {
+        alert('모든 필드를 채워주세요.');
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from('own_campaigns')
+          .insert({
+            title: title,
+            channel: channel,
+            delivery_type: delivery,
+            capacity: capacity,
+            deadline_date: deadline
+          });
+
+        if (error) throw error;
+
+        alert('✅ 신규 자체 체험단 캠페인이 등록되었습니다.');
+        // 필드 초기화
+        document.getElementById('newTitle').value = '';
+        document.getElementById('newCapacity').value = '';
+        document.getElementById('newDeadline').value = '';
+        
+        loadAdminDashboard();
+      } catch (err) {
+        alert('등록 실패: ' + err.message);
+      }
+    }
+
+    // 6. 관리자용 신청서 & 영향력 분석 대시보드 로드
+    async function loadAdminDashboard() {
+      const dashboard = document.getElementById('adminCampaignList');
+      dashboard.innerHTML = '<div class="text-center py-6 text-gray-500">데이터를 로드 중입니다...</div>';
+
+      try {
+        // 내 캠페인 목록 및 각 캠페인의 신청 내역과 신청자 프로필 정보 조인
+        const { data: camps, error } = await supabase
+          .from('own_campaigns')
+          .select(`
+            id,
+            title,
+            channel,
+            capacity,
+            applications (
+              id,
+              status,
+              comment,
+              user_id,
+              profiles (
+                nickname,
+                phone,
+                blog_url,
+                blog_visitors,
+                instagram_id,
+                instagram_followers,
+                youtube_url,
+                youtube_subscribers
+              )
+            )
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (!camps || camps.length === 0) {
+          dashboard.innerHTML = '<div class="text-center py-6 text-gray-500">등록된 캠페인이 없습니다.</div>';
+          return;
+        }
+
+        dashboard.innerHTML = camps.map(c => {
+          const apps = c.applications || [];
+          const appRows = apps.map(app => {
+            const prof = app.profiles;
+            
+            // 영향력 지표 강조 표시
+            let snsStats = '-';
+            if (c.channel === '블로그' && prof?.blog_url) {
+              snsStats = `<span class="text-emerald-400 font-bold">블로그 (${prof.blog_visitors?.toLocaleString()}명)</span>`;
+            } else if (c.channel === '인스타' && prof?.instagram_id) {
+              snsStats = `<span class="text-pink-400 font-bold">인스타 (@${prof.instagram_id} - ${prof.instagram_followers?.toLocaleString()}명)</span>`;
+            } else if (c.channel === '유튜브' && prof?.youtube_url) {
+              snsStats = `<span class="text-red-400 font-bold">유튜브 (${prof.youtube_subscribers?.toLocaleString()}명)</span>`;
+            } else {
+              // 폴백 (기타 채널 연동 정보 일괄 표시)
+              snsStats = `
+                ${prof?.blog_visitors ? `B:${prof.blog_visitors.toLocaleString()} ` : ''}
+                ${prof?.instagram_followers ? `I:${prof.instagram_followers.toLocaleString()} ` : ''}
+                ${prof?.youtube_subscribers ? `Y:${prof.youtube_subscribers.toLocaleString()} ` : ''}
+              `;
+            }
+
+            const isSelected = app.status === '선정';
+            return `
+              <tr class="border-b border-gray-800 text-xs">
+                <td class="p-3 text-white font-semibold">${prof?.nickname || '닉네임 미상'}</td>
+                <td class="p-3 text-gray-400">${prof?.phone || '인증 안 됨'}</td>
+                <td class="p-3">${snsStats}</td>
+                <td class="p-3 text-gray-300 italic">"${app.comment || ''}"</td>
+                <td class="p-3">
+                  <span class="px-2 py-0.5 rounded text-2xs font-bold ${app.status === '선정' ? 'bg-emerald-950 text-emerald-400' : app.status === '탈락' ? 'bg-gray-900 text-gray-600' : 'bg-amber-950 text-amber-400'}">${app.status}</span>
+                </td>
+                <td class="p-3 text-right">
+                  ${isSelected
+                    ? `<button onclick="updateAppStatus('${app.id}', '대기')" class="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-2xs font-bold transition">선정 취소</button>`
+                    : `<button onclick="updateAppStatus('${app.id}', '선정')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-2xs font-bold transition mr-1">선정</button>
+                       <button onclick="updateAppStatus('${app.id}', '탈락')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded text-2xs font-bold transition">탈락</button>`
+                  }
+                </td>
+              </tr>
+            `;
+          }).join('');
+
+          return `
+            <div class="p-5 rounded-2xl bg-slate-950 bg-opacity-40 border border-gray-800 space-y-3">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-white">${c.title}</h3>
+                <span class="text-xs text-indigo-400">선정/정원: <strong class="text-white">${apps.filter(a => a.status === '선정').length} / ${c.capacity}명</strong></span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-gray-800 text-gray-400 text-2xs uppercase">
+                      <th class="p-3">신청자</th>
+                      <th class="p-3">연락처</th>
+                      <th class="p-3">SNS 채널 영향력 (자동 수집)</th>
+                      <th class="p-3">지원 동기</th>
+                      <th class="p-3">상태</th>
+                      <th class="p-3 text-right">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${appRows || '<tr><td colspan="6" class="p-6 text-center text-gray-600">신청자가 아직 없습니다.</td></tr>'}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        dashboard.innerHTML = `<div class="text-center py-6 text-red-400">오류: ${err.message}</div>`;
+      }
+    }
+
+    // 7. 신청자 상태 변경 (선정/대기/탈락)
+    async function updateAppStatus(appId, status) {
+      try {
+        const { error } = await supabase
+          .from('applications')
+          .update({ status: status })
+          .eq('id', appId);
+
+        if (error) throw error;
+        
+        loadAdminDashboard();
+      } catch (err) {
+        alert('업데이트 실패: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

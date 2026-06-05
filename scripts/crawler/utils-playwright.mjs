@@ -107,15 +107,40 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
           '[class*="limit"],[class*="capacity"],[class*="quota"],[class*="max"],[class*="total"],[class*="recruit"]'
         )
         const capRaw = capEl ? capEl.textContent : ''
-        const capSlash = capRaw.match(/[\/|]\s*(\d+)/)
-        const capacity = capEl ? (capSlash ? parseInt(capSlash[1]) : (parseInt(capRaw.replace(/[^0-9]/g,'')) || null)) : null
+        const capSlash = capRaw.match(/[\/|]\s*([\d,]+)/)
+        let capacity = null
+        if (capEl) {
+          capacity = capSlash ? parseInt(capSlash[1].replace(/,/g,'')) : (parseInt(capRaw.replace(/[^0-9]/g,'')) || null)
+        }
+        // 폴백: 신청인원 텍스트(apRaw)에 슬래시가 있으면 거기서 모집인원 추출
+        if (!capacity && apRaw) {
+          const apRawSlash = apRaw.match(/[\/|]\s*([\d,]+)/)
+          if (apRawSlash) {
+            capacity = parseInt(apRawSlash[1].replace(/,/g,''))
+          }
+        }
         // 채널 타입 뱃지 (인스타/유튜브/릴스 등)
-        const chEl = card.querySelector(
-          '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="type"],[class*="category"]'
-        )
-        let channel_text = chEl ? chEl.textContent.trim() : ''
+        let channel_text = ''
+        // 1) 클래스명에서 채널명 감지 우선 (예: blog-icon, insta-icon 등)
+        const allElements = Array.from(card.querySelectorAll('*'))
+        for (const el of allElements) {
+          const cls = el.className || ''
+          if (typeof cls === 'string') {
+            if (cls.includes('blog-icon') || cls.includes('blog')) { channel_text = '블로그'; break }
+            if (cls.includes('insta-icon') || cls.includes('instagram') || cls.includes('insta')) { channel_text = '인스타'; break }
+            if (cls.includes('youtube-icon') || cls.includes('youtube')) { channel_text = '유튜브'; break }
+            if (cls.includes('reels') || cls.includes('reel')) { channel_text = '릴스'; break }
+          }
+        }
+        // 2) 클래스명 감지 실패 시 특정 채널 속성 엘리먼트 텍스트 조회
         if (!channel_text) {
-          // 텍스트 없으면 이미지 alt/src로 채널 감지 (아이콘 전용 사이트 대응)
+          const chEl = card.querySelector(
+            '[class*="channel"],[class*="media"],[class*="badge"],[class*="sns"],[class*="platform"],[class*="tag"],[class*="kind"],[class*="category"]'
+          )
+          channel_text = chEl ? chEl.textContent.trim() : ''
+        }
+        // 3) 그래도 실패 시 이미지 alt/src 기반 감지
+        if (!channel_text) {
           const imgs = Array.from(card.querySelectorAll('img'))
           channel_text = imgs.map(i => ((i.alt || '') + ' ' + (i.src || '')).toLowerCase()).join(' ')
         }
