@@ -8,8 +8,34 @@
 function camradar_theme_setup() {
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
+    add_theme_support('html5', array('search-form', 'comment-form', 'gallery', 'caption'));
 }
 add_action('after_setup_theme', 'camradar_theme_setup');
+
+// 1-1. Tailwind CSS + Google Fonts + 공통 스타일 enqueue
+function camradar_enqueue_assets() {
+    wp_enqueue_style('noto-sans-kr', 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap', array(), null);
+    wp_enqueue_style('camradar-style', get_stylesheet_uri(), array(), '1.0.0');
+    wp_enqueue_script('tailwind-cdn', 'https://cdn.tailwindcss.com', array(), null, false);
+    // Tailwind config — 인라인으로 설정 (CDN 방식)
+    wp_add_inline_script('tailwind-cdn', 'tailwind.config = { theme: { extend: { colors: { primary: { 50:"#eef2ff",100:"#e0e7ff",200:"#c7d2fe",400:"#818cf8",500:"#6366f1",600:"#4f46e5",700:"#4338ca" } }, fontFamily: { sans: ["Noto Sans KR","sans-serif"] } } } }');
+    // 공통 CSS
+    wp_add_inline_style('camradar-style', '
+        body { font-family: "Noto Sans KR", sans-serif; background: #f4f6ff; }
+        .line-clamp-2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+        .skeleton { background:linear-gradient(90deg,#e2e8f0 25%,#eef2ff 50%,#e2e8f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite; }
+        @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#6366f1;border-radius:3px}
+        .campaign-card { transition: box-shadow 0.2s, transform 0.2s; }
+        .campaign-card:hover { box-shadow: 0 8px 28px rgba(99,102,241,0.14); transform: translateY(-2px); }
+        .filter-chip { transition: background 0.15s, color 0.15s, border-color 0.15s; white-space: nowrap; cursor: pointer; }
+        .filter-chip.active { background: #4f46e5 !important; color: #fff !important; border-color: #4f46e5 !important; }
+        .filter-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        .text-2xs { font-size: 0.65rem; }
+    ');
+}
+add_action('wp_enqueue_scripts', 'camradar_enqueue_assets');
 
 // 2. 'campaign' (체험단 캠페인) 커스텀 포스트 타입 등록
 function camradar_register_campaign_post_type() {

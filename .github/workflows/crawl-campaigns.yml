@@ -33,8 +33,8 @@ jobs:
       - name: 캠페인 크롤링 실행
         run: node scripts/crawler/index.mjs
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_SYNC_TOKEN: ${{ secrets.WP_SYNC_TOKEN }}
           TARGET_PLATFORM: ${{ inputs.platform }}
 
       - name: 크롤링 완료 알림
