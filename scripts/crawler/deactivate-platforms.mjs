@@ -1,10 +1,9 @@
-// 비활성화: SPA/AJAX/fetch실패 플랫폼 is_active = false
-import { createClient } from '@supabase/supabase-js'
+// 비활성화: SPA/AJAX/fetch실패 플랫폼 캠페인을 WordPress에서 draft로 변경
+import https from 'https';
+import http from 'http';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+const WP_URL = process.env.WP_URL || 'https://bloginfo360.com';
+const WP_SYNC_TOKEN = process.env.WP_SYNC_TOKEN || 'camradar-secret-sync-token-2026';
 
 const DEACTIVATE = [
   // SPA (React/Next.js/Vue — cheerio 불가)
@@ -20,35 +19,72 @@ const DEACTIVATE = [
   '리뷰의민족', // JS onClick 링크
   // 일반 포스팅 섞임
   '어포스푼', '원더블',
-]
+];
+
+function wpRequest(method, path, body = null) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(WP_URL);
+    const isHttps = url.protocol === 'https:';
+    const lib = isHttps ? https : http;
+    const payload = body ? JSON.stringify(body) : null;
+    const options = {
+      hostname: url.hostname,
+      path,
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CamRadar-Token': WP_SYNC_TOKEN,
+        ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {}),
+      },
+    };
+    const req = lib.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, body: JSON.parse(data) }); }
+        catch { resolve({ status: res.statusCode, body: data }); }
+      });
+    });
+    req.on('error', reject);
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
 
 async function main() {
-  console.log('비활성화 대상:', DEACTIVATE.join(', '))
+  console.log('비활성화 대상:', DEACTIVATE.join(', '));
 
-  // 플랫폼 비활성화
-  const { data, error } = await supabase
-    .from('platforms')
-    .update({ is_active: false })
-    .in('name', DEACTIVATE)
-    .select('name, is_active')
+  let totalDeactivated = 0;
 
-  if (error) {
-    console.error('플랫폼 업데이트 실패:', error.message)
-    process.exit(1)
+  for (const platform of DEACTIVATE) {
+    let page = 1;
+    while (true) {
+      const res = await wpRequest(
+        'GET',
+        `/wp-json/wp/v2/campaigns?meta_key=platform_name&meta_value=${encodeURIComponent(platform)}&status=publish&per_page=100&page=${page}`
+      );
+
+      if (res.status !== 200 || !Array.isArray(res.body) || res.body.length === 0) break;
+
+      for (const campaign of res.body) {
+        const upd = await wpRequest('POST', `/wp-json/wp/v2/campaigns/${campaign.id}`, { status: 'draft' });
+        if (upd.status === 200) {
+          totalDeactivated++;
+        } else {
+          console.warn(`  ID ${campaign.id} draft 변경 실패:`, upd.status);
+        }
+      }
+
+      if (res.body.length < 100) break;
+      page++;
+    }
+    console.log(`  ${platform}: 비활성화 완료`);
   }
-  console.log('비활성화 완료:', data?.map(p => p.name).join(', ') || '(없음)')
 
-  // 해당 플랫폼 캠페인 데이터 정리
-  const { count, error: delErr } = await supabase
-    .from('campaigns')
-    .delete({ count: 'exact' })
-    .in('platform_name', DEACTIVATE)
-
-  if (delErr) console.warn('캠페인 삭제 실패:', delErr.message)
-  else console.log(`캠페인 정리 완료: ${count}개 삭제`)
+  console.log(`\n완료: 총 ${totalDeactivated}개 캠페인을 draft로 변경`);
 }
 
 main().catch(err => {
-  console.error('오류:', err)
-  process.exit(1)
-})
+  console.error('오류:', err);
+  process.exit(1);
+});

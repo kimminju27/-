@@ -21,5 +21,5 @@ jobs:
         working-directory: scripts/crawler
         run: node deactivate-platforms.mjs
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_SYNC_TOKEN: ${{ secrets.WP_SYNC_TOKEN }}
