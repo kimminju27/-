@@ -132,32 +132,32 @@ export async function upsertCampaigns(wpUrl, platformName, platformId, campaigns
 
   if (rows.length === 0) return { inserted: 0, skipped: 0 }
 
-  // 워드프레스 REST API 동기화 요청
-  try {
-    const token = process.env.WP_SYNC_TOKEN || 'camradar-secret-sync-token-2026';
-    const response = await fetch(`${wpUrl}/wp-json/camradar/v1/sync-campaigns`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CamRadar-Token': token
-      },
-      body: JSON.stringify({ campaigns: rows })
-    });
+  // 워드프레스 동기화 — admin-ajax.php 우선, REST API 폴백
+  const token = process.env.WP_SYNC_TOKEN || 'camradar-secret-sync-token-2026';
+  const body  = JSON.stringify({ campaigns: rows });
+  const headers = { 'Content-Type': 'application/json', 'X-CamRadar-Token': token };
 
-    if (!response.ok) {
-      throw new Error(`WordPress REST API HTTP Error: ${response.status}`);
-    }
+  const endpoints = [
+    `${wpUrl}/wp-admin/admin-ajax.php?action=camradar_sync`,
+    `${wpUrl}/wp-json/camradar/v1/sync-campaigns`,
+  ];
 
-    const data = await response.json();
-    if (data.success) {
-      return { inserted: data.inserted, skipped: rows.length - data.inserted }
-    } else {
+  for (const url of endpoints) {
+    try {
+      const response = await fetch(url, { method: 'POST', headers, body });
+      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+      const data = await response.json();
+      const result = data.data || data;
+      if (result.success) {
+        return { inserted: result.inserted ?? 0, skipped: rows.length - (result.inserted ?? 0) };
+      }
       throw new Error(data.message || 'Sync failed');
+    } catch (error) {
+      console.error(`[${platformName}] 싱크 오류 (${url.includes('admin-ajax') ? 'ajax' : 'rest'}):`, error.message);
+      // 다음 엔드포인트로 폴백
     }
-  } catch (error) {
-    console.error(`[${platformName}] 워드프레스 싱크 API 오류:`, error.message);
-    return { inserted: 0, skipped: rows.length }
   }
+  return { inserted: 0, skipped: rows.length };
 }
 
 export async function fetchWithRetry(url, options = {}, retries = 2) {

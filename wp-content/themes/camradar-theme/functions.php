@@ -410,7 +410,27 @@ function camradar_ajax_submit_campaign_apply() {
 }
 add_action('wp_ajax_submit_campaign_apply', 'camradar_ajax_submit_campaign_apply');
 
-// 9. 크롤러용 대량 캠페인 싱크 REST API 엔드포인트 등록
+// 9. 크롤러용 대량 캠페인 싱크 — REST API + admin-ajax.php 이중 지원
+// (가비아 공유 호스팅이 /wp-json/ POST를 Apache 수준에서 차단하므로 admin-ajax 우선 사용)
+
+// 9-a. admin-ajax.php 핸들러 (no_priv: 로그인 불필요)
+add_action('wp_ajax_nopriv_camradar_sync', 'camradar_ajax_sync_handler');
+add_action('wp_ajax_camradar_sync',        'camradar_ajax_sync_handler');
+function camradar_ajax_sync_handler() {
+    $token = isset($_SERVER['HTTP_X_CAMRADAR_TOKEN']) ? $_SERVER['HTTP_X_CAMRADAR_TOKEN'] : '';
+    if ($token !== 'camradar-secret-sync-token-2026') {
+        wp_send_json_error(array('message' => 'Unauthorized'), 401);
+    }
+    $raw    = file_get_contents('php://input');
+    $params = json_decode($raw, true);
+    if (!isset($params['campaigns']) || !is_array($params['campaigns'])) {
+        wp_send_json_error(array('message' => 'Invalid campaigns array'), 400);
+    }
+    $result = camradar_do_sync($params['campaigns']);
+    wp_send_json_success($result);
+}
+
+// 9-b. REST API 엔드포인트 (백업용)
 function camradar_register_sync_endpoint() {
     register_rest_route('camradar/v1', '/sync-campaigns', array(
         'methods'             => 'POST',
@@ -420,29 +440,20 @@ function camradar_register_sync_endpoint() {
 }
 add_action('rest_api_init', 'camradar_register_sync_endpoint');
 
-// 토큰 인증 체크 (X-CamRadar-Token 헤더 검증)
 function camradar_sync_permission_check($request) {
     $token = $request->get_header('X-CamRadar-Token');
-    $secret_token = 'camradar-secret-sync-token-2026'; // 크롤러와 연동할 보안 토큰
-    return ($token === $secret_token);
+    return ($token === 'camradar-secret-sync-token-2026');
 }
 
-// 캠페인 동기화 실제 처리 로직
-function camradar_handle_sync_campaigns($request) {
-    $params = $request->get_json_params();
-    if (!isset($params['campaigns']) || !is_array($params['campaigns'])) {
-        return new WP_REST_Response(array('message' => 'Invalid campaigns array'), 400);
-    }
-
-    $campaigns = $params['campaigns'];
+// 캠페인 동기화 공유 로직
+function camradar_do_sync($campaigns) {
     $inserted = 0;
-    $updated = 0;
+    $updated  = 0;
 
     foreach ($campaigns as $c) {
         $hash = isset($c['content_hash']) ? sanitize_text_field($c['content_hash']) : '';
         if (empty($hash)) continue;
 
-        // 이미 등록된 campaign 포스트가 있는지 content_hash 메타로 조회
         $existing_posts = get_posts(array(
             'post_type'      => 'campaign',
             'meta_key'       => 'content_hash',
@@ -463,30 +474,22 @@ function camradar_handle_sync_campaigns($request) {
         );
 
         if ($existing_posts) {
-            // 존재하면 메타 정보만 업데이트 (신청자수, 마감일 등)
             $post_id = $existing_posts[0]->ID;
-            
-            // 포스트가 휴지통에 있다면 복구
             if (get_post_status($post_id) === 'trash') {
                 wp_untrash_post($post_id);
             }
-
             foreach ($meta_data as $key => $val) {
                 update_post_meta($post_id, $key, $val);
             }
             $updated++;
         } else {
-            // 새로운 글 생성
             $post_title = isset($c['title']) ? sanitize_text_field($c['title']) : '무제 캠페인';
-            
-            $post_data = array(
+            $post_id = wp_insert_post(array(
                 'post_title'   => $post_title,
                 'post_status'  => 'publish',
                 'post_type'    => 'campaign',
                 'post_content' => "<p><a href='{$meta_data['campaign_url']}' target='_blank' rel='noopener'>캠페인 상세 보러가기</a></p>",
-            );
-
-            $post_id = wp_insert_post($post_data);
+            ));
             if (!is_wp_error($post_id) && $post_id > 0) {
                 update_post_meta($post_id, 'content_hash', $hash);
                 foreach ($meta_data as $key => $val) {
@@ -497,36 +500,34 @@ function camradar_handle_sync_campaigns($request) {
         }
     }
 
-    // 마감일 정리 자동 클린업
     $today = current_time('Y-m-d');
     $expired_posts = get_posts(array(
         'post_type'      => 'campaign',
         'posts_per_page' => -1,
         'meta_query'     => array(
             'relation' => 'AND',
-            array(
-                'key'     => 'deadline_date',
-                'value'   => $today,
-                'compare' => '<',
-                'type'    => 'DATE'
-            ),
-            array(
-                'key'     => 'deadline_date',
-                'value'   => '',
-                'compare' => '!='
-            )
+            array('key' => 'deadline_date', 'value' => $today, 'compare' => '<', 'type' => 'DATE'),
+            array('key' => 'deadline_date', 'value' => '', 'compare' => '!='),
         )
     ));
     foreach ($expired_posts as $ep) {
-        wp_trash_post($ep->ID); // 마감된 글은 휴지통으로 이동
+        wp_trash_post($ep->ID);
     }
 
-    return new WP_REST_Response(array(
+    return array(
         'success'  => true,
         'inserted' => $inserted,
         'updated'  => $updated,
-        'cleaned'  => count($expired_posts)
-    ), 200);
+        'cleaned'  => count($expired_posts),
+    );
+}
+
+function camradar_handle_sync_campaigns($request) {
+    $params = $request->get_json_params();
+    if (!isset($params['campaigns']) || !is_array($params['campaigns'])) {
+        return new WP_REST_Response(array('message' => 'Invalid campaigns array'), 400);
+    }
+    return new WP_REST_Response(camradar_do_sync($params['campaigns']), 200);
 }
 
 // 10. 워드프레스 회원가입/로그인 통합 인터페이스 숏코드 [camradar_auth]
