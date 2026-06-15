@@ -103,7 +103,7 @@
     <p class="text-slate-400 text-sm mt-1">다른 키워드나 필터를 사용해보세요</p>
   </div>
   <div id="load-more-wrap" class="flex justify-center mt-6 mb-4 hidden">
-    <button id="load-more-btn" onclick="loadCampaigns(false)"
+    <button id="load-more-btn" onclick="renderCampaigns(false)"
       class="px-8 py-3 rounded-xl text-white font-semibold hover:opacity-90 active:scale-95 transition-all text-sm shadow"
       style="background:#4f46e5;">
       더보기
@@ -175,6 +175,61 @@
   </div>
 </section>
 
+<!-- ===== 캠레이더 소개 섹션 ===== -->
+<section class="bg-indigo-50 border-t border-indigo-100 py-12 px-4">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-lg font-black text-slate-800 text-center mb-2">캠레이더란?</h2>
+    <p class="text-sm text-slate-500 text-center mb-8">여러 체험단 플랫폼을 매번 돌아다니며 확인하는 번거로움을 없애드립니다.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-2xl p-5 border border-indigo-100">
+        <div class="text-3xl mb-3">🔍</div>
+        <h3 class="font-black text-slate-800 text-sm mb-2">통합 검색</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">리뷰어스, 레뷰, 강남맛집 등 주요 체험단 플랫폼의 최신 캠페인을 한 화면에서 바로 검색할 수 있어요. 수십 개 사이트를 직접 방문할 필요가 없습니다.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 border border-indigo-100">
+        <div class="text-3xl mb-3">⏱️</div>
+        <h3 class="font-black text-slate-800 text-sm mb-2">실시간 자동 업데이트</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">1시간마다 각 플랫폼 데이터를 자동으로 수집합니다. 새로 등록된 체험단 캠페인을 가장 빠르게 확인할 수 있어요. 오늘 신규 필터로 방금 올라온 캠페인을 먼저 만나세요.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 border border-indigo-100">
+        <div class="text-3xl mb-3">📂</div>
+        <h3 class="font-black text-slate-800 text-sm mb-2">스마트 필터</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">블로그·인스타·유튜브 채널 유형별, 배송형·방문형·구매평 방식별로 원하는 조건만 골라 볼 수 있습니다. 즐겨찾기 기능으로 관심 캠페인을 저장해두세요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 이용 방법 ===== -->
+<section class="bg-white border-t border-slate-100 py-12 px-4">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="text-lg font-black text-slate-800 text-center mb-2">체험단 신청, 이렇게 하세요</h2>
+    <p class="text-sm text-slate-400 text-center mb-8">캠레이더에서 원하는 체험단을 찾고, 해당 플랫폼에서 신청 완료!</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-center">
+      <div class="flex flex-col items-center gap-2">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm" style="background:#4f46e5;">1</div>
+        <p class="text-xs font-bold text-slate-700">키워드 검색</p>
+        <p class="text-xs text-slate-400">뷰티, 맛집, 생활용품 등 원하는 카테고리 입력</p>
+      </div>
+      <div class="flex flex-col items-center gap-2">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm" style="background:#4f46e5;">2</div>
+        <p class="text-xs font-bold text-slate-700">필터 설정</p>
+        <p class="text-xs text-slate-400">블로그·인스타 등 내 SNS 채널 선택, 조건 맞추기</p>
+      </div>
+      <div class="flex flex-col items-center gap-2">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm" style="background:#4f46e5;">3</div>
+        <p class="text-xs font-bold text-slate-700">캠페인 선택</p>
+        <p class="text-xs text-slate-400">카드 클릭 → 모집 인원, 마감일 등 상세 확인</p>
+      </div>
+      <div class="flex flex-col items-center gap-2">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm" style="background:#4f46e5;">4</div>
+        <p class="text-xs font-bold text-slate-700">신청하러 가기</p>
+        <p class="text-xs text-slate-400">해당 플랫폼 페이지로 이동해 직접 신청 완료</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== FAQ ===== -->
 <section class="bg-slate-50 border-t border-slate-100 py-12 px-4">
   <div class="max-w-2xl mx-auto">
@@ -182,19 +237,31 @@
     <div class="space-y-2">
       <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
         <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">캠레이더는 무엇인가요?</summary>
-        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">블로그체험단·인스타체험단·유튜브체험단을 37개 사이트에서 한번에 검색할 수 있는 무료 모아보기 서비스입니다. 1시간마다 자동 수집합니다.</div>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">캠레이더는 블로그체험단·인스타체험단·유튜브체험단을 여러 플랫폼에서 한번에 검색할 수 있는 무료 통합 검색 서비스입니다. 리뷰어스, 레뷰, 미블, 강남맛집 등 주요 체험단 사이트의 최신 캠페인을 1시간마다 자동으로 수집하여 제공합니다.</div>
+      </details>
+      <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">캠레이더는 무료인가요?</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">캠레이더의 체험단 검색·통합 모아보기 서비스는 완전 무료입니다. 회원가입 없이도 캠페인을 검색하고 확인할 수 있으며, 즐겨찾기·알림 등 부가 기능은 회원 로그인 후 이용 가능합니다.</div>
       </details>
       <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
         <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">블로그 체험단은 어떻게 신청하나요?</summary>
-        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">원하는 캠페인 카드를 클릭해 상세 정보를 확인한 뒤 <strong>신청하러 가기</strong> 버튼으로 해당 플랫폼에서 직접 신청하세요.</div>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">원하는 캠페인 카드를 클릭해 상세 정보를 확인한 뒤 <strong>신청하러 가기</strong> 버튼을 누르면 해당 체험단 플랫폼 페이지로 이동합니다. 이후 해당 플랫폼에서 직접 신청서를 작성하시면 됩니다. 캠레이더는 신청을 중계하지 않으며, 선정·결과 안내는 각 플랫폼에서 이루어집니다.</div>
       </details>
       <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
         <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">인스타체험단·유튜브체험단도 검색되나요?</summary>
-        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">네, 채널 필터에서 인스타·릴스·유튜브·클립을 선택하면 해당 채널의 체험단만 모아볼 수 있습니다.</div>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">네, 채널 필터에서 <strong>인스타·릴스·유튜브·클립</strong>을 선택하면 해당 채널의 체험단만 모아볼 수 있습니다. 최근에는 인스타 릴스 체험단과 유튜브 쇼츠 체험단도 다수 등록되어 있으니 확인해 보세요.</div>
       </details>
       <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
-        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">이용 비용이 있나요?</summary>
-        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">완전 무료입니다. 로그인 없이 바로 검색하고 즐겨찾기를 사용할 수 있습니다.</div>
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">방문형과 배송형 체험단의 차이는 무엇인가요?</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed"><strong>배송형</strong>은 제품을 집으로 받아 후기를 작성하는 방식이며, <strong>방문형</strong>은 식당·헤어샵·카페·숙박업소 등에 직접 방문해 이용 후 후기를 작성합니다. <strong>구매평</strong>은 제품을 직접 구매한 뒤 정해진 플랫폼(쿠팡 등)에 후기를 남기고 구매 금액을 환급받는 방식입니다.</div>
+      </details>
+      <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">자체 체험단이란 무엇인가요?</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">자체 체험단은 캠레이더가 직접 운영하는 체험단입니다. 외부 플랫폼을 거치지 않고 캠레이더에서 모집·선정·진행하며, 광고주의 별도 의뢰를 통해 운영됩니다. 자체 체험단 신청 관련 문의는 <strong>서비스 신청</strong> 페이지를 통해 상담받으실 수 있습니다.</div>
+      </details>
+      <details class="bg-white rounded-xl border border-slate-100 overflow-hidden">
+        <summary class="cursor-pointer px-5 py-4 font-bold text-sm text-slate-700 select-none">체험단 신청 후 선정 기준이 궁금해요.</summary>
+        <div class="px-5 pb-4 text-sm text-slate-500 leading-relaxed">체험단 선정은 각 플랫폼 또는 광고주의 기준에 따라 이루어집니다. 일반적으로 SNS 팔로워 수, 블로그 방문자 수, 콘텐츠 품질, 활동 이력 등을 고려합니다. 자체 체험단의 경우 캠레이더 내 마이페이지에 등록된 SNS 채널 정보를 바탕으로 선정합니다.</div>
       </details>
     </div>
   </div>
@@ -221,25 +288,28 @@ let searchQuery = '';
 const bookmarks = JSON.parse(localStorage.getItem('camradar_bookmarks') || '[]');
 const today = new Date().toISOString().slice(0, 10);
 
-// WP REST API로 캠페인 로드
+// 커스텀 캠레이더 REST API로 캠페인 로드
 async function fetchCampaigns() {
   try {
-    const res = await fetch(WP_REST + '/campaigns?per_page=100&status=publish&orderby=date&order=desc&_fields=id,title,meta,date');
+    const res = await fetch(WP_API + '/campaigns?per_page=200');
     const data = await res.json();
 
-    allCampaigns = data.map(p => ({
-      id: p.id,
-      title: p.title.rendered,
-      platform_name: p.meta.platform_name || '',
-      campaign_url: p.meta.campaign_url || '#',
-      channel: p.meta.channel || '블로그',
-      delivery_type: p.meta.delivery_type || '',
-      capacity: p.meta.capacity || 0,
-      applicants: p.meta.applicants || 0,
-      deadline_text: p.meta.deadline_text || '',
-      deadline_date: p.meta.deadline_date || '',
-      date: p.date ? p.date.slice(0, 10) : '',
-    }));
+    allCampaigns = (data.campaigns || []).map(p => {
+      const m = p.meta || p;  // flat 또는 nested 구조 모두 처리
+      return {
+        id: p.id,
+        title: p.title || (p.title_raw) || '',
+        platform_name: m.platform_name || '',
+        campaign_url: m.campaign_url || '#',
+        channel: m.channel || '블로그',
+        delivery_type: m.delivery_type || '',
+        capacity: m.capacity || 0,
+        applicants: m.applicants || 0,
+        deadline_text: m.deadline_text || '',
+        deadline_date: m.deadline_date || '',
+        date: p.date ? p.date.slice(0, 10) : '',
+      };
+    });
 
     updateStats();
     applyFilters();
@@ -258,6 +328,8 @@ function updateStats() {
   document.getElementById('stat-platforms').textContent = platforms.length || '37+';
 
   const platformSelect = document.getElementById('platform-select');
+  // 기존 옵션 제거 (첫 번째 "전체 사이트" 제외) 후 재구성
+  while (platformSelect.options.length > 1) platformSelect.remove(1);
   platforms.sort().forEach(p => {
     const opt = document.createElement('option');
     opt.value = p;

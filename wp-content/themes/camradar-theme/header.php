@@ -17,15 +17,23 @@
         <span class="text-lg font-black tracking-tight text-primary-600" style="color:#4f46e5;">캠레이더</span>
       </a>
       <nav class="hidden md:flex items-center gap-5 text-sm font-semibold text-slate-500">
-        <a href="<?php echo home_url('/'); ?>" class="hover:text-slate-900 transition-colors <?php echo is_front_page() ? 'text-indigo-600 font-bold' : ''; ?>">체험단 찾기</a>
-        <a href="<?php echo home_url('/campaigns/'); ?>" class="hover:text-slate-900 transition-colors <?php echo is_post_type_archive('campaign') ? 'text-indigo-600 font-bold' : ''; ?>">자체 체험단</a>
-        <a href="<?php echo home_url('/services/'); ?>" class="hover:text-slate-900 transition-colors">서비스 신청</a>
+        <a href="<?php echo home_url('/'); ?>" class="hover:text-slate-900 transition-colors <?php echo is_front_page() && !is_page('jache') ? 'text-indigo-600 font-bold' : ''; ?>">체험단 찾기</a>
+        <a href="<?php echo home_url('/jache/'); ?>" class="hover:text-slate-900 transition-colors <?php echo is_page('jache') ? 'text-indigo-600 font-bold' : ''; ?>">자체 체험단</a>
+        <a href="<?php echo home_url('/services/'); ?>" class="hover:text-slate-900 transition-colors <?php echo is_page('services') ? 'text-indigo-600 font-bold' : ''; ?>">서비스 신청</a>
       </nav>
     </div>
     <div class="flex items-center gap-4 text-sm">
       <?php if (is_user_logged_in()) :
-        $current_user = wp_get_current_user(); ?>
-        <span class="text-xs text-slate-500 hidden sm:inline"><?php echo esc_html($current_user->display_name); ?>님</span>
+        $current_user = wp_get_current_user();
+        // display_name이 user_login과 같으면(자동생성 계정) 소셜 이름 우선
+        $show_name = ($current_user->display_name && $current_user->display_name !== $current_user->user_login)
+            ? $current_user->display_name
+            : (get_user_meta($current_user->ID, 'nickname', true) ?: $current_user->user_login);
+        ?>
+        <a href="<?php echo home_url('/my-page/'); ?>" class="text-xs text-slate-500 hover:text-indigo-600 transition-colors hidden sm:inline font-semibold">
+          <?php echo esc_html($show_name); ?>님 ▾
+        </a>
+        <a href="<?php echo home_url('/my-page/'); ?>" class="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-xs transition-colors border border-indigo-200">마이페이지</a>
         <a href="<?php echo wp_logout_url(home_url()); ?>" class="px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition-colors">로그아웃</a>
       <?php else : ?>
         <a href="<?php echo home_url('/login/'); ?>" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-colors">로그인 / 가입</a>

@@ -12,5 +12,8 @@
     "dotenv": "^17.4.2",
     "node-fetch": "^3.3.2",
     "playwright": "^1.44.0"
+  },
+  "devDependencies": {
+    "libsodium-wrappers": "^0.8.4"
   }
 }

@@ -69,14 +69,19 @@ function camradar_register_campaign_post_type() {
 }
 add_action('init', 'camradar_register_campaign_post_type');
 
-// 3. REST API에 캠페인 메타 필드(capacity, delivery_type, channel, deadline_date) 등록
+// 3. REST API에 캠페인 메타 필드 등록
 function camradar_register_campaign_meta() {
     $meta_fields = array(
         'capacity'      => 'integer',
-        'delivery_type' => 'string',  // '배송형', '방문형', '구매평' 등
-        'channel'       => 'string',  // '블로그', '인스타', '유튜브' 등
-        'deadline_date' => 'string',  // 'YYYY-MM-DD'
-        'status'        => 'string',  // 'open', 'closed', 'announced'
+        'delivery_type' => 'string',
+        'channel'       => 'string',
+        'deadline_date' => 'string',
+        'status'        => 'string',
+        'platform_name' => 'string',
+        'campaign_url'  => 'string',
+        'applicants'    => 'integer',
+        'deadline_text' => 'string',
+        'thumbnail_url' => 'string',
     );
 
     foreach ($meta_fields as $meta_key => $type) {
@@ -410,6 +415,117 @@ function camradar_ajax_submit_campaign_apply() {
 }
 add_action('wp_ajax_submit_campaign_apply', 'camradar_ajax_submit_campaign_apply');
 
+
+// 8-1. 서비스 신청 폼 — 이메일 발송
+function camradar_ajax_service_apply() {
+    if (!check_ajax_referer('service_apply', '_wpnonce', false)) {
+        wp_send_json_error(array('message' => '보안 검증 실패.'));
+    }
+
+    $company = sanitize_text_field($_POST['company'] ?? '');
+    $name    = sanitize_text_field($_POST['name']    ?? '');
+    $phone   = sanitize_text_field($_POST['phone']   ?? '');
+    $email   = sanitize_email($_POST['email']        ?? '');
+    $service = sanitize_text_field($_POST['service'] ?? '');
+    $contact = sanitize_text_field($_POST['contact'] ?? '');
+    $message = sanitize_textarea_field($_POST['message'] ?? '');
+
+    if (!$company || !$name || !$phone || !$email || !$service) {
+        wp_send_json_error(array('message' => '필수 항목을 모두 입력해 주세요.'));
+    }
+
+    $service_labels = [
+        'blog_manage'    => '블로그 관리대행',
+        'blog_experience'=> '블로그 체험단',
+        'sns_experience' => 'SNS 체험단 (인스타·유튜브)',
+        'both'           => '블로그 관리대행 + 체험단 통합',
+    ];
+    $service_label = $service_labels[$service] ?? $service;
+
+    $to      = 'bloginf0360@outlook.com';
+    $subject = '📡 [캠레이더] 서비스 신청 — ' . $company . ' (' . $service_label . ')';
+    $headers = array('Content-Type: text/html; charset=UTF-8');
+
+    $body  = '<h2 style="color:#1e1b4b;">신규 서비스 신청이 접수되었습니다.</h2>';
+    $body .= '<table border="1" cellpadding="8" style="border-collapse:collapse;min-width:400px;">';
+    $body .= '<tr><td><strong>회사/브랜드명</strong></td><td>' . esc_html($company) . '</td></tr>';
+    $body .= '<tr><td><strong>담당자</strong></td><td>' . esc_html($name) . '</td></tr>';
+    $body .= '<tr><td><strong>연락처</strong></td><td>' . esc_html($phone) . '</td></tr>';
+    $body .= '<tr><td><strong>이메일</strong></td><td>' . esc_html($email) . '</td></tr>';
+    $body .= '<tr><td><strong>신청 서비스</strong></td><td>' . esc_html($service_label) . '</td></tr>';
+    $body .= '<tr><td><strong>연락 방법</strong></td><td>' . esc_html($contact ?: '이메일') . '</td></tr>';
+    if ($message) {
+        $body .= '<tr><td><strong>문의 내용</strong></td><td>' . nl2br(esc_html($message)) . '</td></tr>';
+    }
+    $body .= '</table>';
+
+    wp_mail($to, $subject, $body, $headers);
+    wp_send_json_success(array('message' => '신청이 완료되었습니다. 담당자가 영업일 1~2일 내 연락드립니다.'));
+}
+add_action('wp_ajax_camradar_service_apply',        'camradar_ajax_service_apply');
+add_action('wp_ajax_nopriv_camradar_service_apply', 'camradar_ajax_service_apply');
+
+
+// 8-2. 서비스/개인정보 페이지 강제 생성 (관리자 전용)
+function camradar_create_sp_pages() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => '권한 없음']);
+    }
+
+    $pages_to_create = [
+        'services' => ['서비스 신청',     '[csl_service_page]'],
+        'privacy'  => ['개인정보처리방침', '[csl_privacy_page]'],
+    ];
+
+    $results = [];
+    foreach ($pages_to_create as $slug => [$title, $content]) {
+        $existing = get_page_by_path($slug, OBJECT, 'page');
+        if ($existing) {
+            $r = wp_update_post([
+                'ID'           => $existing->ID,
+                'post_title'   => $title,
+                'post_content' => $content,
+                'post_status'  => 'publish',
+                'post_name'    => $slug,
+            ], true);
+            $results[$slug] = is_wp_error($r) ? 'error:' . $r->get_error_message() : "updated:$r";
+        } else {
+            $r = wp_insert_post([
+                'post_title'   => $title,
+                'post_content' => $content,
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+                'post_name'    => $slug,
+            ], true);
+            $results[$slug] = is_wp_error($r) ? 'error:' . $r->get_error_message() : "created:$r";
+        }
+    }
+    flush_rewrite_rules();
+    wp_send_json_success($results);
+}
+add_action('wp_ajax_camradar_create_sp_pages', 'camradar_create_sp_pages');
+
+
+// 자체체험단 페이지 생성
+function camradar_create_jache_page() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => '권한 없음']);
+    }
+    $existing = get_page_by_path('jache', OBJECT, 'page');
+    $content  = '[csl_own_campaigns]';
+    if ($existing) {
+        $r = wp_update_post(['ID' => $existing->ID, 'post_title' => '자체 체험단',
+            'post_content' => $content, 'post_status' => 'publish', 'post_name' => 'jache'], true);
+    } else {
+        $r = wp_insert_post(['post_title' => '자체 체험단', 'post_content' => $content,
+            'post_status' => 'publish', 'post_type' => 'page', 'post_name' => 'jache'], true);
+    }
+    flush_rewrite_rules();
+    wp_send_json_success(['result' => is_wp_error($r) ? 'error:' . $r->get_error_message() : "pid:$r"]);
+}
+add_action('wp_ajax_camradar_create_jache_page', 'camradar_create_jache_page');
+
+
 // 9. 크롤러용 대량 캠페인 싱크 — REST API + admin-ajax.php 이중 지원
 // (가비아 공유 호스팅이 /wp-json/ POST를 Apache 수준에서 차단하므로 admin-ajax 우선 사용)
 
@@ -417,12 +533,16 @@ add_action('wp_ajax_submit_campaign_apply', 'camradar_ajax_submit_campaign_apply
 add_action('wp_ajax_nopriv_camradar_sync', 'camradar_ajax_sync_handler');
 add_action('wp_ajax_camradar_sync',        'camradar_ajax_sync_handler');
 function camradar_ajax_sync_handler() {
-    $token = isset($_SERVER['HTTP_X_CAMRADAR_TOKEN']) ? $_SERVER['HTTP_X_CAMRADAR_TOKEN'] : '';
+    // 토큰: 헤더 또는 POST 필드 둘 다 허용 (가비아 Apache가 커스텀 JSON 헤더/본문을 차단하는 경우 대비)
+    $token = isset($_SERVER['HTTP_X_CAMRADAR_TOKEN'])
+        ? $_SERVER['HTTP_X_CAMRADAR_TOKEN']
+        : (isset($_POST['token']) ? $_POST['token'] : '');
     if ($token !== 'camradar-secret-sync-token-2026') {
         wp_send_json_error(array('message' => 'Unauthorized'), 401);
     }
-    $raw    = file_get_contents('php://input');
-    $params = json_decode($raw, true);
+    // application/x-www-form-urlencoded 의 campaigns_json 필드(JSON 문자열)로 전달받음
+    $json   = isset($_POST['campaigns_json']) ? wp_unslash($_POST['campaigns_json']) : '';
+    $params = json_decode($json, true);
     if (!isset($params['campaigns']) || !is_array($params['campaigns'])) {
         wp_send_json_error(array('message' => 'Invalid campaigns array'), 400);
     }
@@ -530,6 +650,52 @@ function camradar_handle_sync_campaigns($request) {
     return new WP_REST_Response(camradar_do_sync($params['campaigns']), 200);
 }
 
+// 9-1. 간편로그인/간편회원가입 공용 버튼 — 로그인·회원가입 화면에서 동일하게 사용
+//      (가입에 사용한 플랫폼 그대로 다음에도 로그인이 이어짐: camradar-social-login.php의 csl_login_or_register 참고)
+function camradar_social_button_html($provider, $suffix = ' 로그인') {
+    $map = [
+        'google' => [
+            'label' => '구글',
+            'class' => 'bg-white hover:bg-gray-100 text-gray-900',
+            'icon'  => '<svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.48 14.99 1 12 1 7.35 1 3.39 3.65 1.5 7.5l3.88 3c.92-2.76 3.51-4.46 6.62-4.46z"/><path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.27H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.89c2.18-2.01 3.7-4.99 3.7-8.71z"/><path fill="#FBBC05" d="M5.38 10.5C5.12 11.27 5 12.09 5 12.5s.12 1.23.38 2l-3.88 3C.56 16.03 0 14.32 0 12.5s.56-3.53 1.5-5l3.88 3z"/><path fill="#34A853" d="M12 23c3.24 0 5.97-1.09 7.96-2.96l-3.73-2.89c-1.1.74-2.5 1.18-4.23 1.18-3.11 0-5.7-1.7-6.62-4.46l-3.88 3C3.39 20.35 7.35 23 12 23z"/></svg>',
+            'style' => '',
+        ],
+        'kakao' => [
+            'label' => '카카오',
+            'class' => 'bg-[#FEE500] hover:bg-[#FDD800] text-[#191919]',
+            'icon'  => '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.68 2.531-.777 2.92-.122.493.178.487.375.357.155-.102 2.47-1.677 3.473-2.353C10.85 17.15 11.42 17.23 12 17.23c4.97 0 9-3.185 9-7.115S16.97 3 12 3z"/></svg>',
+            'style' => '',
+        ],
+        'naver' => [
+            'label' => '네이버',
+            'class' => '',
+            'icon'  => '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="white"><path d="M16.27 12.87L7.5 0H0v24h7.73V11.13L16.5 24H24V0h-7.73z"/></svg>',
+            'style' => 'background:#03C75A;color:#fff;',
+        ],
+    ];
+    if (!isset($map[$provider])) return '';
+    $p = $map[$provider];
+    $url = home_url('/camradar-oauth/' . $provider . '/start/');
+    return '<a href="' . esc_url($url) . '" class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition w-full ' . esc_attr($p['class']) . '"' . ($p['style'] ? ' style="' . esc_attr($p['style']) . '"' : '') . '>'
+         . $p['icon'] . esc_html($p['label'] . $suffix) . '</a>';
+}
+
+// 9-2. 사업자(광고주) 회원가입 유도 카드 — 작은 텍스트 링크 대신 눈에 띄는 큰 카드로 노출
+function camradar_business_cta_html() {
+    ob_start(); ?>
+    <a href="<?php echo esc_url(home_url('/business-register/')); ?>" class="mt-2 flex items-center justify-between gap-3 p-4 rounded-2xl border border-indigo-400/40 bg-indigo-500/10 hover:bg-indigo-500/20 transition group">
+        <div class="flex items-center gap-3 text-left">
+            <span class="w-11 h-11 shrink-0 rounded-xl bg-indigo-600 flex items-center justify-center text-xl">🏢</span>
+            <div>
+                <p class="text-sm font-bold text-white">사업자 · 광고주이신가요?</p>
+                <p class="text-xs text-gray-400 mt-0.5">체험단 캠페인 등록은 사업자 회원가입으로 시작하세요</p>
+            </div>
+        </div>
+        <span class="text-indigo-300 font-bold text-lg group-hover:translate-x-1 transition">→</span>
+    </a>
+    <?php return ob_get_clean();
+}
+
 // 10. 워드프레스 회원가입/로그인 통합 인터페이스 숏코드 [camradar_auth]
 function camradar_auth_shortcode() {
     // 이미 로그인한 사용자 예외 처리
@@ -595,21 +761,20 @@ function camradar_auth_shortcode() {
         <!-- 1. LOGIN FORM -->
         <div id="loginFormSection" class="space-y-5">
             <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold">인플루언서 로그인</h2>
+                <h2 class="text-2xl font-bold">로그인</h2>
                 <p class="text-gray-400 text-sm mt-1">캠레이더의 다양한 혜택과 체험단 모집을 만나보세요.</p>
             </div>
 
+            <!-- 간편로그인/회원가입 안내 + 오류 메시지 배너 -->
+            <div id="authErrorBanner" class="hidden text-left text-xs font-semibold leading-relaxed px-4 py-3 mb-1 rounded-xl bg-red-950/60 text-red-300 border border-red-800"></div>
+
             <!-- Social Login Buttons -->
-            <div class="grid grid-cols-2 gap-4">
-                <a href="<?php echo esc_url(site_url('/wp-login.php?loginSocial=google')); ?>" class="flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-bold text-sm transition">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.48 14.99 1 12 1 7.35 1 3.39 3.65 1.5 7.5l3.88 3c.92-2.76 3.51-4.46 6.62-4.46z"/><path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.27H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.89c2.18-2.01 3.7-4.99 3.7-8.71z"/><path fill="#FBBC05" d="M5.38 10.5C5.12 11.27 5 12.09 5 12.5s.12 1.23.38 2l-3.88 3C.56 16.03 0 14.32 0 12.5s.56-3.53 1.5-5l3.88 3z"/><path fill="#34A853" d="M12 23c3.24 0 5.97-1.09 7.96-2.96l-3.73-2.89c-1.1.74-2.5 1.18-4.23 1.18-3.11 0-5.7-1.7-6.62-4.46l-3.88 3C3.39 20.35 7.35 23 12 23z"/></svg>
-                    구글 로그인
-                </a>
-                <a href="<?php echo esc_url(site_url('/wp-login.php?loginSocial=kakao')); ?>" class="flex items-center justify-center gap-2 py-3 px-4 bg-[#FEE500] hover:bg-[#FDD800] text-[#191919] rounded-xl font-bold text-sm transition">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.68 2.531-.777 2.92-.122.493.178.487.375.357.155-.102 2.47-1.677 3.473-2.353C10.85 17.15 11.42 17.23 12 17.23c4.97 0 9-3.185 9-7.115S16.97 3 12 3z"/></svg>
-                    카카오 로그인
-                </a>
+            <div class="space-y-3">
+                <?php echo camradar_social_button_html('google'); ?>
+                <?php echo camradar_social_button_html('kakao'); ?>
+                <?php echo camradar_social_button_html('naver'); ?>
             </div>
+            <p class="text-center text-2xs text-gray-500">처음 오셨다면 위 버튼으로 바로 가입까지 한 번에 진행돼요. 가입에 사용한 플랫폼으로 계속 로그인하시면 돼요.</p>
 
             <div class="relative flex py-2 items-center">
                 <div class="flex-grow border-t border-gray-700"></div>
@@ -631,6 +796,8 @@ function camradar_auth_shortcode() {
                     로그인하기
                 </button>
             </div>
+
+            <?php echo camradar_business_cta_html(); ?>
         </div>
 
         <!-- 2. REGISTER FORM -->
@@ -646,6 +813,22 @@ function camradar_auth_shortcode() {
 
             <!-- STEP 1: 기본 정보 및 본인인증 -->
             <div id="registerStep1" class="step-content active space-y-4 text-left">
+                <div class="text-center mb-1">
+                    <h3 class="text-sm font-bold text-white">간편 회원가입으로 1초 만에 시작하기</h3>
+                    <p class="text-2xs text-gray-400 mt-1">아래 버튼으로 가입하면 본인인증·SNS 등록 절차 없이<br>기본정보가 자동으로 채워진 화면으로 바로 이동해요.</p>
+                </div>
+                <div class="space-y-3">
+                    <?php echo camradar_social_button_html('google', '(으)로 회원가입'); ?>
+                    <?php echo camradar_social_button_html('kakao', '(으)로 회원가입'); ?>
+                    <?php echo camradar_social_button_html('naver', '(으)로 회원가입'); ?>
+                </div>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-700"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-xs">또는 이메일로 인플루언서 가입</span>
+                    <div class="flex-grow border-t border-gray-700"></div>
+                </div>
+
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">이메일 주소 *</label>
                     <input type="email" id="regEmail" placeholder="name@domain.com" class="w-full px-4 py-3 rounded-xl input-field text-sm">
@@ -659,20 +842,7 @@ function camradar_auth_shortcode() {
                     <input type="text" id="regNickname" placeholder="캠레이더 서포터즈" class="w-full px-4 py-3 rounded-xl input-field text-sm">
                 </div>
                 
-                <!-- Identity Verification -->
-                <div class="p-4 rounded-xl border border-dashed border-gray-600 bg-opacity-20 bg-gray-900 space-y-3">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h4 class="text-sm font-semibold text-white">휴대폰 본인인증 *</h4>
-                            <p class="text-xs text-gray-400 mt-0.5">캠페인 선정을 위한 실명 본인인증이 필수입니다.</p>
-                        </div>
-                        <span id="verificationBadge" class="px-2.5 py-1 rounded-full text-2xs font-bold bg-red-950 text-red-400 border border-red-800">미완료</span>
-                    </div>
-                    <button onclick="triggerWPVerification()" id="verifyBtn" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-xs font-bold transition">
-                        본인인증 진행하기
-                    </button>
-                    <input type="hidden" id="verifiedPhone" value="">
-                </div>
+                <input type="hidden" id="verifiedPhone" value="">
 
                 <button onclick="goToStep2()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold text-sm transition">
                     다음 단계로
@@ -735,6 +905,8 @@ function camradar_auth_shortcode() {
                     </button>
                 </div>
             </div>
+
+            <?php echo camradar_business_cta_html(); ?>
         </div>
 
         <!-- Loading Overlay -->
@@ -745,6 +917,38 @@ function camradar_auth_shortcode() {
     </div>
 
     <script>
+        // 간편로그인 콜백 오류(?error=...) 를 사람이 읽을 수 있는 안내 메시지로 표시
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const err = params.get('error');
+            if (!err) return;
+
+            const messages = {
+                google_not_configured: '구글 간편로그인이 아직 연결 설정 중입니다. 이메일 로그인을 이용해 주세요.',
+                naver_not_configured:  '네이버 간편로그인이 아직 연결 설정 중입니다. 이메일 로그인을 이용해 주세요.',
+                kakao_not_configured:  '카카오 간편로그인이 아직 연결 설정 중입니다. 이메일 로그인을 이용해 주세요.',
+                google_denied:  '구글 로그인 동의가 취소되었습니다. 다시 시도해 주세요.',
+                naver_denied:   '네이버 로그인 동의가 취소되었습니다. 다시 시도해 주세요.',
+                kakao_denied:   '카카오 로그인 동의가 취소되었습니다. 다시 시도해 주세요.',
+                google_token:   '구글 인증 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+                naver_token:    '네이버 인증 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+                kakao_token:    '카카오 인증 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+                no_email:       '간편로그인 계정에서 이메일 정보를 가져오지 못했습니다. 다른 방법으로 가입해 주세요.',
+                create:         '계정 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+            };
+
+            const banner = document.getElementById('authErrorBanner');
+            if (banner) {
+                banner.textContent = '⚠ ' + (messages[err] || '간편로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.');
+                banner.classList.remove('hidden');
+            }
+
+            // 새로고침 시 메시지가 반복 노출되지 않도록 주소에서 error 파라미터 제거
+            const url = new URL(window.location.href);
+            url.searchParams.delete('error');
+            window.history.replaceState({}, document.title, url.toString());
+        })();
+
         let currentAuthTab = 'login';
         let isWPPhoneVerified = false;
         const ajaxUrl = '<?php echo esc_url(admin_url("admin-ajax.php")); ?>';
@@ -925,10 +1129,7 @@ function camradar_auth_shortcode() {
                 alert('비밀번호는 6자 이상으로 입력해 주세요.');
                 return;
             }
-            if (!isWPPhoneVerified) {
-                alert('휴대폰 본인인증은 필수 항목입니다.');
-                return;
-            }
+
 
             document.getElementById('registerStep1').classList.remove('active');
             document.getElementById('registerStep2').classList.add('active');

@@ -9,10 +9,14 @@ const BAD_TITLE_PATTERNS = [
   /^[^\uAC00-\uD7A3a-zA-Z]+$/,
 ]
 
+// 이 접두사로 시작하는 캠페인은 수집 제외 (방문기자단, 방문체험 등 불필요 유형)
+const BAD_PREFIXES = ['방문기자단', '방문체험']
+
 function isValidTitle(title) {
   if (!title) return false
   const t = title.trim()
   if (t.length < 6 || t.length > 200) return false
+  if (BAD_PREFIXES.some(p => t.startsWith(p))) return false
   return !BAD_TITLE_PATTERNS.some(p => p.test(t))
 }
 
@@ -132,32 +136,66 @@ export async function upsertCampaigns(wpUrl, platformName, platformId, campaigns
 
   if (rows.length === 0) return { inserted: 0, skipped: 0 }
 
-  // 워드프레스 동기화 — admin-ajax.php 우선, REST API 폴백
   const token = process.env.WP_SYNC_TOKEN || 'camradar-secret-sync-token-2026';
-  const body  = JSON.stringify({ campaigns: rows });
-  const headers = { 'Content-Type': 'application/json', 'X-CamRadar-Token': token };
+  const ajaxUrl = `${wpUrl}/wp-admin/admin-ajax.php`;
+  const BATCH_SIZE = 40;
 
-  const endpoints = [
-    `${wpUrl}/wp-admin/admin-ajax.php?action=camradar_sync`,
-    `${wpUrl}/wp-json/camradar/v1/sync-campaigns`,
-  ];
+  let totalInserted = 0;
 
-  for (const url of endpoints) {
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    const formBody = new URLSearchParams({
+      action: 'camradar_sync',
+      token,
+      campaigns_json: JSON.stringify({ campaigns: batch }),
+    });
+
+    let ok = false;
     try {
-      const response = await fetch(url, { method: 'POST', headers, body });
+      const response = await fetch(ajaxUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formBody.toString(),
+        signal: AbortSignal.timeout(30000),
+      });
       if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
       const data = await response.json();
       const result = data.data || data;
-      if (result.success) {
-        return { inserted: result.inserted ?? 0, skipped: rows.length - (result.inserted ?? 0) };
+      if (result.inserted !== undefined) {
+        totalInserted += result.inserted;
+        ok = true;
       }
-      throw new Error(data.message || 'Sync failed');
     } catch (error) {
-      console.error(`[${platformName}] 싱크 오류 (${url.includes('admin-ajax') ? 'ajax' : 'rest'}):`, error.message);
-      // 다음 엔드포인트로 폴백
+      console.error(`[${platformName}] 싱크 오류 (ajax): ${error.message}`);
+    }
+
+    if (!ok) {
+      // REST API 폴백
+      try {
+        const restUrl = `${wpUrl}/wp-json/camradar/v1/sync-campaigns`;
+        const response2 = await fetch(restUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CamRadar-Token': token,
+          },
+          body: JSON.stringify({ campaigns: batch }),
+          signal: AbortSignal.timeout(30000),
+        });
+        if (!response2.ok) throw new Error(`HTTP Error: ${response2.status}`);
+        const data2 = await response2.json();
+        if (data2.inserted !== undefined) totalInserted += data2.inserted;
+      } catch (error2) {
+        console.error(`[${platformName}] 싱크 오류 (rest): ${error2.message}`);
+      }
+    }
+
+    if (i + BATCH_SIZE < rows.length) {
+      await new Promise(r => setTimeout(r, 300));
     }
   }
-  return { inserted: 0, skipped: rows.length };
+
+  return { inserted: totalInserted, skipped: rows.length - totalInserted };
 }
 
 export async function fetchWithRetry(url, options = {}, retries = 2) {

@@ -8,10 +8,10 @@ Author URI: https://github.com/kimminju27
 Text Domain: camradar
 */
 
-/* CSS Reset & 기본 다크 모드 indigo 톤앤매너 */
+/* CSS Reset */
 body {
-    background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%) !important;
-    color: #F8FAFC !important;
+    background: #f4f6ff;
+    color: #1e293b;
     font-family: 'Outfit', 'Noto Sans KR', sans-serif;
     min-height: 100vh;
 }
