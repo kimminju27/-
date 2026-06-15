@@ -14,12 +14,12 @@ import { fetchWithRetry, parseNum, detectType } from '../utils.mjs'
  * @param {string} [config.capacitySelector] - 모집수 셀렉터
  * @param {string} [config.deadlineSelector] - 마감일 셀렉터
  * @param {string} [config.pageParam] - 페이지 파라미터 이름 (기본: page)
- * @param {number} [config.maxPages] - 최대 페이지 수 (기본: 3)
+ * @param {number} [config.maxPages] - 최대 페이지 수 (기본: 10)
  */
 export async function genericParse(baseUrl, config) {
   const campaigns = []
   const pageParam = config.pageParam || 'page'
-  const maxPages = config.maxPages || 3
+  const maxPages = config.maxPages || 10
 
   for (let page = 1; page <= maxPages; page++) {
     try {
