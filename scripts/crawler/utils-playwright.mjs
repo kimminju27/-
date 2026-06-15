@@ -87,6 +87,17 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
     // SPA 렌더링 대기 (최소 2초, extraWaitMs 우선)
     await page.waitForTimeout(opts.extraWaitMs || 2000)
 
+    // 인피니티 스크롤 지원: scrollCount 지정 시 반복 스크롤
+    if (opts.scrollCount) {
+      for (let i = 0; i < opts.scrollCount; i++) {
+        const prevHeight = await page.evaluate(() => document.body.scrollHeight)
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+        await page.waitForTimeout(opts.scrollWaitMs || 2000)
+        const newHeight = await page.evaluate(() => document.body.scrollHeight)
+        if (newHeight === prevHeight) break  // 더 이상 로드 없으면 중단
+      }
+    }
+
     const items = await page.evaluate(({keyword, titleSel}) => {
       function extractCardMeta(card) {
         if (!card) return { deadline_text: null, applicants: 0, capacity: null, channel_text: '' }
@@ -270,6 +281,17 @@ export async function playwrightParseHeuristic(url, opts = {}) {
       await page.waitForSelector(opts.waitSelector, { timeout: 12000 }).catch(() => {})
     }
     await page.waitForTimeout(opts.extraWaitMs || 2000)
+
+    // 인피니티 스크롤 지원
+    if (opts.scrollCount) {
+      for (let i = 0; i < opts.scrollCount; i++) {
+        const prevHeight = await page.evaluate(() => document.body.scrollHeight)
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+        await page.waitForTimeout(opts.scrollWaitMs || 2000)
+        const newHeight = await page.evaluate(() => document.body.scrollHeight)
+        if (newHeight === prevHeight) break
+      }
+    }
 
     const origin = new URL(url).origin
     const items = await page.evaluate(({originStr, navWords}) => {
