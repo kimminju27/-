@@ -73,7 +73,7 @@ const PARSERS = {
   '포블로그':          { fn: parseFromblog,        url: 'https://www.from-blog.com/' },
   '리뷰플레이스':      { fn: parseReviewplace,     url: 'https://www.reviewplace.co.kr/' },
   '리뷰의민족':        { fn: parseRemin,           url: 'https://remin.co.kr/' },
-  '블로그랩':          { fn: parseBloglab,         url: 'https://bloglab.kr/' },
+  '블로그랩':          { fn: parseBloglab,         url: 'https://bloglab.kr/campaign_list.php' },
   '메타체험단':        { fn: parseMetachehumdan,   url: 'https://meta-chehumdan.com/campaign_list.php' },
   '오마이블로그':      { fn: parseOhmyblog,        url: 'https://www.ohmyblog.co.kr/' },
 }
