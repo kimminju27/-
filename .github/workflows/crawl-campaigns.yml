@@ -35,6 +35,8 @@ jobs:
         env:
           WP_URL: ${{ secrets.WP_URL }}
           WP_SYNC_TOKEN: ${{ secrets.WP_SYNC_TOKEN }}
+          VULTR_URL: ${{ secrets.VULTR_URL }}
+          VULTR_SYNC_TOKEN: ${{ secrets.VULTR_SYNC_TOKEN }}
           TARGET_PLATFORM: ${{ inputs.platform }}
 
       - name: 크롤링 완료 알림

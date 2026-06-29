@@ -190,6 +190,29 @@ export async function upsertCampaigns(wpUrl, platformName, platformId, campaigns
       }
     }
 
+    // Vultr 체험단레이더로도 전송
+    const vultrUrl = process.env.VULTR_URL;
+    const vultrToken = process.env.VULTR_SYNC_TOKEN;
+    if (vultrUrl && vultrToken) {
+      try {
+        const vRes = await fetch(`${vultrUrl}/api/sync`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CamRadar-Token': vultrToken,
+          },
+          body: JSON.stringify({ campaigns: batch }),
+          signal: AbortSignal.timeout(30000),
+        });
+        if (vRes.ok) {
+          const vData = await vRes.json();
+          console.log(`[${platformName}] Vultr 싱크: ${vData.inserted ?? 0}개 신규`);
+        }
+      } catch (vErr) {
+        console.warn(`[${platformName}] Vultr 싱크 오류 (무시): ${vErr.message}`);
+      }
+    }
+
     if (i + BATCH_SIZE < rows.length) {
       await new Promise(r => setTimeout(r, 300));
     }
