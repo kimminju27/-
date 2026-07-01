@@ -1,7 +1,7 @@
 // 클라우드리뷰 — Playwright, /campaign/detail/ 패턴
 import { playwrightParse } from '../utils-playwright.mjs'
 export async function parse(baseUrl) {
-  const items = await playwrightParse(baseUrl, '/campaign/detail/', { extraWaitMs: 6000 })
+  const items = await playwrightParse(baseUrl, '/campaign/detail/', { extraWaitMs: 6000, scrollCount: 15, scrollWaitMs: 1500 })
   // URL 기준 중복 제거 (같은 캠페인에 <a> 태그가 여러 개인 경우 방지)
   const seenUrls = new Set()
   const seenTitles = new Set()

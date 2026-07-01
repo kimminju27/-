@@ -3,7 +3,7 @@
 import { playwrightParseHeuristic } from '../utils-playwright.mjs'
 
 export async function parse(baseUrl) {
-  const items = await playwrightParseHeuristic(baseUrl, { extraWaitMs: 3000, scrollCount: 5, scrollWaitMs: 1500 })
+  const items = await playwrightParseHeuristic(baseUrl, { extraWaitMs: 3000, scrollCount: 15, scrollWaitMs: 1500 })
   const seen = new Set()
   return items
     .map(c => {

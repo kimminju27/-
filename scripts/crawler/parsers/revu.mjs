@@ -15,7 +15,8 @@ export async function parse(baseUrl) {
   //   </a>
   const items = await playwrightParse(baseUrl, '/campaign/', {
     extraWaitMs: 3000,
-    // dt:nth-child(2) = 두 번째 dt = 실제 제목
+    scrollCount: 15,
+    scrollWaitMs: 1500,
     titleSelector: 'dl dt:nth-child(2)',
   })
 

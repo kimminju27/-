@@ -4,3 +4,4 @@ package-lock.json
 *.log
 2026-*.txt
 2025-*.txt
+conversation-*.txt

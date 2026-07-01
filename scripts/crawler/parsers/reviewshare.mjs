@@ -4,8 +4,8 @@ export async function parse(baseUrl) {
   const r = await playwrightParse(
     'https://reviewshare.io/project',
     '/project/',
-    { extraWaitMs: 2000 }
+    { extraWaitMs: 2000, scrollCount: 15, scrollWaitMs: 1500 }
   )
   if (r.length > 0) return r
-  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 2000 })
+  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 2000, scrollCount: 10, scrollWaitMs: 1500 })
 }

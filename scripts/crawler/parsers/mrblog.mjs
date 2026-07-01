@@ -4,7 +4,7 @@ import { playwrightParse } from '../utils-playwright.mjs'
 export async function parse(baseUrl) {
   return playwrightParse(baseUrl, '/campaigns/', {
     extraWaitMs: 6000,
-    scrollCount: 10,      // 최대 10번 스크롤
+    scrollCount: 20,      // 최대 20번 스크롤
     scrollWaitMs: 2000,   // 스크롤당 2초 대기
   })
 }
