@@ -32,30 +32,70 @@ export function makeHash(platformName, url) {
  */
 function parseDeadlineDate(text) {
   if (!text) return null
-  const dMatch = text.match(/D-(\d+)/i)
+  const t = text.trim()
+  const now = new Date()
+  const yyyy = now.getFullYear()
+
+  // 상시모집 / 상시 → 6개월 후 (삭제 방지)
+  if (/상시\s*모집|상시|always|ongoing/i.test(t)) {
+    const d = new Date(now); d.setMonth(d.getMonth() + 6)
+    return d.toISOString().split('T')[0]
+  }
+  // 오늘 마감 / D-Day
+  if (/오늘\s*마감|D-?Day\s*$|D-0/i.test(t)) {
+    return now.toISOString().split('T')[0]
+  }
+  // D-N (N일 후)
+  const dMatch = t.match(/D-(\d+)/i)
   if (dMatch) {
-    const d = new Date()
-    d.setDate(d.getDate() + parseInt(dMatch[1]))
+    const d = new Date(now); d.setDate(d.getDate() + parseInt(dMatch[1]))
     return d.toISOString().split('T')[0]
   }
-  const dayMatch = text.match(/(\d+)\s*일\s*남음/)
+  // N일 남음
+  const dayMatch = t.match(/(\d+)\s*일\s*남음/)
   if (dayMatch) {
-    const d = new Date()
-    d.setDate(d.getDate() + parseInt(dayMatch[1]))
+    const d = new Date(now); d.setDate(d.getDate() + parseInt(dayMatch[1]))
     return d.toISOString().split('T')[0]
   }
-  // "YYYY.MM.DD ~ YYYY.MM.DD" 범위 형식 → 종료일(마감일) 추출
-  const rangeMatch = text.match(/\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2}\s*[~\-]\s*(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  // "YYYY.MM.DD ~ YYYY.MM.DD" 범위 → 종료일
+  const rangeMatch = t.match(/\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2}\s*[~\-]\s*(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
   if (rangeMatch) return `${rangeMatch[1]}-${rangeMatch[2].padStart(2,'0')}-${rangeMatch[3].padStart(2,'0')}`
-  // "YY.MM.DD~YY.MM.DD일" 2자리 연도 범위 → 종료일 추출 (e.g. 26.04.21~26.04.26일)
-  const shortRangeMatch = text.match(/\d{2}[.\/-]\d{1,2}[.\/-]\d{1,2}\s*[~\-]\s*(\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  // "YY.MM.DD~YY.MM.DD" 2자리 연도 범위 → 종료일
+  const shortRangeMatch = t.match(/\d{2}[.\/-]\d{1,2}[.\/-]\d{1,2}\s*[~\-]\s*(\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
   if (shortRangeMatch) return `20${shortRangeMatch[1]}-${shortRangeMatch[2].padStart(2,'0')}-${shortRangeMatch[3].padStart(2,'0')}`
-  // 단일 YYYY-MM-DD 또는 YYYY.MM.DD
-  const dateMatch = text.match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  // 단일 YYYY.MM.DD
+  const dateMatch = t.match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
   if (dateMatch) return `${dateMatch[1]}-${dateMatch[2].padStart(2,'0')}-${dateMatch[3].padStart(2,'0')}`
   // 단일 YY.MM.DD (2자리 연도)
-  const shortDateMatch = text.match(/^(\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
+  const shortDateMatch = t.match(/^(\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})/)
   if (shortDateMatch) return `20${shortDateMatch[1]}-${shortDateMatch[2].padStart(2,'0')}-${shortDateMatch[3].padStart(2,'0')}`
+  // "N월 M일" 한국어 형식 → 올해 or 내년
+  const krMonthDay = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/)
+  if (krMonthDay) {
+    const m = parseInt(krMonthDay[1]), day = parseInt(krMonthDay[2])
+    let year = yyyy
+    const candidate = new Date(year, m - 1, day)
+    if (candidate < now) year += 1  // 이미 지난 날짜면 내년으로
+    return `${year}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+  }
+  // "~MM/DD" or "~M.DD" 형식 (마감일만 표시)
+  const shortMD = t.match(/[~\-까지]\s*(\d{1,2})[\/.](\d{1,2})/)
+  if (shortMD) {
+    const m = parseInt(shortMD[1]), day = parseInt(shortMD[2])
+    let year = yyyy
+    const candidate = new Date(year, m - 1, day)
+    if (candidate < now) year += 1
+    return `${year}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+  }
+  // "MM/DD" or "MM.DD" 단독 (연도 없음)
+  const mdOnly = t.match(/^(\d{1,2})[\/.](\d{1,2})$/)
+  if (mdOnly) {
+    const m = parseInt(mdOnly[1]), day = parseInt(mdOnly[2])
+    let year = yyyy
+    const candidate = new Date(year, m - 1, day)
+    if (candidate < now) year += 1
+    return `${year}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+  }
   return null
 }
 

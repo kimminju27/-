@@ -101,11 +101,29 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
     const items = await page.evaluate(({keyword, titleSel}) => {
       function extractCardMeta(card) {
         if (!card) return { deadline_text: null, applicants: 0, capacity: null, channel_text: '' }
-        // 마감일
+        // 마감일 — 1) 전용 클래스 엘리먼트 우선
         const ddEl = card.querySelector(
-          '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"]'
+          '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"],[class*="close"],[class*="limit"],[class*="마감"],[class*="기간"]'
         )
-        const deadline_text = ddEl ? ddEl.textContent.trim().slice(0, 30) : null
+        let deadline_text = ddEl ? ddEl.textContent.trim().slice(0, 40) : null
+        // 2) 폴백: 카드 전체 텍스트에서 날짜/D-N 패턴 직접 탐지
+        if (!deadline_text) {
+          const cardText = card.innerText || ''
+          const patterns = [
+            /D-\d+/i,
+            /\d+\s*일\s*남음/,
+            /오늘\s*마감/,
+            /상시\s*모집/,
+            /\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2}/,
+            /\d{2}[.\/-]\d{1,2}[.\/-]\d{1,2}/,
+            /\d{1,2}월\s*\d{1,2}일/,
+            /[~까지]\s*\d{1,2}[\/\.]\d{1,2}/,
+          ]
+          for (const p of patterns) {
+            const m = cardText.match(p)
+            if (m) { deadline_text = m[0].trim().slice(0, 40); break }
+          }
+        }
         // 신청인원 ("신청4/10명" → 4, "4명" → 4)
         const apEl = card.querySelector(
           '[class*="apply"],[class*="applicant"],[class*="count"],[class*="people"],[class*="participant"],[class*="join"]'
@@ -321,9 +339,26 @@ export async function playwrightParseHeuristic(url, opts = {}) {
       function extractCardMeta(card) {
         if (!card) return { deadline_text: null, applicants: 0, capacity: null, channel_text: '' }
         const ddEl = card.querySelector(
-          '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"]'
+          '[class*="dday"],[class*="d-day"],[class*="remain"],[class*="deadline"],[class*="expire"],[class*="due"],[class*="period"],[class*="date"],[class*="day"],[class*="end"],[class*="close"],[class*="limit"],[class*="마감"],[class*="기간"]'
         )
-        const deadline_text = ddEl ? ddEl.textContent.trim().slice(0, 30) : null
+        let deadline_text = ddEl ? ddEl.textContent.trim().slice(0, 40) : null
+        if (!deadline_text) {
+          const cardText = card.innerText || ''
+          const patterns = [
+            /D-\d+/i,
+            /\d+\s*일\s*남음/,
+            /오늘\s*마감/,
+            /상시\s*모집/,
+            /\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2}/,
+            /\d{2}[.\/-]\d{1,2}[.\/-]\d{1,2}/,
+            /\d{1,2}월\s*\d{1,2}일/,
+            /[~까지]\s*\d{1,2}[\/\.]\d{1,2}/,
+          ]
+          for (const p of patterns) {
+            const m = cardText.match(p)
+            if (m) { deadline_text = m[0].trim().slice(0, 40); break }
+          }
+        }
         const apEl = card.querySelector(
           '[class*="apply"],[class*="applicant"],[class*="count"],[class*="people"],[class*="participant"],[class*="join"]'
         )
