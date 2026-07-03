@@ -10,7 +10,7 @@ export async function parse(baseUrl) {
     const campaigns = []
     const origin = new URL(baseUrl).origin
 
-    for (let page = 1; page <= 10; page++) {
+    for (let page = 1; page <= 30; page++) {
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`
       const res = await fetchWithRetry(url)
       const html = await res.text()

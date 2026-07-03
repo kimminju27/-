@@ -8,6 +8,6 @@ export async function parse(url) {
     applicantsSelector: '[class*="apply"], [class*="count"]',
     capacitySelector: '[class*="limit"], [class*="total"]',
     deadlineSelector: '[class*="day"], .deadline',
-    maxPages: 10,
+    maxPages: 30,
   })
 }

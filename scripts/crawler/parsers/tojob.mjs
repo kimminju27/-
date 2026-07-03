@@ -6,7 +6,7 @@ const BOARD_URL = 'https://www.tojobcn.com/bbs/board.php?bo_table=blog_go'
 
 export async function parse(_baseUrl) {
   const campaigns = []
-  for (let page = 1; page <= 10; page++) {
+  for (let page = 1; page <= 30; page++) {
     try {
       const url = page === 1 ? BOARD_URL : `${BOARD_URL}&page=${page}`
       const res = await fetchWithRetry(url)

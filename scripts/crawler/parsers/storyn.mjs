@@ -10,7 +10,7 @@ export async function parse(baseUrl) {
 export async function parseCpId(baseUrl, name, hrefKey) {
   const campaigns = []
   const origin = new URL(baseUrl).origin
-  for (let page = 1; page <= 10; page++) {
+  for (let page = 1; page <= 30; page++) {
     try {
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`
       const res = await fetchWithRetry(url)

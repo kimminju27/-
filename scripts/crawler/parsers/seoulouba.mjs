@@ -7,7 +7,7 @@ export async function parse(baseUrl) {
   // 1차: 정적 fetch 시도
   try {
     const campaigns = []
-    for (let page = 1; page <= 10; page++) {
+    for (let page = 1; page <= 30; page++) {
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`
       const res = await fetchWithRetry(url)
       const html = await res.text()
@@ -47,8 +47,12 @@ export async function parse(baseUrl) {
   } catch (_) {}
 
   // 2차: Playwright 폴백 (fetch 차단 시)
-  const r = await playwrightParse(baseUrl, 'campaign/?c=', { extraWaitMs: 4000 })
+  const r = await playwrightParse(baseUrl, 'campaign/?c=', {
+    extraWaitMs: 4000, scrollCount: 20, scrollWaitMs: 1500,
+  })
   if (r.length > 0) return r
-  return playwrightParseHeuristic(baseUrl, { extraWaitMs: 4000 })
+  return playwrightParseHeuristic(baseUrl, {
+    extraWaitMs: 4000, scrollCount: 20, scrollWaitMs: 1500,
+  })
 }
 
