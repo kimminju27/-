@@ -2,7 +2,6 @@
 import { playwrightParseHeuristic } from '../utils-playwright.mjs'
 export async function parse(baseUrl) {
   return playwrightParseHeuristic('https://remin.co.kr/category/campaignlist', {
-    extraWaitMs: 3000,
-    gotoTimeout: 12000,
+    extraWaitMs: 3000, scrollCount: 15, scrollWaitMs: 1500, gotoTimeout: 12000,
   })
 }

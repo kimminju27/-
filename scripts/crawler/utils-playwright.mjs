@@ -74,6 +74,32 @@ async function blockResources(page) {
   })
 }
 
+// "더보기" 버튼 자동 클릭 시도 — 스크롤로 더 안 로드될 때 호출
+async function clickLoadMore(page) {
+  const selectors = [
+    'button:has-text("더보기")', 'a:has-text("더보기")',
+    'button:has-text("더 보기")', 'a:has-text("더 보기")',
+    'button:has-text("MORE")', 'a:has-text("MORE")',
+    'button:has-text("more")', 'a:has-text("more")',
+    'button:has-text("다음")', 'a:has-text("다음")',
+    '[class*="loadmore"]', '[class*="load-more"]',
+    '[class*="more-btn"]', '[class*="btn-more"]',
+    '#loadmore', '#load-more', '.load-more', '.loadmore',
+  ]
+  for (const sel of selectors) {
+    try {
+      const btn = page.locator(sel).first()
+      const visible = await btn.isVisible({ timeout: 800 }).catch(() => false)
+      if (visible) {
+        await btn.scrollIntoViewIfNeeded().catch(() => {})
+        await btn.click({ timeout: 3000 })
+        return true
+      }
+    } catch { /* 해당 셀렉터 없으면 다음 시도 */ }
+  }
+  return false
+}
+
 export async function playwrightParse(url, hrefKeyword, opts = {}) {
   const br = await getBrowser()
   const page = await br.newPage()
@@ -87,14 +113,19 @@ export async function playwrightParse(url, hrefKeyword, opts = {}) {
     // SPA 렌더링 대기 (최소 2초, extraWaitMs 우선)
     await page.waitForTimeout(opts.extraWaitMs || 2000)
 
-    // 인피니티 스크롤 지원: scrollCount 지정 시 반복 스크롤
+    // 인피니티 스크롤 + 더보기 버튼 지원
     if (opts.scrollCount) {
       for (let i = 0; i < opts.scrollCount; i++) {
         const prevHeight = await page.evaluate(() => document.body.scrollHeight)
         await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
         await page.waitForTimeout(opts.scrollWaitMs || 2000)
         const newHeight = await page.evaluate(() => document.body.scrollHeight)
-        if (newHeight === prevHeight) break  // 더 이상 로드 없으면 중단
+        if (newHeight === prevHeight) {
+          // 스크롤로 더 안 로드되면 "더보기" 버튼 시도
+          const clicked = await clickLoadMore(page)
+          if (!clicked) break
+          await page.waitForTimeout(opts.scrollWaitMs || 2000)
+        }
       }
     }
 
@@ -300,14 +331,18 @@ export async function playwrightParseHeuristic(url, opts = {}) {
     }
     await page.waitForTimeout(opts.extraWaitMs || 2000)
 
-    // 인피니티 스크롤 지원
+    // 인피니티 스크롤 + 더보기 버튼 지원
     if (opts.scrollCount) {
       for (let i = 0; i < opts.scrollCount; i++) {
         const prevHeight = await page.evaluate(() => document.body.scrollHeight)
         await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
         await page.waitForTimeout(opts.scrollWaitMs || 2000)
         const newHeight = await page.evaluate(() => document.body.scrollHeight)
-        if (newHeight === prevHeight) break
+        if (newHeight === prevHeight) {
+          const clicked = await clickLoadMore(page)
+          if (!clicked) break
+          await page.waitForTimeout(opts.scrollWaitMs || 2000)
+        }
       }
     }
 

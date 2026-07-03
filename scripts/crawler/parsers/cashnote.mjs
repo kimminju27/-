@@ -4,6 +4,6 @@ export async function parse(baseUrl) {
   return playwrightParse(
     'https://place.cashnote.kr/influence',
     '/influence/campaigns/',
-    { extraWaitMs: 2000 }
+    { extraWaitMs: 3000, scrollCount: 15, scrollWaitMs: 1500 }
   )
 }

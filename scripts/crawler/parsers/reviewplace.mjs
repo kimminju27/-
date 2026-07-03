@@ -1,13 +1,18 @@
-import { genericParse } from './_generic.mjs'
-export async function parse(url) {
-  return genericParse(url, {
-    listSelector: '.campaign-list li, .list li, .item, article',
-    titleSelector: '[class*="title"], h3, h4',
-    linkSelector: 'a',
-    typeSelector: '[class*="type"], .channel',
-    applicantsSelector: '[class*="apply"], [class*="count"]',
-    capacitySelector: '[class*="limit"], [class*="total"]',
-    deadlineSelector: '[class*="day"], .deadline',
-    maxPages: 10,
+// 리뷰플레이스 — Playwright (SPA 가능성)
+import { playwrightParse, playwrightParseHeuristic } from '../utils-playwright.mjs'
+
+export async function parse(baseUrl) {
+  let items = await playwrightParse(baseUrl, '/campaign/', {
+    extraWaitMs: 3000, scrollCount: 15, scrollWaitMs: 1500,
+  })
+  if (items.length > 0) return items
+
+  items = await playwrightParse(baseUrl, '/review/', {
+    extraWaitMs: 3000, scrollCount: 15, scrollWaitMs: 1500,
+  })
+  if (items.length > 0) return items
+
+  return playwrightParseHeuristic(baseUrl, {
+    extraWaitMs: 3000, scrollCount: 15, scrollWaitMs: 1500,
   })
 }

@@ -2,5 +2,7 @@
 import { playwrightParse } from '../utils-playwright.mjs'
 
 export async function parse(baseUrl) {
-  return playwrightParse(baseUrl, '/productDetail.apsl', { extraWaitMs: 4000 })
+  return playwrightParse(baseUrl, '/productDetail.apsl', {
+    extraWaitMs: 4000, scrollCount: 15, scrollWaitMs: 1500,
+  })
 }

@@ -51,5 +51,7 @@ export async function parse(baseUrl) {
   } catch (_) {}
 
   // 2차: Playwright 폴백
-  return playwrightParse(baseUrl, 'review_campaign.php?cp_id=', { extraWaitMs: 6000 })
+  return playwrightParse(baseUrl, 'review_campaign.php?cp_id=', {
+    extraWaitMs: 6000, scrollCount: 10, scrollWaitMs: 1500,
+  })
 }
