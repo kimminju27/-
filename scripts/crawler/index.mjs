@@ -38,6 +38,10 @@ import { parse as parseReviewting } from './parsers/reviewting.mjs'
 import { parse as parseXnChehumdan } from './parsers/xn-chehumdan.mjs'
 import { parse as parseXnBlogchehumdan } from './parsers/xn-blogchehumdan.mjs'
 import { parse as parseXnReviewmoeum } from './parsers/xn-reviewmoeum.mjs'
+import { parse as parseSocialtargus } from './parsers/socialtargus.mjs'
+import { parse as parseHelloreview } from './parsers/helloreview.mjs'
+import { parse as parseOpenreview } from './parsers/openreview.mjs'
+import { parse as parseReviewplus } from './parsers/reviewplus.mjs'
 
 // 플랫폼명 → 파서 함수 매핑
 const PARSERS = {
@@ -76,6 +80,10 @@ const PARSERS = {
   '블로그랩':          { fn: parseBloglab,         url: 'https://bloglab.kr/campaign_list.php' },
   '메타체험단':        { fn: parseMetachehumdan,   url: 'https://meta-chehumdan.com/campaign_list.php' },
   '오마이블로그':      { fn: parseOhmyblog,        url: 'https://www.ohmyblog.co.kr/' },
+  '소셜타거스':        { fn: parseSocialtargus,    url: 'https://www.socialtargus.com/campaign' },
+  '헬로우리뷰':        { fn: parseHelloreview,     url: 'https://www.helloreview.net/' },
+  '오픈리뷰':          { fn: parseOpenreview,      url: 'https://openreview.kr/' },
+  '리뷰플러스':        { fn: parseReviewplus,      url: 'https://reviewadd.co.kr/' },
 }
 
 // 워드프레스 사이트 주소 (환경 변수 또는 기본값)
